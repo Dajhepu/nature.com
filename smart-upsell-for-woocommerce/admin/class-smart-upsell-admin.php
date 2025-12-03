@@ -59,6 +59,7 @@ class Smart_Upsell_Admin {
      * @since    1.0.0
      */
     public function enqueue_styles() {
+        wp_enqueue_style( 'wp-color-picker' );
         // Enqueue admin-specific stylesheets here.
     }
 
@@ -72,6 +73,11 @@ class Smart_Upsell_Admin {
 
         if ( ( 'post.php' == $hook || 'post-new.php' == $hook ) && 'smart_upsell_rule' == $post->post_type ) {
             wp_enqueue_script( 'wc-product-search' );
+        }
+
+        if ( 'smart-upsells_page_smart-upsell-for-woocommerce-settings' == $hook ) {
+            wp_enqueue_script( 'wp-color-picker' );
+            wp_enqueue_script( $this->plugin_name . '-admin-settings', plugin_dir_url( __FILE__ ) . 'js/smart-upsell-admin-settings.js', array( 'wp-color-picker' ), $this->version, false );
         }
     }
 
@@ -119,6 +125,112 @@ class Smart_Upsell_Admin {
     }
 
     /**
+     * Register the settings.
+     *
+     * @since    1.0.0
+     */
+    public function register_settings() {
+        register_setting( 'smart_upsell_settings', 'smart_upsell_settings', array( $this, 'sanitize_settings' ) );
+
+        add_settings_section(
+            'smart_upsell_popup_settings',
+            __( 'Popup Settings', 'smart-upsell-for-woocommerce' ),
+            null,
+            'smart_upsell_settings'
+        );
+
+        add_settings_field(
+            'popup_title',
+            __( 'Popup Title', 'smart-upsell-for-woocommerce' ),
+            array( $this, 'render_settings_field' ),
+            'smart_upsell_settings',
+            'smart_upsell_popup_settings',
+            array(
+                'type'  => 'text',
+                'id'    => 'popup_title',
+                'name'  => 'popup_title',
+                'label_for' => 'popup_title',
+                'default' => __( 'Don\'t miss this exclusive offer!', 'smart-upsell-for-woocommerce' ),
+            )
+        );
+
+        add_settings_field(
+            'popup_bg_color',
+            __( 'Popup Background Color', 'smart-upsell-for-woocommerce' ),
+            array( $this, 'render_settings_field' ),
+            'smart_upsell_settings',
+            'smart_upsell_popup_settings',
+            array(
+                'type'  => 'color',
+                'id'    => 'popup_bg_color',
+                'name'  => 'popup_bg_color',
+                'label_for' => 'popup_bg_color',
+                'default' => '#ffffff',
+            )
+        );
+
+        add_settings_field(
+            'popup_button_color',
+            __( 'Popup Button Color', 'smart-upsell-for-woocommerce' ),
+            array( $this, 'render_settings_field' ),
+            'smart_upsell_settings',
+            'smart_upsell_popup_settings',
+            array(
+                'type'  => 'color',
+                'id'    => 'popup_button_color',
+                'name'  => 'popup_button_color',
+                'label_for' => 'popup_button_color',
+                'default' => '#0073aa',
+            )
+        );
+    }
+
+    /**
+     * Render a settings field.
+     *
+     * @since    1.0.0
+     * @param    array    $args    The field arguments.
+     */
+    public function render_settings_field( $args ) {
+        $options = get_option( 'smart_upsell_settings' );
+        $value = isset( $options[ $args['name'] ] ) ? $options[ $args['name'] ] : $args['default'];
+
+        switch ( $args['type'] ) {
+            case 'text':
+                echo '<input type="text" id="' . esc_attr( $args['id'] ) . '" name="smart_upsell_settings[' . esc_attr( $args['name'] ) . ']" value="' . esc_attr( $value ) . '" class="regular-text">';
+                break;
+            case 'color':
+                echo '<input type="text" id="' . esc_attr( $args['id'] ) . '" name="smart_upsell_settings[' . esc_attr( $args['name'] ) . ']" value="' . esc_attr( $value ) . '" class="wp-color-picker-field">';
+                break;
+        }
+    }
+
+    /**
+     * Sanitize the settings.
+     *
+     * @since    1.0.0
+     * @param    array    $input    The input data.
+     * @return   array    The sanitized data.
+     */
+    public function sanitize_settings( $input ) {
+        $new_input = array();
+
+        if ( isset( $input['popup_title'] ) ) {
+            $new_input['popup_title'] = sanitize_text_field( $input['popup_title'] );
+        }
+
+        if ( isset( $input['popup_bg_color'] ) ) {
+            $new_input['popup_bg_color'] = sanitize_hex_color( $input['popup_bg_color'] );
+        }
+
+        if ( isset( $input['popup_button_color'] ) ) {
+            $new_input['popup_button_color'] = sanitize_hex_color( $input['popup_button_color'] );
+        }
+
+        return $new_input;
+    }
+
+    /**
      * Render the basic plugin setup page.
      *
      * @since    1.0.0
@@ -133,6 +245,18 @@ class Smart_Upsell_Admin {
      * @since    1.0.0
      */
     public function display_settings_page() {
+        ?>
+        <div class="wrap">
+            <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+            <form action="options.php" method="post">
+                <?php
+                settings_fields( 'smart_upsell_settings' );
+                do_settings_sections( 'smart_upsell_settings' );
+                submit_button();
+                ?>
+            </form>
+        </div>
+        <?php
         echo "<h1>Settings Page</h1>";
     }
 
@@ -145,6 +269,7 @@ class Smart_Upsell_Admin {
         $impressions = $this->get_stats_by_event_type( 'impression' );
         $clicks = $this->get_stats_by_event_type( 'click' );
         $conversion_rate = $this->get_conversion_rate( $impressions, $clicks );
+        $total_revenue = $this->get_total_revenue();
 
         require_once 'partials/smart-upsell-for-woocommerce-analytics-display.php';
     }
@@ -180,6 +305,20 @@ class Smart_Upsell_Admin {
         }
 
         return round( ( $clicks / $impressions ) * 100, 2 );
+    }
+
+    /**
+     * Get the total revenue.
+     *
+     * @since    1.0.0
+     * @return   float  The total revenue.
+     */
+    private function get_total_revenue() {
+        global $wpdb;
+
+        $total_revenue = $wpdb->get_var( "SELECT SUM(meta_value) FROM $wpdb->postmeta WHERE meta_key = '_revenue'" );
+
+        return $total_revenue;
     }
 
     /**
@@ -273,6 +412,14 @@ class Smart_Upsell_Admin {
             </select>
         </p>
         <p>
+            <label for="trigger_type"><?php esc_html_e( 'Trigger Type', 'smart-upsell-for-woocommerce' ); ?></label>
+            <select name="trigger_type" id="trigger_type">
+                <?php $trigger_type = get_post_meta( $post->ID, '_trigger_type', true ); ?>
+                <option value="product" <?php selected( $trigger_type, 'product' ); ?>><?php esc_html_e( 'Specific Product', 'smart-upsell-for-woocommerce' ); ?></option>
+                <option value="category" <?php selected( $trigger_type, 'category' ); ?>><?php esc_html_e( 'Product Category', 'smart-upsell-for-woocommerce' ); ?></option>
+            </select>
+        </p>
+        <p class="trigger_product_field">
             <label for="trigger_product"><?php esc_html_e( 'Trigger Product', 'smart-upsell-for-woocommerce' ); ?></label>
             <select class="wc-product-search" name="trigger_product" id="trigger_product" data-placeholder="<?php esc_attr_e( 'Search for a product…', 'smart-upsell-for-woocommerce' ); ?>" data-action="woocommerce_json_search_products_and_variations" data-multiple="false">
                 <?php
@@ -286,6 +433,34 @@ class Smart_Upsell_Admin {
                 ?>
             </select>
         </p>
+        <p class="trigger_category_field" style="display:none;">
+            <label for="trigger_category"><?php esc_html_e( 'Trigger Category', 'smart-upsell-for-woocommerce' ); ?></label>
+            <select name="trigger_category" id="trigger_category">
+                <?php
+                $category_id = get_post_meta( $post->ID, '_trigger_category', true );
+                $categories = get_terms( 'product_cat', array( 'hide_empty' => false ) );
+                foreach ( $categories as $category ) {
+                    echo '<option value="' . esc_attr( $category->term_id ) . '" ' . selected( $category_id, $category->term_id, false ) . '>' . esc_html( $category->name ) . '</option>';
+                }
+                ?>
+            </select>
+        </p>
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                function toggleTriggerFields() {
+                    var triggerType = $('#trigger_type').val();
+                    if (triggerType === 'product') {
+                        $('.trigger_product_field').show();
+                        $('.trigger_category_field').hide();
+                    } else {
+                        $('.trigger_product_field').hide();
+                        $('.trigger_category_field').show();
+                    }
+                }
+                toggleTriggerFields();
+                $('#trigger_type').on('change', toggleTriggerFields);
+            });
+        </script>
         <p>
             <label for="upsell_product"><?php esc_html_e( 'Upsell/Cross-sell Product', 'smart-upsell-for-woocommerce' ); ?></label>
             <select class="wc-product-search" name="upsell_product" id="upsell_product" data-placeholder="<?php esc_attr_e( 'Search for a product…', 'smart-upsell-for-woocommerce' ); ?>" data-action="woocommerce_json_search_products_and_variations" data-multiple="false">
@@ -299,6 +474,19 @@ class Smart_Upsell_Admin {
                 }
                 ?>
             </select>
+        </p>
+        <p>
+            <label for="discount_type"><?php esc_html_e( 'Discount Type', 'smart-upsell-for-woocommerce' ); ?></label>
+            <select name="discount_type" id="discount_type">
+                <?php $discount_type = get_post_meta( $post->ID, '_discount_type', true ); ?>
+                <option value="none" <?php selected( $discount_type, 'none' ); ?>><?php esc_html_e( 'None', 'smart-upsell-for-woocommerce' ); ?></option>
+                <option value="percentage" <?php selected( $discount_type, 'percentage' ); ?>><?php esc_html_e( 'Percentage', 'smart-upsell-for-woocommerce' ); ?></option>
+                <option value="fixed" <?php selected( $discount_type, 'fixed' ); ?>><?php esc_html_e( 'Fixed Amount', 'smart-upsell-for-woocommerce' ); ?></option>
+            </select>
+        </p>
+        <p>
+            <label for="discount_amount"><?php esc_html_e( 'Discount Amount', 'smart-upsell-for-woocommerce' ); ?></label>
+            <input type="number" name="discount_amount" id="discount_amount" value="<?php echo esc_attr( get_post_meta( $post->ID, '_discount_amount', true ) ); ?>" step="0.01" />
         </p>
         <?php
     }
@@ -336,6 +524,22 @@ class Smart_Upsell_Admin {
 
         if ( isset( $_POST['upsell_product'] ) ) {
             update_post_meta( $post_id, '_upsell_product', absint( $_POST['upsell_product'] ) );
+        }
+
+        if ( isset( $_POST['discount_type'] ) ) {
+            update_post_meta( $post_id, '_discount_type', sanitize_text_field( $_POST['discount_type'] ) );
+        }
+
+        if ( isset( $_POST['discount_amount'] ) ) {
+            update_post_meta( $post_id, '_discount_amount', sanitize_text_field( $_POST['discount_amount'] ) );
+        }
+
+        if ( isset( $_POST['trigger_type'] ) ) {
+            update_post_meta( $post_id, '_trigger_type', sanitize_text_field( $_POST['trigger_type'] ) );
+        }
+
+        if ( isset( $_POST['trigger_category'] ) ) {
+            update_post_meta( $post_id, '_trigger_category', absint( $_POST['trigger_category'] ) );
         }
     }
 

@@ -14,6 +14,7 @@
             $.post( smart_upsell_ajax.ajax_url, data, function( response ) {
                 if ( response.success ) {
                     $( 'body' ).append( response.data.html );
+                    $( '#smart-upsell-popup .popup-title' ).text( response.data.title );
                     $( '#smart-upsell-popup' ).show();
                 }
             });

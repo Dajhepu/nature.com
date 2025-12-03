@@ -13,6 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div id="smart-upsell-popup" style="display:none;">
     <div class="smart-upsell-popup-content">
+        <h2 class="popup-title"></h2>
+        <div class="product">
+            <?php echo $product->get_image(); ?>
+            <h3><?php echo $product->get_name(); ?></h3>
+            <p class="price"><?php echo $price_html; ?></p>
         <h2><?php echo esc_html__( 'Don\'t miss this exclusive offer!', 'smart-upsell-for-woocommerce' ); ?></h2>
         <div class="product">
             <?php echo $product->get_image(); ?>

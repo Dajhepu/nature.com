@@ -159,6 +159,7 @@ class Smart_Upsell_For_Woocommerce {
         $this->loader->add_action( 'init', $plugin_admin, 'register_rules_cpt' );
         $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_rules_meta_boxes' );
         $this->loader->add_action( 'save_post', $plugin_admin, 'save_rules_meta_box_data' );
+        $this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
 
     }
 
@@ -176,6 +177,7 @@ class Smart_Upsell_For_Woocommerce {
 
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+        $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'add_inline_styles' );
         $this->loader->add_action( 'wp_ajax_get_upsell_offer', $plugin_public, 'get_upsell_offer_ajax_handler' );
         $this->loader->add_action( 'wp_ajax_nopriv_get_upsell_offer', $plugin_public, 'get_upsell_offer_ajax_handler' );
         $this->loader->add_action( 'wp_ajax_add_upsell_to_cart', $plugin_public, 'add_upsell_to_cart_ajax_handler' );
@@ -183,6 +185,9 @@ class Smart_Upsell_For_Woocommerce {
         $this->loader->add_action( 'woocommerce_before_checkout_form', $plugin_public, 'display_cross_sell_products' );
         $this->loader->add_action( 'wp_ajax_add_cross_sell_to_order', $plugin_public, 'add_cross_sell_to_order_ajax_handler' );
         $this->loader->add_action( 'wp_ajax_nopriv_add_cross_sell_to_order', $plugin_public, 'add_cross_sell_to_order_ajax_handler' );
+        $this->loader->add_action( 'woocommerce_before_calculate_totals', $plugin_public, 'apply_discount', 10, 1 );
+        $this->loader->add_action( 'woocommerce_checkout_create_order_line_item', $plugin_public, 'add_custom_meta_to_order_item', 10, 4 );
+        $this->loader->add_action( 'woocommerce_checkout_order_processed', $plugin_public, 'track_conversion', 10, 1 );
 
     }
 

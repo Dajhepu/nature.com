@@ -81,6 +81,28 @@ class Smart_Upsell_Public {
     }
 
     /**
+     * Add inline styles to the head.
+     *
+     * @since    1.0.0
+     */
+    public function add_inline_styles() {
+        $options = get_option( 'smart_upsell_settings' );
+        $bg_color = isset( $options['popup_bg_color'] ) ? $options['popup_bg_color'] : '#ffffff';
+        $button_color = isset( $options['popup_button_color'] ) ? $options['popup_button_color'] : '#0073aa';
+
+        $custom_css = "
+            #smart-upsell-popup .smart-upsell-popup-content {
+                background-color: {$bg_color};
+            }
+            #smart-upsell-popup .add-to-cart-upsell {
+                background-color: {$button_color};
+                color: #fff;
+            }
+        ";
+        wp_add_inline_style( $this->plugin_name, $custom_css );
+    }
+
+    /**
      * AJAX handler for getting an upsell offer.
      *
      * @since    1.0.0
@@ -94,6 +116,8 @@ class Smart_Upsell_Public {
 
         $product_id = absint( $_POST['product_id'] );
 
+        $product_categories = wc_get_product_term_ids( $product_id, 'product_cat' );
+
         $args = array(
             'post_type'      => 'smart_upsell_rule',
             'posts_per_page' => 1,
@@ -105,6 +129,17 @@ class Smart_Upsell_Public {
                     'compare' => '=',
                 ),
                 array(
+                    'relation' => 'OR',
+                    array(
+                        'key'     => '_trigger_product',
+                        'value'   => $product_id,
+                        'compare' => '=',
+                    ),
+                    array(
+                        'key'     => '_trigger_category',
+                        'value'   => $product_categories,
+                        'compare' => 'IN',
+                    ),
                     'key'     => '_trigger_product',
                     'value'   => $product_id,
                     'compare' => '=',
@@ -120,6 +155,20 @@ class Smart_Upsell_Public {
             $product = wc_get_product( $upsell_product_id );
 
             if ( $product ) {
+                $discount_type = get_post_meta( get_the_ID(), '_discount_type', true );
+                $discount_amount = get_post_meta( get_the_ID(), '_discount_amount', true );
+                $price_html = $product->get_price_html();
+
+                if ( 'none' !== $discount_type && ! empty( $discount_amount ) ) {
+                    $price = $product->get_price();
+                    if ( 'percentage' === $discount_type ) {
+                        $new_price = $price - ( $price * ( $discount_amount / 100 ) );
+                    } else {
+                        $new_price = $price - $discount_amount;
+                    }
+                    $price_html = wc_format_sale_price( $price, $new_price );
+                }
+
                 ob_start();
                 wc_get_template(
                     'popup-template.php',
@@ -127,16 +176,21 @@ class Smart_Upsell_Public {
                         'product'    => $product,
                         'product_id' => $upsell_product_id,
                         'rule_id'    => get_the_ID(),
+                        'price_html' => $price_html,
                     ),
                     'smart-upsell-for-woocommerce/',
                     plugin_dir_path( __FILE__ ) . 'partials/templates/'
                 );
                 $html = ob_get_clean();
 
+                $options = get_option( 'smart_upsell_settings' );
+                $popup_title = isset( $options['popup_title'] ) ? $options['popup_title'] : __( 'Don\'t miss this exclusive offer!', 'smart-upsell-for-woocommerce' );
+
                 $response = array(
                     'product_id' => $upsell_product_id,
                     'rule_id'    => get_the_ID(),
                     'html'       => $html,
+                    'title'      => $popup_title,
                 );
                 wp_send_json_success( $response );
             }
@@ -162,11 +216,79 @@ class Smart_Upsell_Public {
 
         $this->record_event( $rule_id, 'click' );
 
+        WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'smart_upsell_rule_id' => $rule_id ) );
         WC()->cart->add_to_cart( $product_id );
 
         wp_send_json_success();
 
         wp_die();
+    }
+
+    /**
+     * Apply the discount to the cart item.
+     *
+     * @since    1.0.0
+     * @param    object    $cart    The cart object.
+     */
+    public function apply_discount( $cart ) {
+        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+            return;
+        }
+
+        foreach ( $cart->get_cart() as $cart_item ) {
+            if ( isset( $cart_item['smart_upsell_rule_id'] ) ) {
+                $rule_id = $cart_item['smart_upsell_rule_id'];
+                $discount_type = get_post_meta( $rule_id, '_discount_type', true );
+                $discount_amount = get_post_meta( $rule_id, '_discount_amount', true );
+
+                if ( 'none' !== $discount_type && ! empty( $discount_amount ) ) {
+                    $price = $cart_item['data']->get_price();
+                    if ( 'percentage' === $discount_type ) {
+                        $new_price = $price - ( $price * ( $discount_amount / 100 ) );
+                    } else {
+                        $new_price = $price - $discount_amount;
+                    }
+                    $cart_item['data']->set_price( $new_price );
+                }
+            }
+        }
+    }
+
+    /**
+     * Track the conversion.
+     *
+     * @since    1.0.0
+     * @param    int    $order_id    The order ID.
+     */
+    public function track_conversion( $order_id ) {
+        $order = wc_get_order( $order_id );
+        $items = $order->get_items();
+
+        foreach ( $items as $item ) {
+            $rule_id = wc_get_order_item_meta( $item->get_id(), '_smart_upsell_rule_id', true );
+            if ( $rule_id ) {
+                $current_revenue = get_post_meta( $rule_id, '_revenue', true );
+                if ( empty( $current_revenue ) ) {
+                    $current_revenue = 0;
+                }
+                update_post_meta( $rule_id, '_revenue', $current_revenue + $item->get_total() );
+            }
+        }
+    }
+
+    /**
+     * Add custom meta to order item.
+     *
+     * @since 1.0.0
+     * @param WC_Order_Item_Product $item
+     * @param string $cart_item_key
+     * @param array $values
+     * @param WC_Order $order
+     */
+    public function add_custom_meta_to_order_item( $item, $cart_item_key, $values, $order ) {
+        if ( isset( $values['smart_upsell_rule_id'] ) ) {
+            $item->add_meta_data( '_smart_upsell_rule_id', $values['smart_upsell_rule_id'], true );
+        }
     }
 
     /**
@@ -184,6 +306,8 @@ class Smart_Upsell_Public {
 
         foreach ( $cart as $cart_item ) {
             $product_id = $cart_item['product_id'];
+            $product_categories = wc_get_product_term_ids( $product_id, 'product_cat' );
+
             $args = array(
                 'post_type'      => 'smart_upsell_rule',
                 'posts_per_page' => -1,
@@ -195,6 +319,17 @@ class Smart_Upsell_Public {
                         'compare' => '=',
                     ),
                     array(
+                        'relation' => 'OR',
+                        array(
+                            'key'     => '_trigger_product',
+                            'value'   => $product_id,
+                            'compare' => '=',
+                        ),
+                        array(
+                            'key'     => '_trigger_category',
+                            'value'   => $product_categories,
+                            'compare' => 'IN',
+                        ),
                         'key'     => '_trigger_product',
                         'value'   => $product_id,
                         'compare' => '=',
@@ -224,6 +359,7 @@ class Smart_Upsell_Public {
         echo '<div class="smart-cross-sell-container">';
         echo '<h2>' . esc_html__( 'You might also like...', 'smart-upsell-for-woocommerce' ) . '</h2>';
         foreach ( $cross_sell_products as $rule_id ) {
+            $product_id = get_post_meta( $rule_id, '_upsell_product', true );
             $product_id = get_post_meta( $rule_id, '_cross_sell_product', true );
             $product = wc_get_product( $product_id );
             if ( $product ) {
@@ -256,6 +392,7 @@ class Smart_Upsell_Public {
 
         $this->record_event( $rule_id, 'click' );
 
+        WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'smart_upsell_rule_id' => $rule_id ) );
         WC()->cart->add_to_cart( $product_id );
 
         wp_send_json_success();

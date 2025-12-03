@@ -36,6 +36,10 @@
                 <td><?php esc_html_e( 'Conversion Rate', 'smart-upsell-for-woocommerce' ); ?></td>
                 <td><?php echo esc_html( $conversion_rate ); ?>%</td>
             </tr>
+            <tr class="alternate">
+                <td><?php esc_html_e( 'Total Revenue', 'smart-upsell-for-woocommerce' ); ?></td>
+                <td><?php echo wc_price( $total_revenue ); ?></td>
+            </tr>
         </tbody>
     </table>
 </div>
