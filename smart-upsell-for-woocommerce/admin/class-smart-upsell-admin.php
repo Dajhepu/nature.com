@@ -60,6 +60,7 @@ class Smart_Upsell_Admin {
      */
     public function enqueue_styles() {
         wp_enqueue_style( 'wp-color-picker' );
+        // Enqueue admin-specific stylesheets here.
     }
 
     /**
@@ -256,6 +257,7 @@ class Smart_Upsell_Admin {
             </form>
         </div>
         <?php
+        echo "<h1>Settings Page</h1>";
     }
 
     /**

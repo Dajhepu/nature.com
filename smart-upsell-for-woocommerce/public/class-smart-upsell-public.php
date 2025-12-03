@@ -140,6 +140,9 @@ class Smart_Upsell_Public {
                         'value'   => $product_categories,
                         'compare' => 'IN',
                     ),
+                    'key'     => '_trigger_product',
+                    'value'   => $product_id,
+                    'compare' => '=',
                 ),
             ),
         );
@@ -214,6 +217,7 @@ class Smart_Upsell_Public {
         $this->record_event( $rule_id, 'click' );
 
         WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'smart_upsell_rule_id' => $rule_id ) );
+        WC()->cart->add_to_cart( $product_id );
 
         wp_send_json_success();
 
@@ -326,6 +330,9 @@ class Smart_Upsell_Public {
                             'value'   => $product_categories,
                             'compare' => 'IN',
                         ),
+                        'key'     => '_trigger_product',
+                        'value'   => $product_id,
+                        'compare' => '=',
                     ),
                 ),
             );
@@ -353,6 +360,7 @@ class Smart_Upsell_Public {
         echo '<h2>' . esc_html__( 'You might also like...', 'smart-upsell-for-woocommerce' ) . '</h2>';
         foreach ( $cross_sell_products as $rule_id ) {
             $product_id = get_post_meta( $rule_id, '_upsell_product', true );
+            $product_id = get_post_meta( $rule_id, '_cross_sell_product', true );
             $product = wc_get_product( $product_id );
             if ( $product ) {
                 echo '<div class="smart-cross-sell-product">';
@@ -385,6 +393,7 @@ class Smart_Upsell_Public {
         $this->record_event( $rule_id, 'click' );
 
         WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'smart_upsell_rule_id' => $rule_id ) );
+        WC()->cart->add_to_cart( $product_id );
 
         wp_send_json_success();
 
