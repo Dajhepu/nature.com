@@ -68,6 +68,25 @@
             if ($button) showUpsellPopup($button);
         });
 
+        // METHOD 6: Block Theme Support
+        document.body.addEventListener('wc-blocks_added_to_cart', function(event) {
+            console.log('METHOD 6: wc-blocks_added_to_cart event triggered');
+
+            // For block themes, the product ID is not in the event.
+            // We need to find it in the page's form.
+            var $form = $('form.cart');
+            var product_id = $form.find('input[name="add-to-cart"]').val() ||
+                             $form.find('button[name="add-to-cart"]').val();
+
+            if (product_id) {
+                 // We don't have a real button, so we create a fake one to pass the ID.
+                var $fakeButton = $('<button>').data('product_id', product_id);
+                showUpsellPopup($fakeButton);
+            } else {
+                console.warn('Block theme event fired, but could not find product ID in the form.');
+            }
+        });
+
         // METOD 3: Direct button click listener (ASOSIY YECHIM)
         var lastClickedButton = null;
         var addToCartInProgress = false;
@@ -230,7 +249,7 @@
             }
         });
 
-        console.log('Barcha event listenerlar o\'rnatildi (5 ta method)');
+        console.log('Barcha event listenerlar o\'rnatildi (6 ta method)');
     });
 
 })( jQuery );
