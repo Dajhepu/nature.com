@@ -176,6 +176,41 @@
             }
         }, 500);
 
+        // METHOD 7: MutationObserver Fallback (Eng ishonchli usul)
+        var popupShown = false;
+        $(document.body).on('click', '.single_add_to_cart_button', function() {
+            popupShown = false;
+        });
+
+        var observer = new MutationObserver(function(mutations) {
+            if (popupShown) return;
+
+            for (var i = 0; i < mutations.length; i++) {
+                var addedNodes = mutations[i].addedNodes;
+                for (var j = 0; j < addedNodes.length; j++) {
+                    var node = addedNodes[j];
+                    if (node.nodeType === 1 && $(node).is('.woocommerce-message, .wc-block-components-notice-banner.is-success')) {
+                        console.log('METHOD 7: "Savatga qo\'shildi" xabari paydo bo\'ldi!');
+
+                        var $button = $('.single_add_to_cart_button[value], .add_to_cart_button[data-product_id]').first();
+
+                        if (lastClickedButton) {
+                            $button = lastClickedButton;
+                        }
+
+                        if ($button.length) {
+                            showUpsellPopup($button);
+                            popupShown = true;
+                            observer.disconnect(); // Vazifasi tugagach, kuzatuvchini o'chiramiz
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
         // Popup yopish
         $(document).on('click', '#smart-upsell-popup-wrapper .close-popup, #smart-upsell-popup-wrapper', function(e) {
             if (e.target === this || $(this).hasClass('close-popup')) {
@@ -249,7 +284,7 @@
             }
         });
 
-        console.log('Barcha event listenerlar o\'rnatildi (6 ta method)');
+        console.log('Barcha event listenerlar o\'rnatildi (7 ta method)');
     });
 
 })( jQuery );
