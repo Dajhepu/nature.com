@@ -9,7 +9,6 @@
         // Upsell popupni ko'rsatish funksiyasi
         function showUpsellPopup($button) {
             console.log('=== SHOWING UPSELL POPUP ===');
-            console.log('Button:', $button);
 
             // Remove any existing popups first
             $('#smart-upsell-popup').remove();
@@ -30,13 +29,6 @@
             }
 
             console.log('Product ID topildi:', product_id);
-            console.log('Button attributes:', {
-                'data-product_id': $button.data('product_id'),
-                'attr-data-product_id': $button.attr('data-product_id'),
-                'val': $button.val(),
-                'value attr': $button.attr('value'),
-                'html': $button[0] ? $button[0].outerHTML : 'no element'
-            });
 
             if (!product_id) {
                 console.warn('Product ID topilmadi!');
@@ -61,11 +53,10 @@
                     $('#smart-upsell-popup').css('display', 'flex').hide().fadeIn(300);
                     console.log('Popup ko\'rsatildi');
                 } else {
-                    console.warn('Server error yoki upsell topilmadi:', response.data);
+                    console.warn('Upsell topilmadi yoki xato:', response.data);
                 }
             }).fail(function(xhr, status, error) {
                 console.error('AJAX xatosi:', status, error);
-                console.error('Response:', xhr.responseText);
             });
         }
 
@@ -75,38 +66,104 @@
             if ($button) showUpsellPopup($button);
         });
 
-        // METOD 2: Button click event (direct method for AJAX buttons)
-        var triggeringButton = null;
-        $(document).on('click', '.ajax_add_to_cart', function(e) {
-            console.log('METHOD 2: AJAX Add to cart button clicked');
-            triggeringButton = $(this);
+        // METOD 3: Direct button click listener (ASOSIY YECHIM)
+        var lastClickedButton = null;
+        var addToCartInProgress = false;
+
+        $(document).on('click', '.single_add_to_cart_button, .add_to_cart_button', function(e) {
+            var $button = $(this);
+            console.log('METHOD 3: Add to cart button clicked');
+
+            // Button ma'lumotlarini saqlaymiz
+            lastClickedButton = $button;
+            addToCartInProgress = true;
+
+            console.log('Button saqlab qo\'yildi:', {
+                'product_id': $button.data('product_id') || $button.val(),
+                'class': $button.attr('class')
+            });
         });
 
-        // METOD 3: AJAX complete event (backup)
+        // METOD 4: AJAX Complete listener (MAIN SOLUTION)
         $(document).ajaxComplete(function(event, xhr, settings) {
-            if ( settings.url && ( settings.url.indexOf('add-to-cart') > -1 || (settings.data && settings.data.indexOf('add-to-cart') > -1) ) ) {
-                console.log('METHOD 3: AJAX add-to-cart call detected');
-                if (triggeringButton) {
-                     setTimeout(function() {
-                        showUpsellPopup(triggeringButton);
-                        triggeringButton = null;
+            // Faqat WooCommerce add-to-cart AJAX so'rovlarini tutamiz
+            if (settings.data && typeof settings.data === 'string' &&
+                (settings.data.indexOf('action=woocommerce_add_to_cart') > -1 ||
+                 settings.data.indexOf('add-to-cart=') > -1)) {
+
+                console.log('METHOD 4: WooCommerce AJAX add-to-cart complete');
+
+                // Response success bo'lganini tekshiramiz
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response && !response.error) {
+                        console.log('Cart muvaffaqiyatli yangilandi');
+
+                        // Biroz kutamiz (cart yangilanishi uchun)
+                        setTimeout(function() {
+                            if (lastClickedButton && addToCartInProgress) {
+                                console.log('Upsell popup ko\'rsatilmoqda...');
+                                showUpsellPopup(lastClickedButton);
+                                addToCartInProgress = false;
+                            }
+                        }, 500);
+                    }
+                } catch (e) {
+                    // JSON parse error - maybe not JSON response
+                    console.log('Response JSON emas, upsell ko\'rsatilmoqda...');
+                    if (lastClickedButton && addToCartInProgress) {
+                        setTimeout(function() {
+                            showUpsellPopup(lastClickedButton);
+                            addToCartInProgress = false;
+                        }, 500);
+                    }
+                }
+            }
+
+            // URL parametridagi add-to-cart ni ham tekshiramiz
+            if (settings.url && settings.url.indexOf('add-to-cart=') > -1) {
+                console.log('METHOD 4b: URL-based add-to-cart detected');
+
+                var urlParams = new URLSearchParams(settings.url.split('?')[1]);
+                var product_id = urlParams.get('add-to-cart');
+
+                if (product_id) {
+                    console.log('Product ID URL dan olindi:', product_id);
+                    var $fakeButton = $('<button>').data('product_id', product_id);
+
+                    setTimeout(function() {
+                        showUpsellPopup($fakeButton);
                     }, 500);
                 }
             }
         });
 
+        // METOD 5: Cart count o'zgarganda (alternative)
+        var previousCartCount = $('.cart-contents-count').text();
+
+        setInterval(function() {
+            var currentCartCount = $('.cart-contents-count').text();
+            if (currentCartCount !== previousCartCount && lastClickedButton) {
+                console.log('METHOD 5: Cart count changed');
+                previousCartCount = currentCartCount;
+
+                if (addToCartInProgress) {
+                    console.log('Upsell ko\'rsatilmoqda (cart count trigger)...');
+                    showUpsellPopup(lastClickedButton);
+                    addToCartInProgress = false;
+                }
+            }
+        }, 500);
+
         // Popup yopish
-        $( document ).on( 'click', '#smart-upsell-popup', function(e) {
+        $(document).on('click', '#smart-upsell-popup .close-popup, #smart-upsell-popup', function(e) {
             if (e.target === this) {
                 e.preventDefault();
-                console.log('Popup yopilmoqda (overlay click)...');
-                $(this).fadeOut(300, function() { $(this).remove(); });
+                console.log('Popup yopilmoqda...');
+                $('#smart-upsell-popup').fadeOut(300, function() {
+                    $(this).remove();
+                });
             }
-        });
-         $( document ).on( 'click', '#smart-upsell-popup .close-popup', function(e) {
-             e.preventDefault();
-             console.log('Popup yopilmoqda (close button)...');
-             $('#smart-upsell-popup').fadeOut(300, function() { $(this).remove(); });
         });
 
         // Popup ichki content bosilganda yopilmasligi uchun
@@ -115,18 +172,25 @@
         });
 
         // Upsell qo'shish
-        $( document ).on( 'click', '#smart-upsell-popup .add-to-cart-upsell', function(e) {
+        $(document).on('click', '#smart-upsell-popup .add-to-cart-upsell', function(e) {
             e.preventDefault();
             var $thisbutton = $(this);
             $thisbutton.text('Adding...').prop('disabled', true);
-            var data = { 'action': 'add_offer_to_cart', 'nonce': smart_upsell_ajax.nonce, 'product_id': $thisbutton.data('product-id'), 'rule_id': $thisbutton.data('rule-id') };
+
+            var data = {
+                'action': 'add_offer_to_cart',
+                'nonce': smart_upsell_ajax.nonce,
+                'product_id': $thisbutton.data('product-id'),
+                'rule_id': $thisbutton.data('rule-id')
+            };
+
             $.post( smart_upsell_ajax.ajax_url, data, function( response ) {
                 if (response.success) {
                     $('#smart-upsell-popup').fadeOut(300, function() { $(this).remove(); });
                     $(document.body).trigger('wc_fragment_refresh');
                 } else {
                     $thisbutton.text('Add to Cart & Save!').prop('disabled', false);
-                    alert('Error: Could not add item to cart.');
+                    alert('Error: Unable to add product to cart');
                 }
             }).fail(function() {
                 $thisbutton.text('Add to Cart & Save!').prop('disabled', false);
@@ -135,11 +199,18 @@
         });
 
         // Cross-sell qo'shish
-        $( document ).on( 'click', '.smart-cross-sell-product .add-to-order-cross-sell', function(e) {
+        $(document).on('click', '.smart-cross-sell-product .add-to-order-cross-sell', function(e) {
             e.preventDefault();
             var $thisbutton = $(this);
             $thisbutton.text('Adding...').prop('disabled', true);
-            var data = { 'action': 'add_offer_to_cart', 'nonce': smart_upsell_ajax.nonce, 'product_id': $thisbutton.data('product-id'), 'rule_id': $thisbutton.data('rule-id') };
+
+            var data = {
+                'action': 'add_offer_to_cart',
+                'nonce': smart_upsell_ajax.nonce,
+                'product_id': $thisbutton.data('product-id'),
+                'rule_id': $thisbutton.data('rule-id')
+            };
+
             $.post( smart_upsell_ajax.ajax_url, data, function( response ) {
                 if (response.success) {
                     $(document.body).trigger('update_checkout');
@@ -157,7 +228,7 @@
             }
         });
 
-        console.log('Barcha event listenerlar o\'rnatildi');
+        console.log('Barcha event listenerlar o\'rnatildi (5 ta method)');
     });
 
 })( jQuery );
