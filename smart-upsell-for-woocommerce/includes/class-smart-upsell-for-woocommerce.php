@@ -124,6 +124,7 @@ class Smart_Upsell_For_Woocommerce {
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'add_inline_styles' );
+        $this->loader->add_action( 'wp_footer', $plugin_public, 'render_popup_container' );
         $this->loader->add_action( 'wp_ajax_get_upsell_offer', $plugin_public, 'get_upsell_offer_ajax_handler' );
         $this->loader->add_action( 'wp_ajax_nopriv_get_upsell_offer', $plugin_public, 'get_upsell_offer_ajax_handler' );
         $this->loader->add_action( 'woocommerce_before_checkout_form', $plugin_public, 'display_cross_sell_products' );

@@ -10,8 +10,9 @@
         function showUpsellPopup($button) {
             console.log('=== SHOWING UPSELL POPUP ===');
 
-            // Remove any existing popups first
-            $('#smart-upsell-popup').remove();
+            var $popupWrapper = $('#smart-upsell-popup-wrapper');
+            // Clear previous content
+            $popupWrapper.html('').hide();
 
             // Har xil usulda product ID topish
             var product_id = $button.data('product_id') ||
@@ -47,10 +48,11 @@
                 console.log('AJAX response:', response);
 
                 if ( response.success ) {
-                    console.log('Success! HTML qo\'shilmoqda...');
-                    $('body').append(response.data.html);
-                    $('#smart-upsell-popup .popup-title').text(response.data.title);
-                    $('#smart-upsell-popup').css('display', 'flex').hide().fadeIn(300);
+                    console.log('Success! HTML o\'rnatilmoqda...');
+                    var $popupWrapper = $('#smart-upsell-popup-wrapper');
+                    $popupWrapper.html(response.data.html);
+                    $popupWrapper.find('.popup-title').text(response.data.title);
+                    $popupWrapper.css('display', 'flex').hide().fadeIn(300); // Wrapper ko'rsatiladi
                     console.log('Popup ko\'rsatildi');
                 } else {
                     console.warn('Upsell topilmadi yoki xato:', response.data);
@@ -156,23 +158,23 @@
         }, 500);
 
         // Popup yopish
-        $(document).on('click', '#smart-upsell-popup .close-popup, #smart-upsell-popup', function(e) {
-            if (e.target === this) {
+        $(document).on('click', '#smart-upsell-popup-wrapper .close-popup, #smart-upsell-popup-wrapper', function(e) {
+            if (e.target === this || $(this).hasClass('close-popup')) {
                 e.preventDefault();
                 console.log('Popup yopilmoqda...');
-                $('#smart-upsell-popup').fadeOut(300, function() {
-                    $(this).remove();
+                $('#smart-upsell-popup-wrapper').fadeOut(300, function() {
+                    $(this).html('').hide(); // Konteynerni tozalash va yashirish
                 });
             }
         });
 
         // Popup ichki content bosilganda yopilmasligi uchun
-        $(document).on('click', '#smart-upsell-popup .smart-upsell-popup-content', function(e) {
+        $(document).on('click', '#smart-upsell-popup-wrapper .smart-upsell-popup-content', function(e) {
             e.stopPropagation();
         });
 
         // Upsell qo'shish
-        $(document).on('click', '#smart-upsell-popup .add-to-cart-upsell', function(e) {
+        $(document).on('click', '#smart-upsell-popup-wrapper .add-to-cart-upsell', function(e) {
             e.preventDefault();
             var $thisbutton = $(this);
             $thisbutton.text('Adding...').prop('disabled', true);
@@ -186,7 +188,7 @@
 
             $.post( smart_upsell_ajax.ajax_url, data, function( response ) {
                 if (response.success) {
-                    $('#smart-upsell-popup').fadeOut(300, function() { $(this).remove(); });
+                    $('#smart-upsell-popup-wrapper').fadeOut(300, function() { $(this).html('').hide(); });
                     $(document.body).trigger('wc_fragment_refresh');
                 } else {
                     $thisbutton.text('Add to Cart & Save!').prop('disabled', false);
@@ -224,7 +226,7 @@
         // ESC tugmasi bilan yopish
         $(document).on('keydown', function(e) {
             if (e.key === 'Escape' || e.keyCode === 27) {
-                $('#smart-upsell-popup').fadeOut(300, function() { $(this).remove(); });
+                $('#smart-upsell-popup-wrapper').fadeOut(300, function() { $(this).html('').hide(); });
             }
         });
 

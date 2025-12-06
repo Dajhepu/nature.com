@@ -203,4 +203,8 @@ class Smart_Upsell_Public {
         $table_name = $wpdb->prefix . 'smart_upsell_stats';
         $wpdb->insert( $table_name, [ 'time' => current_time( 'mysql' ), 'offer_id' => $offer_id, 'event_type' => $event_type ] );
     }
+
+    public function render_popup_container() {
+        echo '<div id="smart-upsell-popup-wrapper"></div>';
+    }
 }
