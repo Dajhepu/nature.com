@@ -24,7 +24,7 @@
                 if ( response.success ) {
                     $('body').append(response.data.html);
                     $('#smart-upsell-popup .popup-title').text(response.data.title);
-                    $('#smart-upsell-popup').show();
+                    $('#smart-upsell-popup').css('display', 'flex');
                 }
             });
         });
@@ -40,7 +40,7 @@
             $thisbutton.text('Adding...').prop('disabled', true);
 
             var data = {
-                'action': 'ajax_add_to_cart',
+                'action': 'add_offer_to_cart',
                 'nonce': smart_upsell_ajax.nonce,
                 'product_id': $thisbutton.data('product-id'),
                 'rule_id': $thisbutton.data('rule-id')
@@ -62,7 +62,7 @@
             $thisbutton.text('Adding...').prop('disabled', true);
 
             var data = {
-                'action': 'ajax_add_to_cart',
+                'action': 'add_offer_to_cart',
                 'nonce': smart_upsell_ajax.nonce,
                 'product_id': $thisbutton.data('product-id'),
                 'rule_id': $thisbutton.data('rule-id')

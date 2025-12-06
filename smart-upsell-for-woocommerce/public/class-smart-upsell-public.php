@@ -1,14 +1,7 @@
 <?php
 /**
  * The public-facing functionality of the plugin.
- *
- * @link       https://example.com
- * @since      1.0.0
- *
- * @package    Smart_Upsell_For_Woocommerce
- * @subpackage Smart_Upsell_For_Woocommerce/public
  */
-
 class Smart_Upsell_Public {
 
     private $plugin_name;
@@ -32,11 +25,9 @@ class Smart_Upsell_Public {
         $options = get_option( 'smart_upsell_settings', [] );
         $bg_color = !empty( $options['popup_bg_color'] ) ? $options['popup_bg_color'] : '#ffffff';
         $button_color = !empty( $options['popup_button_color'] ) ? $options['popup_button_color'] : '#0073aa';
-
         $custom_css = "
             #smart-upsell-popup .smart-upsell-popup-content { background-color: {$bg_color}; }
-            #smart-upsell-popup .add-to-cart-upsell { background-color: {$button_color}; color: #fff; border: none; padding: 10px 15px; cursor: pointer; }
-            .smart-cross-sell-product .add-to-order-cross-sell { background-color: {$button_color}; color: #fff; border: none; padding: 8px 12px; cursor: pointer; }
+            #smart-upsell-popup .add-to-cart-upsell, .smart-cross-sell-product .add-to-order-cross-sell { background-color: {$button_color}; color: #fff; border: none; padding: 10px 15px; cursor: pointer; }
         ";
         wp_add_inline_style( $this->plugin_name, $custom_css );
     }
@@ -67,10 +58,11 @@ class Smart_Upsell_Public {
                 wp_send_json_success( [ 'rule_id' => $rule_id, 'html' => $html, 'title' => $popup_title ] );
             }
         }
+        wp_reset_postdata();
         wp_send_json_error();
     }
 
-    public function ajax_add_to_cart() {
+    public function add_offer_to_cart_ajax_handler() {
         check_ajax_referer( 'smart-upsell-nonce', 'nonce' );
         $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
         $rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
@@ -124,7 +116,7 @@ class Smart_Upsell_Public {
             $rules = new WP_Query( $args );
             if ( $rules->have_posts() ) {
                  while ( $rules->have_posts() ) {
-                    $rules->the_post();
+                    the_post();
                     $cross_sell_rules[get_the_ID()] = get_post_meta( get_the_ID(), '_upsell_product', true );
                 }
             }
@@ -147,7 +139,7 @@ class Smart_Upsell_Public {
     private function get_query_args($offer_type, $product_id, $categories) {
         return [
             'post_type' => 'smart_upsell_rule',
-            'posts_per_page' => -1, // We can limit this later
+            'posts_per_page' => -1,
             'meta_query' => [
                 'relation' => 'AND',
                 [ 'key' => '_offer_type', 'value' => $offer_type, 'compare' => '=' ],
