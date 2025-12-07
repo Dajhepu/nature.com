@@ -1,13 +1,4 @@
 <?php
-/**
- * Register all actions and filters for the plugin
- *
- * @link       https://example.com
- * @since      1.0.0
- *
- * @package    Interactive_Discounts
- * @subpackage Interactive_Discounts/includes
- */
 class Interactive_Discounts_Loader {
     protected $actions;
     protected $filters;

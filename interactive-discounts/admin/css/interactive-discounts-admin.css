@@ -1,10 +1,2 @@
-.segment-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.segment-row input,
-.segment-row select {
-    margin-right: 10px;
-}
+.segment-row { display: flex; align-items: center; margin-bottom: 10px; }
+.segment-row input, .segment-row select { margin-right: 10px; }

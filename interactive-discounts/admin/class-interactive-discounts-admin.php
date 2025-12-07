@@ -1,14 +1,4 @@
 <?php
-/**
- * The admin-specific functionality of the plugin.
- *
- * @link       https://example.com
- * @since      1.0.0
- *
- * @package    Interactive_Discounts
- * @subpackage Interactive_Discounts/admin
- */
-
 class Interactive_Discounts_Admin {
 
     private $plugin_name;
@@ -20,26 +10,15 @@ class Interactive_Discounts_Admin {
         $this->version = $version;
     }
 
-    /**
-     * Register the stylesheets for the admin area.
-     * @since    1.0.0
-     */
     public function enqueue_styles() {
         wp_enqueue_style( 'wp-color-picker' );
         wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/interactive-discounts-admin.css', array(), $this->version, 'all' );
     }
 
-    /**
-     * Register the JavaScript for the admin area.
-     * @since    1.0.0
-     */
     public function enqueue_scripts() {
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/interactive-discounts-admin.js', array( 'jquery', 'wp-color-picker' ), $this->version, true );
     }
 
-    /**
-     * Add options page
-     */
     public function add_options_page() {
         add_menu_page(
             __( 'Interactive Discounts Settings', 'interactive-discounts' ),
@@ -51,9 +30,6 @@ class Interactive_Discounts_Admin {
         );
     }
 
-    /**
-     * Options page callback
-     */
     public function create_admin_page() {
         $this->options = get_option( 'id_wheel_settings' );
         ?>
@@ -70,48 +46,16 @@ class Interactive_Discounts_Admin {
         <?php
     }
 
-    /**
-     * Register the settings
-     */
     public function page_init() {
-        register_setting(
-            'id_wheel_option_group',
-            'id_wheel_settings',
-            array( $this, 'sanitize' )
-        );
-
-        add_settings_section(
-            'setting_section_id',
-            __( 'Wheel of Fortune Settings', 'interactive-discounts' ),
-            array( $this, 'print_section_info' ),
-            'interactive-discounts-admin'
-        );
-
-        add_settings_field(
-            'enable_wheel',
-            __( 'Enable Wheel', 'interactive-discounts' ),
-            array( $this, 'enable_wheel_callback' ),
-            'interactive-discounts-admin',
-            'setting_section_id'
-        );
-
-        add_settings_field(
-            'segments',
-            __( 'Wheel Segments', 'interactive-discounts' ),
-            array( $this, 'segments_callback' ),
-            'interactive-discounts-admin',
-            'setting_section_id'
-        );
+        register_setting('id_wheel_option_group', 'id_wheel_settings', array( $this, 'sanitize' ));
+        add_settings_section('setting_section_id', __( 'Wheel of Fortune Settings', 'interactive-discounts' ), array( $this, 'print_section_info' ), 'interactive-discounts-admin');
+        add_settings_field('enable_wheel', __( 'Enable Wheel', 'interactive-discounts' ), array( $this, 'enable_wheel_callback' ), 'interactive-discounts-admin', 'setting_section_id');
+        add_settings_field('segments', __( 'Wheel Segments', 'interactive-discounts' ), array( $this, 'segments_callback' ), 'interactive-discounts-admin', 'setting_section_id');
     }
 
-    /**
-     * Sanitize each setting field as needed
-     */
     public function sanitize( $input ) {
         $new_input = array();
-        if( isset( $input['enable_wheel'] ) )
-            $new_input['enable_wheel'] = absint( $input['enable_wheel'] );
-
+        if( isset( $input['enable_wheel'] ) ) $new_input['enable_wheel'] = absint( $input['enable_wheel'] );
         if( isset( $input['segments'] ) ) {
              $new_input['segments'] = array_map( function($segment) {
                 return [
@@ -122,20 +66,13 @@ class Interactive_Discounts_Admin {
                 ];
              }, $input['segments']);
         }
-
         return $new_input;
     }
 
-    /**
-     * Print the Section text
-     */
     public function print_section_info() {
         esc_html_e( 'Configure the Wheel of Fortune below:', 'interactive-discounts' );
     }
 
-    /**
-     * Get the settings option array and print one of its values
-     */
     public function enable_wheel_callback() {
         printf(
             '<input type="checkbox" id="enable_wheel" name="id_wheel_settings[enable_wheel]" value="1" %s /> <label for="enable_wheel">%s</label>',
@@ -163,8 +100,6 @@ class Interactive_Discounts_Admin {
             <?php endforeach; ?>
         </div>
         <button type="button" id="add_segment_button" class="button"><?php esc_html_e( 'Add Segment', 'interactive-discounts' ); ?></button>
-
-        <!-- Template for new segments -->
         <div class="segment-row segment-template" style="display:none;">
             <input type="text" name="id_wheel_settings[segments][][text]" value="" placeholder="<?php esc_attr_e( 'Segment Text', 'interactive-discounts' ); ?>" />
             <select name="id_wheel_settings[segments][][type]">
