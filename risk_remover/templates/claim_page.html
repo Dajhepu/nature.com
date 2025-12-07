@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approve Customer Offer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .success-message {
+            background-color: #eaf7ec;
+            color: #2ab84d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #a3e0b0;
+        }
+        .cta-box {
+            margin-top: 30px;
+        }
+        .subscribe-button {
+             display: inline-block;
+            margin-top: 20px;
+            background-color: #1877f2;
+            color: #fff;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            transition: background-color 0.3s;
+            font-size: 1.2em;
+        }
+        .subscribe-button:hover {
+            background-color: #166fe5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Unlock Your Revenue Growth!</h1>
+
+        <div class="success-message">
+            <p><strong>Success!</strong> You have approved the offer for your customer (ID: {{ offer_id }}).</p>
+        </div>
+
+        <div class="cta-box">
+            <h2>Ready to turn every customer interaction into profit?</h2>
+            <p class="subtitle">Join <strong>Risk Remover</strong> today to approve all future offers and boost your sales instantly. Start with our "Pay-Per-Use" model – only pay for results.</p>
+
+            <a href="#" class="subscribe-button">
+                Sign Up via Stripe & Activate Your Account
+            </a>
+            <p style="margin-top:10px; font-size: 0.9em; color: #606770;">(This is a demo. No payment will be processed.)</p>
+        </div>
+    </div>
+</body>
+</html>

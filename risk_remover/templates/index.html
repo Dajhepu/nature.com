@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Remover</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Don't offer discounts... Offer RISK-FREE purchases.</h1>
+        <p class="subtitle">Increase conversions by 317% (case study)</p>
+
+        <form action="/create_offer" method="post" class="offer-form">
+            <div class="form-group">
+                <label for="original_price">Product Price ($)</label>
+                <input type="number" id="original_price" name="original_price" placeholder="e.g., 100" required step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="discount_percentage">How much "discount" do you want? <span id="sliderValue">35%</span></label>
+                <input type="range" id="discount_percentage" name="discount_percentage" min="0" max="70" value="35" oninput="updateSliderValue(this.value)">
+            </div>
+
+            <button type="submit">Create RISK-FREE offer for your customers</button>
+        </form>
+    </div>
+
+    <script>
+        function updateSliderValue(value) {
+            document.getElementById('sliderValue').textContent = value + '%';
+        }
+    </script>
+</body>
+</html>
