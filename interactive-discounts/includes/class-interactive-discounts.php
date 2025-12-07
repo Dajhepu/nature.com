@@ -38,6 +38,8 @@ class Interactive_Discounts {
         $this->loader->add_action( 'wp_footer', $plugin_public, 'add_popup_container' );
         $this->loader->add_action( 'wp_ajax_generate_coupon', $plugin_public, 'generate_coupon_ajax_handler' );
         $this->loader->add_action( 'wp_ajax_nopriv_generate_coupon', $plugin_public, 'generate_coupon_ajax_handler' );
+        $this->loader->add_action( 'wp_ajax_save_email', $plugin_public, 'save_email_ajax_handler' );
+        $this->loader->add_action( 'wp_ajax_nopriv_save_email', $plugin_public, 'save_email_ajax_handler' );
     }
 
     public function run() {

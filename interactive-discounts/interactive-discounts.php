@@ -19,6 +19,26 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'INTERACTIVE_DISCOUNTS_VERSION', '1.1.0' );
 
+/**
+ * The code that runs during plugin activation.
+ */
+function activate_interactive_discounts() {
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-interactive-discounts-activator.php';
+    Interactive_Discounts_Activator::activate();
+}
+
+/**
+ * The code that runs during plugin deactivation.
+ */
+function deactivate_interactive_discounts() {
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-interactive-discounts-deactivator.php';
+    Interactive_Discounts_Deactivator::deactivate();
+}
+
+register_activation_hook( __FILE__, 'activate_interactive_discounts' );
+register_deactivation_hook( __FILE__, 'deactivate_interactive_discounts' );
+
+
 require plugin_dir_path( __FILE__ ) . 'includes/class-interactive-discounts.php';
 
 function run_interactive_discounts() {

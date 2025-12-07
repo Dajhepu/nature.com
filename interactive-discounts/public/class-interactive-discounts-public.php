@@ -24,6 +24,12 @@ class Interactive_Discounts_Public {
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'id-wheel-nonce' ),
             'segments' => !empty($this->options['segments']) ? $this->options['segments'] : $this->get_default_segments(),
+            'settings' => [
+                'enable_email_collection' => isset($this->options['enable_email_collection']) && $this->options['enable_email_collection'] == 1,
+                'email_title' => isset($this->options['email_title']) ? $this->options['email_title'] : __( 'Want a Discount?', 'interactive-discounts' ),
+                'email_subtitle' => isset($this->options['email_subtitle']) ? $this->options['email_subtitle'] : __( 'Enter your email to spin the wheel!', 'interactive-discounts' ),
+                'email_button_text' => isset($this->options['email_button_text']) ? $this->options['email_button_text'] : __( 'Try my luck!', 'interactive-discounts' ),
+            ],
             'l10n'     => [
                 'want_a_discount' => __( 'Want a Discount?', 'interactive-discounts' ),
                 'spin_to_win' => __( 'Spin the wheel to win a coupon!', 'interactive-discounts' ),
@@ -69,5 +75,26 @@ class Interactive_Discounts_Public {
         update_post_meta( $new_coupon_id, 'usage_limit', '1' );
         update_post_meta( $new_coupon_id, 'expiry_date', date('Y-m-d', strtotime('+1 day')) );
         wp_send_json_success( [ 'coupon_code' => $coupon_code, 'message' => __( 'Congratulations! Your coupon code is:', 'interactive-discounts' ) ] );
+    }
+
+    public function save_email_ajax_handler() {
+        check_ajax_referer( 'id-wheel-nonce', 'nonce' );
+
+        if ( !isset($_POST['email']) || !is_email($_POST['email']) ) {
+            wp_send_json_error( [ 'message' => 'Invalid email.' ] );
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'id_collected_emails';
+
+        $wpdb->insert(
+            $table_name,
+            array(
+                'time' => current_time( 'mysql' ),
+                'email' => sanitize_email($_POST['email']),
+            )
+        );
+
+        wp_send_json_success();
     }
 }
