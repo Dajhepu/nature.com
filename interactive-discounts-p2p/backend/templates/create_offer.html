@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create an Offer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Create a P2P Discount Offer</h1>
+        <p class="subtitle">Enter the product's original price and propose a discount. We'll generate a shareable certificate for the merchant.</p>
+        <form id="offerForm">
+            <div class="form-group">
+                <label for="original_price">Original Price ($)</label>
+                <input type="number" id="original_price" required step="0.01" placeholder="e.g., 100">
+            </div>
+            <div class="form-group">
+                <label for="discount_percent">Requested Discount (%)</label>
+                <input type="number" id="discount_percent" required min="1" max="90" placeholder="e.g., 20">
+            </div>
+            <button type="submit">Generate Offer Certificate</button>
+        </form>
+        <p id="message"></p>
+    </div>
+    <script>
+        document.getElementById('offerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const original_price = document.getElementById('original_price').value;
+            const discount_percent = document.getElementById('discount_percent').value;
+            const messageEl = document.getElementById('message');
+
+            // Get user_id from localStorage after login
+            const consumer_id = localStorage.getItem('user_id');
+
+            if (!consumer_id) {
+                messageEl.style.color = 'red';
+                messageEl.textContent = 'Error: You must be logged in to create an offer.';
+                return;
+            }
+
+            const response = await fetch('/api/offers/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ consumer_id, original_price, discount_percent })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                messageEl.style.color = 'green';
+                messageEl.textContent = result.message;
+                // Redirect to the newly created offer certificate page
+                setTimeout(() => window.location.href = `/offer/${result.offer_id}`, 1500);
+            } else {
+                messageEl.style.color = 'red';
+                messageEl.textContent = 'Error: ' + result.error;
+            }
+        });
+    </script>
+</body>
+</html>
