@@ -2,8 +2,10 @@ from flask import request, jsonify
 from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
-from .email_service import send_email
+from .telegram_service import send_telegram_message
+from . import instagram_scraper
 from flask import current_app as app
+import asyncio
 
 
 @app.route('/register', methods=['POST'])
@@ -109,29 +111,75 @@ def create_campaign():
     db.session.add(new_campaign)
     db.session.commit()
 
-    # Simulate sending the first email to all leads
-    for lead in business.leads:
-        subject = f"A special offer for {lead.customer_name}"
-        body = f"Hi {lead.customer_name}, we saw your review and wanted to offer you a discount."
+    async def _send_messages():
+        for lead in business.leads:
+            message_text = (
+                f"Yangi kampaniya: '{name}'\n"
+                f"Potensial mijoz: {lead.customer_name}\n"
+                f"Manba: {lead.source}\n"
+                f"Izoh: {lead.review_text}"
+            )
+            await send_telegram_message(chat_id='5073336035', text=message_text)
 
-        # In a real app, you would get the lead's email from the database
-        to_email = f"{lead.customer_name.replace(' ', '.').lower()}@example.com"
+            new_message = Message(
+                campaign_id=new_campaign.id,
+                lead_id=lead.id,
+                subject=f"Telegram message for {lead.customer_name}",
+                body=message_text,
+                status="sent_telegram"
+            )
+            db.session.add(new_message)
 
-        send_email(to_email, subject, body)
-
-        new_message = Message(
-            campaign_id=new_campaign.id,
-            lead_id=lead.id,
-            subject=subject,
-            body=body
-        )
-        db.session.add(new_message)
-
+    asyncio.run(_send_messages())
     db.session.commit()
 
     return jsonify({
         "message": f"Campaign '{name}' created and initiated for {business.name}"
     }), 201
+
+
+@app.route('/scrape_instagram', methods=['POST'])
+def scrape_instagram():
+    data = request.get_json()
+    username = data.get('username')
+    business_id = data.get('business_id')
+
+    if not all([username, business_id]):
+        return jsonify({"error": "Missing username or business_id"}), 400
+
+    async def _scrape():
+        profile = await instagram_scraper.get_user_profile(username)
+        if not profile or profile.get('is_private'):
+            return None
+
+        user_id = profile['user_id']
+        posts = await instagram_scraper.get_user_posts(user_id, max_posts=10)
+
+        all_comments_data = []
+        for post in posts:
+            comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=20)
+            all_comments_data.extend(comments)
+
+        return all_comments_data
+
+    comments_data = asyncio.run(_scrape())
+
+    if comments_data is None:
+        return jsonify({"error": "Profile is private or could not be fetched."}), 400
+
+    for comment in comments_data:
+        new_lead = Lead(
+            customer_name=comment['author_username'],
+            source='Instagram',
+            review_text=comment['text'],
+            sentiment='neutral',
+            business_id=business_id,
+        )
+        db.session.add(new_lead)
+
+    db.session.commit()
+
+    return jsonify({"message": f"Scraped {len(comments_data)} comments for user {username}."}), 200
 
 
 @app.route('/business/<int:business_id>/leads', methods=['GET'])
