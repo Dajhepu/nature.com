@@ -17,6 +17,6 @@ def create_app(config_class=Config):
 
     with app.app_context():
         from . import routes
-        db.create_all()
+        # db.create_all() # Temporarily disabled for debugging
 
     return app
