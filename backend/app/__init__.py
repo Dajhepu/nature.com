@@ -2,10 +2,12 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+from flask_migrate import Migrate
 from .config import Config
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+migrate = Migrate()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -14,9 +16,9 @@ def create_app(config_class=Config):
     db.init_app(app)
     bcrypt.init_app(app)
     CORS(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
         from . import routes
-        # db.create_all() # Temporarily disabled for debugging
 
     return app
