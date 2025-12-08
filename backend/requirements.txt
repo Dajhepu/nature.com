@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Cors
+python-dotenv
+requests
+beautifulsoup4
+textblob
+sendgrid
