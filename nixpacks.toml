@@ -14,7 +14,12 @@ cmds = [
 
 # Frontend'ni production учун тайёрлаш
 [phases.build]
-cmds = ["cd frontend && npm run build"]
+cmds = [
+    "echo '--- Building frontend ---'",
+    "cd frontend && npm run build",
+    "echo '--- Build finished. Checking for dist folder... ---'",
+    "ls -l frontend/"
+]
 
 # Дастурни production'да ишга тушириш
 [start]
