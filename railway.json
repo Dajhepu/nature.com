@@ -1,6 +1,26 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
+    "builder": "NIXPACKS",
+    "nixpacksConfig": {
+      "providers": ["python", "node"],
+      "phases": {
+        "install": {
+          "cmds": [
+            "python3 -m pip install -r backend/requirements.txt",
+            "cd frontend && npm install"
+          ]
+        },
+        "build": {
+          "cmds": [
+            "cd frontend && npm run build"
+          ]
+        }
+      },
+      "start": {
+        "cmd": "gunicorn wsgi:app"
+      }
+    }
     "builder": "NIXPACKS"
   },
   "deploy": {
