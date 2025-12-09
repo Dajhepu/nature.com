@@ -125,3 +125,29 @@ async def get_post_comments(shortcode, max_comments=100):
             variables['after'] = page_info['end_cursor']
 
     return all_comments
+
+
+async def search_posts_by_hashtag(hashtag, max_posts=50):
+    """Searches for posts with a given hashtag and returns the usernames of the authors."""
+    all_usernames = set()
+    endpoint = f"/explore/tags/{hashtag}/?__a=1"
+
+    # This is a simplified example. Instagram's hashtag search is more complex
+    # and might require a different approach or a more robust scraping library.
+    data = await make_instagram_request(endpoint)
+
+    if not data or 'graphql' not in data or 'hashtag' not in data['graphql']:
+        print(f"Could not retrieve posts for hashtag #{hashtag}.")
+        return []
+
+    media_edges = data['graphql']['hashtag']['edge_hashtag_to_media']['edges']
+
+    for edge in media_edges:
+        node = edge['node']
+        owner = node.get('owner')
+        if owner and 'username' in owner:
+            all_usernames.add(owner['username'])
+            if len(all_usernames) >= max_posts:
+                break
+
+    return list(all_usernames)

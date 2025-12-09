@@ -141,45 +141,60 @@ def create_campaign():
 @app.route('/scrape_instagram', methods=['POST'])
 def scrape_instagram():
     data = request.get_json()
-    username = data.get('username')
+    soha = data.get('soha')
     business_id = data.get('business_id')
 
-    if not all([username, business_id]):
-        return jsonify({"error": "Missing username or business_id"}), 400
+    if not all([soha, business_id]):
+        return jsonify({"error": "Missing soha or business_id"}), 400
 
     async def _scrape():
-        profile = await instagram_scraper.get_user_profile(username)
-        if not profile or profile.get('is_private'):
-            return None
-
-        user_id = profile['user_id']
-        posts = await instagram_scraper.get_user_posts(user_id, max_posts=10)
+        # 1. Soha bo'yicha foydalanuvchilarni topish
+        usernames = await instagram_scraper.search_posts_by_hashtag(soha, max_posts=10)
+        if not usernames:
+            return []
 
         all_comments_data = []
-        for post in posts:
-            comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=20)
-            all_comments_data.extend(comments)
+        # 2. Har bir foydalanuvchining ma'lumotlarini yig'ish
+        for username in usernames:
+            profile = await instagram_scraper.get_user_profile(username)
+            if not profile or profile.get('is_private'):
+                continue
+
+            user_id = profile['user_id']
+            posts = await instagram_scraper.get_user_posts(user_id, max_posts=5)
+
+            for post in posts:
+                comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=10)
+                all_comments_data.extend(comments)
 
         return all_comments_data
 
     comments_data = asyncio.run(_scrape())
 
-    if comments_data is None:
-        return jsonify({"error": "Profile is private or could not be fetched."}), 400
+    if not comments_data:
+        return jsonify({"message": f"No comments found for soha '{soha}'."}), 200
 
     for comment in comments_data:
-        new_lead = Lead(
+        # Duplikatlarni oldini olish
+        existing_lead = Lead.query.filter_by(
             customer_name=comment['author_username'],
-            source='Instagram',
             review_text=comment['text'],
-            sentiment='neutral',
-            business_id=business_id,
-        )
-        db.session.add(new_lead)
+            business_id=business_id
+        ).first()
+
+        if not existing_lead:
+            new_lead = Lead(
+                customer_name=comment['author_username'],
+                source='Instagram',
+                review_text=comment['text'],
+                sentiment='neutral',
+                business_id=business_id,
+            )
+            db.session.add(new_lead)
 
     db.session.commit()
 
-    return jsonify({"message": f"Scraped {len(comments_data)} comments for user {username}."}), 200
+    return jsonify({"message": f"Scraped {len(comments_data)} comments for soha '{soha}'."}), 200
 
 
 @app.route('/business/<int:business_id>/leads', methods=['GET'])
