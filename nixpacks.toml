@@ -1,16 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20"]
-
-[phases.install]
-cmds = [
-    "pip install -r backend/requirements.txt",
-    "cd frontend && npm install && npm run build"
-]
-
-[phases.build]
-cmds = [
-    "echo 'Build complete'"
-]
+nixPkgs = ["nodejs_20"]
 
 [start]
 cmd = "cd backend && gunicorn -w 4 -b 0.0.0.0:$PORT wsgi:app"
