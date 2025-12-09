@@ -1,5 +1,21 @@
+# Nixpacks'га Python ва Node.js муҳитларини ишлатишини кўрсатамиз.
+providers = ["python", "node"]
+
+# Node.js версиясини белгилаш
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
+# Backend ва frontend учун керакли пакетларни ўрнатиш
+[phases.install]
+cmds = [
+    "pip install -r requirements.txt",
+    "cd frontend && npm install"
+]
+
+# Frontend'ni production учун тайёрлаш
+[phases.build]
+cmds = ["cd frontend && npm run build"]
+
+# Дастурни production'да ишга тушириш
 [start]
-cmd = "cd backend && gunicorn -w 4 -b 0.0.0.0:$PORT wsgi:app"
+cmd = "gunicorn wsgi:app"
