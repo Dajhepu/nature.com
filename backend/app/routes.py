@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
@@ -6,9 +6,18 @@ from .telegram_service import send_telegram_message
 from . import instagram_scraper
 from flask import current_app as app
 import asyncio
+import os
 
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
@@ -30,7 +39,7 @@ def register():
     return jsonify({"message": "User registered successfully"}), 201
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -44,7 +53,7 @@ def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 
-@app.route('/business', methods=['POST'])
+@app.route('/api/business', methods=['POST'])
 def add_business():
     data = request.get_json()
     name = data.get('name')
@@ -69,7 +78,7 @@ def add_business():
     return jsonify({"message": "Business added successfully"}), 201
 
 
-@app.route('/business/<int:business_id>/generate_leads', methods=['POST'])
+@app.route('/api/business/<int:business_id>/generate_leads', methods=['POST'])
 def generate_leads(business_id):
     business = Business.query.get_or_404(business_id)
 
@@ -96,7 +105,7 @@ def generate_leads(business_id):
     }), 201
 
 
-@app.route('/campaigns', methods=['POST'])
+@app.route('/api/campaigns', methods=['POST'])
 def create_campaign():
     data = request.get_json()
     name = data.get('name')
@@ -138,51 +147,66 @@ def create_campaign():
     }), 201
 
 
-@app.route('/scrape_instagram', methods=['POST'])
+@app.route('/api/scrape_instagram', methods=['POST'])
 def scrape_instagram():
     data = request.get_json()
-    username = data.get('username')
+    soha = data.get('soha')
     business_id = data.get('business_id')
 
-    if not all([username, business_id]):
-        return jsonify({"error": "Missing username or business_id"}), 400
+    if not all([soha, business_id]):
+        return jsonify({"error": "Missing soha or business_id"}), 400
 
     async def _scrape():
-        profile = await instagram_scraper.get_user_profile(username)
-        if not profile or profile.get('is_private'):
-            return None
-
-        user_id = profile['user_id']
-        posts = await instagram_scraper.get_user_posts(user_id, max_posts=10)
+        # 1. Soha bo'yicha foydalanuvchilarni topish
+        usernames = await instagram_scraper.search_posts_by_hashtag(soha, max_posts=10)
+        if not usernames:
+            return []
 
         all_comments_data = []
-        for post in posts:
-            comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=20)
-            all_comments_data.extend(comments)
+        # 2. Har bir foydalanuvchining ma'lumotlarini yig'ish
+        for username in usernames:
+            profile = await instagram_scraper.get_user_profile(username)
+            if not profile or profile.get('is_private'):
+                continue
+
+            user_id = profile['user_id']
+            posts = await instagram_scraper.get_user_posts(user_id, max_posts=5)
+
+            for post in posts:
+                comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=10)
+                all_comments_data.extend(comments)
 
         return all_comments_data
 
     comments_data = asyncio.run(_scrape())
 
-    if comments_data is None:
-        return jsonify({"error": "Profile is private or could not be fetched."}), 400
+    if not comments_data:
+        return jsonify({"message": f"No comments found for soha '{soha}'."}), 200
 
     for comment in comments_data:
-        new_lead = Lead(
+        # Duplikatlarni oldini olish
+        existing_lead = Lead.query.filter_by(
             customer_name=comment['author_username'],
-            source='Instagram',
             review_text=comment['text'],
-            sentiment='neutral',
-            business_id=business_id,
-        )
-        db.session.add(new_lead)
+            business_id=business_id
+        ).first()
+
+        if not existing_lead:
+            new_lead = Lead(
+                customer_name=comment['author_username'],
+                source='Instagram',
+                review_text=comment['text'],
+                sentiment='neutral',
+                business_id=business_id,
+            )
+            db.session.add(new_lead)
 
     db.session.commit()
 
-    return jsonify({"message": f"Scraped {len(comments_data)} comments for user {username}."}), 200
+    return jsonify({"message": f"Scraped {len(comments_data)} comments for soha '{soha}'."}), 200
 
 
-@app.route('/business/<int:business_id>/leads', methods=['GET'])
+@app.route('/api/business/<int:business_id>/leads', methods=['GET'])
 def get_leads(business_id):
     business = Business.query.get_or_404(business_id)
     leads = [
@@ -197,7 +221,7 @@ def get_leads(business_id):
     return jsonify(leads), 200
 
 
-@app.route('/campaigns/<int:campaign_id>/metrics', methods=['GET'])
+@app.route('/api/campaigns/<int:campaign_id>/metrics', methods=['GET'])
 def get_campaign_metrics(campaign_id):
     campaign = Campaign.query.get_or_404(campaign_id)
 
