@@ -1,4 +1,4 @@
-from flask import request, jsonify, send_from_directory
+from flask import request, jsonify, send_from_directory, current_app
 from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
@@ -8,14 +8,46 @@ from flask import current_app as app
 import asyncio
 import os
 
-# Serve React App
+# ========== FRONTEND ROUTING ==========
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
+    """Frontend fayllarni serve qilish"""
+    # Root papkadan frontend/dist topish
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    dist_dir = os.path.join(base_dir, 'frontend', 'dist')
+
+    # Debug uchun
+    print(f"Looking for static files in: {dist_dir}")
+    print(f"Path exists: {os.path.exists(dist_dir)}")
+
+    if path != "" and os.path.exists(os.path.join(dist_dir, path)):
+        return send_from_directory(dist_dir, path)
     else:
-        return send_from_directory(app.static_folder, 'index.html')
+        # index.html ni qaytarish (React Router uchun)
+        index_path = os.path.join(dist_dir, 'index.html')
+        if os.path.exists(index_path):
+            return send_from_directory(dist_dir, 'index.html')
+        else:
+            return f"Error: frontend/dist/index.html not found. Path: {dist_dir}", 404
+
+# ========== HEALTH CHECK ==========
+@app.route('/health')
+def health():
+    """Debug uchun health check"""
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    dist_dir = os.path.join(base_dir, 'frontend', 'dist')
+
+    return jsonify({
+        "status": "ok",
+        "cwd": os.getcwd(),
+        "base_dir": base_dir,
+        "dist_dir": dist_dir,
+        "dist_exists": os.path.exists(dist_dir),
+        "files": os.listdir(dist_dir) if os.path.exists(dist_dir) else []
+    })
+
+# ========== API ROUTES ==========
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -60,7 +92,7 @@ def add_business():
     business_type = data.get('business_type')
     location = data.get('location')
     status = data.get('status')
-    user_id = data.get('user_id')  # In a real app, get this from the session/token
+    user_id = data.get('user_id')
 
     if not all([name, business_type, location, user_id]):
         return jsonify({"error": "Missing required fields"}), 400
@@ -82,8 +114,6 @@ def add_business():
 def generate_leads(business_id):
     business = Business.query.get_or_404(business_id)
 
-    # In a real app, you might have more complex logic to determine
-    # the search parameters for the scraper
     dissatisfied_customers = find_dissatisfied_customers(
         business.business_type, business.location
     )
@@ -157,13 +187,11 @@ def scrape_instagram():
         return jsonify({"error": "Missing soha or business_id"}), 400
 
     async def _scrape():
-        # 1. Soha bo'yicha foydalanuvchilarni topish
         usernames = await instagram_scraper.search_posts_by_hashtag(soha, max_posts=10)
         if not usernames:
             return []
 
         all_comments_data = []
-        # 2. Har bir foydalanuvchining ma'lumotlarini yig'ish
         for username in usernames:
             profile = await instagram_scraper.get_user_profile(username)
             if not profile or profile.get('is_private'):
@@ -184,7 +212,6 @@ def scrape_instagram():
         return jsonify({"message": f"No comments found for soha '{soha}'."}), 200
 
     for comment in comments_data:
-        # Duplikatlarni oldini olish
         existing_lead = Lead.query.filter_by(
             customer_name=comment['author_username'],
             review_text=comment['text'],
@@ -226,9 +253,8 @@ def get_campaign_metrics(campaign_id):
     campaign = Campaign.query.get_or_404(campaign_id)
 
     total_leads = len(campaign.messages)
-    # Mock conversion rate and ROI for now
-    conversion_rate = 0.15  # 15%
-    roi = 2.5  # 250%
+    conversion_rate = 0.15
+    roi = 2.5
 
     return jsonify({
         "campaign_name": campaign.name,
@@ -237,14 +263,3 @@ def get_campaign_metrics(campaign_id):
         "roi": roi,
         "guarantee_progress": (total_leads * conversion_rate) / 15 * 100
     }), 200
-
-
-@app.route('/health')
-def health():
-    import os
-    return jsonify({
-        "status": "ok",
-        "cwd": os.getcwd(),
-        "static_folder": app.static_folder,
-        "static_exists": os.path.exists(app.static_folder) if app.static_folder else False
-    })
