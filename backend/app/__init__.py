@@ -10,7 +10,7 @@ bcrypt = Bcrypt()
 migrate = Migrate()
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../../frontend/dist', static_url_path='/')
     app.config.from_object(config_class)
 
     db.init_app(app)

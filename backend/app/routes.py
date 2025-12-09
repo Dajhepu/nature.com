@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
@@ -6,9 +6,18 @@ from .telegram_service import send_telegram_message
 from . import instagram_scraper
 from flask import current_app as app
 import asyncio
+import os
 
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
@@ -30,7 +39,7 @@ def register():
     return jsonify({"message": "User registered successfully"}), 201
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -44,7 +53,7 @@ def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 
-@app.route('/business', methods=['POST'])
+@app.route('/api/business', methods=['POST'])
 def add_business():
     data = request.get_json()
     name = data.get('name')
@@ -69,7 +78,7 @@ def add_business():
     return jsonify({"message": "Business added successfully"}), 201
 
 
-@app.route('/business/<int:business_id>/generate_leads', methods=['POST'])
+@app.route('/api/business/<int:business_id>/generate_leads', methods=['POST'])
 def generate_leads(business_id):
     business = Business.query.get_or_404(business_id)
 
@@ -96,7 +105,7 @@ def generate_leads(business_id):
     }), 201
 
 
-@app.route('/campaigns', methods=['POST'])
+@app.route('/api/campaigns', methods=['POST'])
 def create_campaign():
     data = request.get_json()
     name = data.get('name')
@@ -138,7 +147,7 @@ def create_campaign():
     }), 201
 
 
-@app.route('/scrape_instagram', methods=['POST'])
+@app.route('/api/scrape_instagram', methods=['POST'])
 def scrape_instagram():
     data = request.get_json()
     soha = data.get('soha')
@@ -197,7 +206,7 @@ def scrape_instagram():
     return jsonify({"message": f"Scraped {len(comments_data)} comments for soha '{soha}'."}), 200
 
 
-@app.route('/business/<int:business_id>/leads', methods=['GET'])
+@app.route('/api/business/<int:business_id>/leads', methods=['GET'])
 def get_leads(business_id):
     business = Business.query.get_or_404(business_id)
     leads = [
@@ -212,7 +221,7 @@ def get_leads(business_id):
     return jsonify(leads), 200
 
 
-@app.route('/campaigns/<int:campaign_id>/metrics', methods=['GET'])
+@app.route('/api/campaigns/<int:campaign_id>/metrics', methods=['GET'])
 def get_campaign_metrics(campaign_id):
     campaign = Campaign.query.get_or_404(campaign_id)
 
