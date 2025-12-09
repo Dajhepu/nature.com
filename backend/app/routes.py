@@ -237,3 +237,14 @@ def get_campaign_metrics(campaign_id):
         "roi": roi,
         "guarantee_progress": (total_leads * conversion_rate) / 15 * 100
     }), 200
+
+
+@app.route('/health')
+def health():
+    import os
+    return jsonify({
+        "status": "ok",
+        "cwd": os.getcwd(),
+        "static_folder": app.static_folder,
+        "static_exists": os.path.exists(app.static_folder) if app.static_folder else False
+    })
