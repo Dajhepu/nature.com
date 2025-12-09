@@ -7,4 +7,4 @@ requests
 beautifulsoup4
 textblob
 python-telegram-bot
-apify-client
+Flask-Migrate
