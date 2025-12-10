@@ -7,13 +7,14 @@ import Register from './Register';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     business_type: '',
     location: '',
     status: '',
-    user_id: 1, // TODO: Replace with authenticated user ID
+    user_id: null,
   });
   const [leads, setLeads] = useState([]);
   const [businessId, setBusinessId] = useState(null);
@@ -38,13 +39,20 @@ function App() {
 
   const handleRegisterBusiness = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      alert("Please log in to register a business.");
+      return;
+    }
+
+    const businessData = { ...formData, user_id: currentUser.id };
+
     try {
       const response = await fetch('/api/business', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(businessData),
       });
 
       const data = await response.json();
@@ -133,7 +141,7 @@ function App() {
         {showRegister ? (
           <Register />
         ) : (
-          <Login setLoggedIn={setLoggedIn} />
+          <Login setLoggedIn={setLoggedIn} setCurrentUser={setCurrentUser} />
         )}
         <button onClick={() => setShowRegister(!showRegister)}>
           {showRegister ? 'Go to Login' : 'Go to Register'}

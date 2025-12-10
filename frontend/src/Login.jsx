@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Login({ setLoggedIn }) {
+function Login({ setLoggedIn, setCurrentUser }) {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -27,6 +27,7 @@ function Login({ setLoggedIn }) {
       const data = await response.json();
       if (response.ok) {
         alert('Login successful!');
+        setCurrentUser(data.user);
         setLoggedIn(true);
       } else {
         alert(`Error: ${data.error}`);
