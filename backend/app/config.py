@@ -12,8 +12,15 @@ os.makedirs(instance_dir, exist_ok=True)
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'a-very-secret-key'
-    # Use an absolute path for the database URI
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(instance_dir, 'site.db')
+
+    # Railway'da Postgres, local'da SQLite
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        # Railway'ning eski formatini yangilash
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///' + os.path.join(instance_dir, 'site.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
     INSTAGRAM_SESSIONID = os.environ.get('INSTAGRAM_SESSIONID')
