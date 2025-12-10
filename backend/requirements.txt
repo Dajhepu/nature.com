@@ -9,3 +9,5 @@ textblob
 python-telegram-bot
 Flask-Migrate
 gunicorn
+gevent
+instaloader
