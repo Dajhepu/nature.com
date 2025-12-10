@@ -14,9 +14,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # CORS - API uchun
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
+
     db.init_app(app)
     bcrypt.init_app(app)
-    CORS(app)
     migrate.init_app(app, db)
 
     with app.app_context():
