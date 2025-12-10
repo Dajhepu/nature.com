@@ -2,29 +2,19 @@ import React, { useState } from 'react';
 import LeadsList from './LeadsList';
 import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
-import Login from './Login';
-import Register from './Register';
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     business_type: '',
     location: '',
     status: '',
-    user_id: null,
+    user_id: 1, // TODO: Replace with a dynamic user ID if needed in the future
   });
   const [leads, setLeads] = useState([]);
   const [businessId, setBusinessId] = useState(null);
   const [campaignId, setCampaignId] = useState(null);
   const [soha, setSoha] = useState('');
-
-  // Expose setBusinessId for Playwright verification
-  if (process.env.NODE_ENV === 'development') {
-    window.setBusinessId = setBusinessId;
-  }
 
   const handleSohaChange = (e) => {
     setSoha(e.target.value);
@@ -39,27 +29,19 @@ function App() {
 
   const handleRegisterBusiness = async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      alert("Please log in to register a business.");
-      return;
-    }
-
-    const businessData = { ...formData, user_id: currentUser.id };
-
     try {
       const response = await fetch('/api/business', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(businessData),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
       if (response.ok) {
         alert('Business registered successfully!');
-        // TODO: Replace with the actual business ID from the API response
-        setBusinessId(1);
+        setBusinessId(data.business_id);
       } else {
         alert(`Error: ${data.error}`);
       }
@@ -91,7 +73,7 @@ function App() {
           alert(`Error fetching leads: ${leadsData.error}`);
         }
       } else {
-        alert(`Error: ${data.error}`);
+        alert(`Error: ${generateData.error}`);
       }
     } catch (error) {
       console.error('Error generating leads:', error);
@@ -134,21 +116,6 @@ function App() {
       alert('An error occurred while scraping Instagram.');
     }
   };
-
-  if (!loggedIn) {
-    return (
-      <div>
-        {showRegister ? (
-          <Register />
-        ) : (
-          <Login setLoggedIn={setLoggedIn} setCurrentUser={setCurrentUser} />
-        )}
-        <button onClick={() => setShowRegister(!showRegister)}>
-          {showRegister ? 'Go to Login' : 'Go to Register'}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="App">
