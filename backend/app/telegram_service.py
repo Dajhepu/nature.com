@@ -2,7 +2,7 @@ import os
 import telegram
 from flask import current_app
 
-async def send_telegram_message(chat_id, text):
+def send_telegram_message(chat_id, text):
     """
     Sends a message to a Telegram user or group.
     For now, this function will just print the message to the console.

@@ -3,9 +3,8 @@ from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
 from .telegram_service import send_telegram_message
-from . import instagram_scraper
+from .instagram_scraper_real import scrape_instagram_hashtag
 from flask import current_app as app
-import asyncio
 import os
 
 # =============================================
@@ -166,26 +165,24 @@ def create_campaign():
         db.session.add(new_campaign)
         db.session.commit()
 
-        async def _send_messages():
-            for lead in business.leads:
-                message_text = (
-                    f"Yangi kampaniya: '{name}'\n"
-                    f"Potensial mijoz: {lead.customer_name}\n"
-                    f"Manba: {lead.source}\n"
-                    f"Izoh: {lead.review_text}"
-                )
-                await send_telegram_message(chat_id='5073336035', text=message_text)
+        for lead in business.leads:
+            message_text = (
+                f"Yangi kampaniya: '{name}'\n"
+                f"Potensial mijoz: {lead.customer_name}\n"
+                f"Manba: {lead.source}\n"
+                f"Izoh: {lead.review_text}"
+            )
+            send_telegram_message(chat_id='5073336035', text=message_text)
 
-                new_message = Message(
-                    campaign_id=new_campaign.id,
-                    lead_id=lead.id,
-                    subject=f"Telegram message for {lead.customer_name}",
-                    body=message_text,
-                    status="sent_telegram"
-                )
-                db.session.add(new_message)
+            new_message = Message(
+                campaign_id=new_campaign.id,
+                lead_id=lead.id,
+                subject=f"Telegram message for {lead.customer_name}",
+                body=message_text,
+                status="sent_telegram"
+            )
+            db.session.add(new_message)
 
-        asyncio.run(_send_messages())
         db.session.commit()
 
         return jsonify({
@@ -219,7 +216,7 @@ def get_campaign_metrics(campaign_id):
 
 @app.route('/api/scrape_instagram', methods=['POST'])
 def scrape_instagram():
-    """Scrape Instagram"""
+    """Real Instagram scraping with Instaloader"""
     try:
         data = request.get_json()
         soha = data.get('soha')
@@ -228,31 +225,18 @@ def scrape_instagram():
         if not all([soha, business_id]):
             return jsonify({"error": "Missing soha or business_id"}), 400
 
-        async def _scrape():
-            usernames = await instagram_scraper.search_posts_by_hashtag(soha, max_posts=10)
-            if not usernames:
-                return []
-
-            all_comments_data = []
-            for username in usernames:
-                profile = await instagram_scraper.get_user_profile(username)
-                if not profile or profile.get('is_private'):
-                    continue
-
-                user_id = profile['user_id']
-                posts = await instagram_scraper.get_user_posts(user_id, max_posts=5)
-
-                for post in posts:
-                    comments = await instagram_scraper.get_post_comments(post['shortcode'], max_comments=10)
-                    all_comments_data.extend(comments)
-
-            return all_comments_data
-
-        comments_data = asyncio.run(_scrape())
+        # Real scraping
+        print(f"🚀 Starting Instagram scraping for #{soha}")
+        comments_data = scrape_instagram_hashtag(soha, max_comments=20)
 
         if not comments_data:
-            return jsonify({"message": f"No comments found for soha '{soha}'."}), 200
+            return jsonify({
+                "error": "No comments found. Check Instagram credentials.",
+                "message": "Make sure INSTAGRAM_USERNAME and INSTAGRAM_PASSWORD are set."
+            }), 404
 
+        # Save to database
+        saved_count = 0
         for comment in comments_data:
             existing_lead = Lead.query.filter_by(
                 customer_name=comment['author_username'],
@@ -269,11 +253,17 @@ def scrape_instagram():
                     business_id=business_id,
                 )
                 db.session.add(new_lead)
+                saved_count += 1
 
         db.session.commit()
 
-        return jsonify({"message": f"Scraped {len(comments_data)} comments for soha '{soha}'."}), 200
+        return jsonify({
+            "message": f"Successfully scraped {len(comments_data)} comments for #{soha}",
+            "saved_leads": saved_count
+        }), 200
+
     except Exception as e:
+        print(f"❌ Error in scrape_instagram: {e}")
         return jsonify({"error": str(e)}), 500
 
 
