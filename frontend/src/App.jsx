@@ -4,51 +4,13 @@ import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
 
 function App() {
-  const [formData, setFormData] = useState({
-    name: '',
-    business_type: '',
-    location: '',
-    status: '',
-    user_id: 1, // TODO: Replace with a dynamic user ID if needed in the future
-  });
   const [leads, setLeads] = useState([]);
-  const [businessId, setBusinessId] = useState(null);
+  const [businessId, setBusinessId] = useState(1);
   const [campaignId, setCampaignId] = useState(null);
   const [soha, setSoha] = useState('');
 
   const handleSohaChange = (e) => {
     setSoha(e.target.value);
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleRegisterBusiness = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/business', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert('Business registered successfully!');
-        setBusinessId(data.business_id);
-      } else {
-        alert(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error registering business:', error);
-      alert('An error occurred during registration.');
-    }
   };
 
   const handleGenerateLeads = async () => {
@@ -119,15 +81,6 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Register Your Business</h1>
-      <form onSubmit={handleRegisterBusiness}>
-        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Business Name" />
-        <input type="text" name="business_type" value={formData.business_type} onChange={handleChange} placeholder="Business Type" />
-        <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Location" />
-        <input type="text" name="status" value={formData.status} onChange={handleChange} placeholder="Status" />
-        <button type="submit">Register Business</button>
-      </form>
-
       {businessId && (
         <div>
           <input
