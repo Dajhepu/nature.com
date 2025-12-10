@@ -20,9 +20,18 @@ COPY backend/ ./backend/
 # Copy built frontend from previous stage
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
-# Copy wsgi
+# Copy wsgi and migrations
 COPY wsgi.py ./backend/
+COPY backend/migrations ./backend/migrations
+
+# Copy and set up the entrypoint script
+COPY entrypoint.sh ./backend/
+RUN chmod +x ./backend/entrypoint.sh
 
 WORKDIR /app/backend
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:$PORT", "wsgi:app"]
+# Set Flask environment variables
+ENV FLASK_APP=wsgi:app
+ENV PYTHONPATH=/app
+
+CMD ["./entrypoint.sh"]
