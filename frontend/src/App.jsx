@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import LeadsList from './LeadsList';
 import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
+import Login from './Login';
+import Register from './Register';
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     business_type: '',
@@ -32,7 +36,7 @@ function App() {
     });
   };
 
-  const handleRegister = async (e) => {
+  const handleRegisterBusiness = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch('/api/business', {
@@ -123,12 +127,30 @@ function App() {
     }
   };
 
+  if (!loggedIn) {
+    return (
+      <div>
+        {showRegister ? (
+          <Register />
+        ) : (
+          <Login setLoggedIn={setLoggedIn} />
+        )}
+        <button onClick={() => setShowRegister(!showRegister)}>
+          {showRegister ? 'Go to Login' : 'Go to Register'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <h1>Register Your Business</h1>
-      <form onSubmit={handleRegister}>
-        {/* Form inputs... */}
-        <button type="submit">Register</button>
+      <form onSubmit={handleRegisterBusiness}>
+        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Business Name" />
+        <input type="text" name="business_type" value={formData.business_type} onChange={handleChange} placeholder="Business Type" />
+        <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Location" />
+        <input type="text" name="status" value={formData.status} onChange={handleChange} placeholder="Status" />
+        <button type="submit">Register Business</button>
       </form>
 
       {businessId && (
