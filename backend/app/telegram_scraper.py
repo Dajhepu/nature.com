@@ -45,16 +45,37 @@ async def get_group_members_async(group_link, max_members=100):
                     user = member.user
                     if not user.is_bot and not user.is_deleted:
                         # Filter for users who were recently active
-                        if user.status in [UserStatus.ONLINE, UserStatus.RECENTLY]:
+                        # Calculate activity score
+                        score = 0
+                        if user.status == UserStatus.ONLINE:
+                            score += 50
+                        elif user.status == UserStatus.RECENTLY:
+                            score += 40
+
+                        if user.photo:
+                            score += 20
+                        if user.bio:
+                            score += 10
+
+                        # Only include users with a minimum score
+                        if score >= 40:
+                            # Construct full_name safely
+                            full_name = (user.first_name or "") + " " + (user.last_name or "")
+                            full_name = full_name.strip()
+                            if not full_name:
+                                full_name = user.username or f"User_{user.id}"
+
                             members_data.append({
                                 'user_id': user.id,
-                                'username': user.username,
+                                'full_name': full_name,
                                 'first_name': user.first_name,
                                 'last_name': user.last_name,
+                                'username': user.username,
+                                'activity_score': score,
                                 'status': user.status.name if user.status else "UNKNOWN"
                             })
                             count += 1
-                            print(f"  [{count}/{max_members}] Found active user: {user.username or user.first_name}")
+                            print(f"  [{count}/{max_members}] Found active user: {full_name} (Score: {score})")
 
             except Exception as e:
                 # Handle cases where the group link is invalid or inaccessible
