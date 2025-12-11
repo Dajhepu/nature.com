@@ -4,7 +4,7 @@ import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
 import './App.css'; // Import the CSS file
 
-function App({ user, businessId, onLogout }) {
+function App({ user, businessId, onLogout, onInvalidBusiness }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
   const [campaignId, setCampaignId] = useState(null);
@@ -24,6 +24,9 @@ function App({ user, businessId, onLogout }) {
         setLeads(data);
       } else {
         console.error('Error fetching leads:', data.error);
+        if (data.error && data.error.includes('not found')) {
+          onInvalidBusiness();
+        }
       }
     } catch (err) {
       console.error('An error occurred while fetching leads:', err);
@@ -53,6 +56,9 @@ function App({ user, businessId, onLogout }) {
         fetchLeads(); // Refresh leads list
       } else {
         alert(`Error: ${generateData.error}`);
+        if (generateData.error && generateData.error.includes('not found')) {
+          onInvalidBusiness();
+        }
       }
     } catch (error) {
       console.error('Error generating leads:', error);
@@ -92,6 +98,9 @@ function App({ user, businessId, onLogout }) {
         const errorMessage = data.error || `Server error: ${response.status}`;
         setError(errorMessage);
         alert(`Error: ${errorMessage}`);
+        if (errorMessage.includes('not found')) {
+          onInvalidBusiness();
+        }
       }
     } catch (err) {
       const errorMessage = 'An unexpected network error occurred.';
