@@ -22,7 +22,7 @@ def find_dissatisfied_customers(business_type, location):
         if analysis.sentiment.polarity < 0:
             dissatisfied_customers.append({
                 "source": "Google Maps",
-                "customer_name": review["author"],
+                "full_name": review["author"],
                 "review_text": review["text"],
                 "sentiment": "negative"
             })
