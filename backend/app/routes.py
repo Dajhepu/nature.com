@@ -165,23 +165,23 @@ def create_campaign():
         db.session.add(new_campaign)
         db.session.commit()
 
-        for lead in business.leads:
-            message_text = (
-                f"Yangi kampaniya: '{name}'\n"
-                f"Potensial mijoz: {lead.customer_name}\n"
-                f"Manba: {lead.source}\n"
-                f"Izoh: {lead.review_text}"
-            )
-            send_telegram_message(chat_id='5073336035', text=message_text)
+        # for lead in business.leads:
+        #     message_text = (
+        #         f"Yangi kampaniya: '{name}'\n"
+        #         f"Potensial mijoz: {lead.customer_name}\n"
+        #         f"Manba: {lead.source}\n"
+        #         f"Izoh: {lead.review_text}"
+        #     )
+        #     send_telegram_message(chat_id='5073336035', text=message_text)
 
-            new_message = Message(
-                campaign_id=new_campaign.id,
-                lead_id=lead.id,
-                subject=f"Telegram message for {lead.customer_name}",
-                body=message_text,
-                status="sent_telegram"
-            )
-            db.session.add(new_message)
+        #     new_message = Message(
+        #         campaign_id=new_campaign.id,
+        #         lead_id=lead.id,
+        #         subject=f"Telegram message for {lead.customer_name}",
+        #         body=message_text,
+        #         status="sent_telegram"
+        #     )
+        #     db.session.add(new_message)
 
         db.session.commit()
 
