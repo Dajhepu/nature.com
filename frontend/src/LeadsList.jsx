@@ -7,8 +7,8 @@ const LeadsList = ({ leads }) => {
       <ul>
         {leads.map((lead) => (
           <li key={lead.id}>
-            <strong>{lead.customer_name}</strong> ({lead.sentiment})
-            <p>{lead.review_text}</p>
+            <strong>{lead.full_name}</strong> (Score: {lead.activity_score})
+            <p>@{lead.username || 'N/A'} - Source: {lead.source}</p>
           </li>
         ))}
       </ul>
