@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -49,6 +49,12 @@ const Login = ({ onLoginSuccess }) => {
         <button type="submit">Login</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      <p>
+        Don't have an account?{' '}
+        <button onClick={onSwitchToRegister} className="link-button">
+          Register here
+        </button>
+      </p>
     </div>
   );
 };
