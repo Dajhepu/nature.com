@@ -4,18 +4,10 @@ import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
 import './App.css'; // Import the CSS file
 
-function App() {
+function App({ user, businessId, onLogout }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
-  const [businessId, setBusinessId] = useState(null);
   const [campaignId, setCampaignId] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    business_type: '',
-    location: '',
-    status: '',
-    user_id: 1, // Static user_id for now
-  });
 
   // --- UI State for Telegram Scraper ---
   const [groupLink, setGroupLink] = useState('');
@@ -45,34 +37,6 @@ function App() {
   }, [businessId]);
 
   // --- Event Handlers ---
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleRegisterBusiness = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/business', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Business registered successfully!');
-        setBusinessId(data.business_id);
-      } else {
-        alert(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error registering business:', error);
-      alert('An error occurred during registration.');
-    }
-  };
-
   const handleGenerateLeads = async () => {
     if (!businessId) {
       alert('Please register a business first.');
@@ -141,48 +105,38 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Lead Generation Dashboard</h1>
+      <header className="App-header">
+        <h1>Lead Generation Dashboard</h1>
+        <button onClick={onLogout} className="logout-button">Logout</button>
+      </header>
 
-      {!businessId ? (
+      <div>
         <div className="container">
-          <h2>Register Your Business</h2>
-          <form onSubmit={handleRegisterBusiness} className="form-group">
-            <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Business Name" required />
-            <input type="text" name="business_type" value={formData.business_type} onChange={handleChange} placeholder="Business Type" required />
-            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Location" required />
-            <input type="text" name="status" value={formData.status} onChange={handleChange} placeholder="Status" />
-            <button type="submit">Register Business</button>
-          </form>
-        </div>
-      ) : (
-        <div>
-          <div className="container">
-            <h2>Lead Generation Tools</h2>
-            <p>Enter a public Telegram group link to scrape its active members and add them as leads.</p>
-            <div className="input-group">
-              <input
-                type="text"
-                name="groupLink"
-                value={groupLink}
-                onChange={handleGroupLinkChange}
-                placeholder="e.g., @groupname or https://t.me/groupname"
-              />
-              <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
-                {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
-              </button>
-              <button onClick={handleGenerateLeads}>
-                Generate Leads (Mock)
-              </button>
-            </div>
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
+          <h2>Lead Generation Tools</h2>
+          <p>Enter a public Telegram group link to scrape its active members and add them as leads.</p>
+          <div className="input-group">
+            <input
+              type="text"
+              name="groupLink"
+              value={groupLink}
+              onChange={handleGroupLinkChange}
+              placeholder="e.g., @groupname or https://t.me/groupname"
+            />
+            <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
+              {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
+            </button>
+            <button onClick={handleGenerateLeads}>
+              Generate Leads (Mock)
+            </button>
           </div>
-
-          <LeadsList leads={leads} />
-          <Campaigns businessId={businessId} setCampaignId={setCampaignId} />
-
-          {campaignId && <Dashboard campaignId={campaignId} />}
+          {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
         </div>
-      )}
+
+        <LeadsList leads={leads} />
+        <Campaigns businessId={businessId} setCampaignId={setCampaignId} />
+
+        {campaignId && <Dashboard campaignId={campaignId} />}
+      </div>
     </div>
   );
 }
