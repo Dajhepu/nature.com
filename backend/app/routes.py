@@ -109,44 +109,50 @@ def add_business():
 
 @app.route('/api/business/<int:business_id>/generate_leads', methods=['POST'])
 def generate_leads(business_id):
-    """Generate leads"""
+    """Generate mock leads"""
     try:
         business = Business.query.get_or_404(business_id)
 
-        dissatisfied_customers = find_dissatisfied_customers(
-            business.business_type, business.location
-        )
+        mock_leads = [
+            {'full_name': 'Mock User 1', 'telegram_user_id': 111111, 'username': 'mockuser1', 'activity_score': 80, 'source': 'mock'},
+            {'full_name': 'Mock User 2', 'telegram_user_id': 222222, 'username': 'mockuser2', 'activity_score': 60, 'source': 'mock'},
+        ]
 
-        for customer_data in dissatisfied_customers:
-            new_lead = Lead(
-                customer_name=customer_data['customer_name'],
-                source=customer_data['source'],
-                review_text=customer_data['review_text'],
-                sentiment=customer_data['sentiment'],
-                business_id=business.id
-            )
-            db.session.add(new_lead)
+        for lead_data in mock_leads:
+            existing_lead = Lead.query.filter_by(telegram_user_id=lead_data['telegram_user_id']).first()
+            if not existing_lead:
+                new_lead = Lead(
+                    full_name=lead_data['full_name'],
+                    telegram_user_id=lead_data['telegram_user_id'],
+                    username=lead_data['username'],
+                    activity_score=lead_data['activity_score'],
+                    source=lead_data['source'],
+                    business_id=business.id
+                )
+                db.session.add(new_lead)
 
         db.session.commit()
 
         return jsonify({
-            "message": f"{len(dissatisfied_customers)} leads generated for {business.name}"
+            "message": f"{len(mock_leads)} mock leads generated for {business.name}"
         }), 201
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/business/<int:business_id>/leads', methods=['GET'])
 def get_leads(business_id):
-    """Get leads"""
+    """Get leads for a business"""
     try:
         business = Business.query.get_or_404(business_id)
         leads = [
             {
                 "id": lead.id,
-                "customer_name": lead.customer_name,
-                "review_text": lead.review_text,
-                "sentiment": lead.sentiment,
+                "full_name": lead.full_name,
+                "username": lead.username,
+                "activity_score": lead.activity_score,
+                "source": lead.source,
             }
             for lead in business.leads
         ]
@@ -175,7 +181,7 @@ def create_campaign():
         # for lead in business.leads:
         #     message_text = (
         #         f"Yangi kampaniya: '{name}'\n"
-        #         f"Potensial mijoz: {lead.customer_name}\n"
+        #         f"Potensial mijoz: {lead.full_name}\n"
         #         f"Manba: {lead.source}\n"
         #         f"Izoh: {lead.review_text}"
         #     )
@@ -184,7 +190,7 @@ def create_campaign():
         #     new_message = Message(
         #         campaign_id=new_campaign.id,
         #         lead_id=lead.id,
-        #         subject=f"Telegram message for {lead.customer_name}",
+        #         subject=f"Telegram message for {lead.full_name}",
         #         body=message_text,
         #         status="sent_telegram"
         #     )
@@ -223,14 +229,18 @@ def get_campaign_metrics(campaign_id):
 
 @app.route('/api/telegram/scrape_group', methods=['POST'])
 def scrape_telegram_group():
-    """Scrapes members from a Telegram group and saves them as Leads."""
+    """Scrapes members from a Telegram group, filters them, and saves them as Leads."""
     try:
         data = request.get_json()
         group_link = data.get('group_link')
-        business_id = data.get('business_id', 1) # Standart business_id=1
+        business_id = data.get('business_id')
 
-        if not group_link:
-            return jsonify({"error": "Missing 'group_link' in request"}), 400
+        if not group_link or not business_id:
+            return jsonify({"error": "Missing 'group_link' or 'business_id' in request"}), 400
+
+        business = Business.query.get(business_id)
+        if not business:
+            return jsonify({"error": f"Business with id {business_id} not found."}), 404
 
         print(f"🚀 Starting Telegram group scraping for: {group_link}")
         result = get_group_members(group_link, max_members=100)
@@ -240,24 +250,22 @@ def scrape_telegram_group():
 
         members = result.get("members", [])
         if not members:
-            return jsonify({"message": "No active members found.", "saved_leads": 0}), 200
+            return jsonify({"message": "No active members found meeting the criteria.", "saved_leads": 0}), 200
 
         saved_count = 0
         for member in members:
-            customer_name = member['username'] or f"{member['first_name'] or ''} {member['last_name'] or ''}".strip()
-
-            # Agar mavjud bo'lsa, o'tkazib yuborish
             existing_lead = Lead.query.filter_by(
-                customer_name=customer_name,
+                telegram_user_id=member['user_id'],
                 business_id=business_id
             ).first()
 
             if not existing_lead:
                 new_lead = Lead(
-                    customer_name=customer_name,
-                    source='Telegram',
-                    review_text=f"User ID: {member['user_id']}", # Qo'shimcha ma'lumot
-                    sentiment='neutral',
+                    full_name=member['full_name'],
+                    telegram_user_id=member['user_id'],
+                    username=member['username'],
+                    activity_score=member['activity_score'],
+                    source=group_link,
                     business_id=business_id,
                 )
                 db.session.add(new_lead)
@@ -268,10 +276,11 @@ def scrape_telegram_group():
         return jsonify({
             "message": f"Successfully scraped {len(members)} members and saved {saved_count} new leads.",
             "saved_leads": saved_count
-        }), 200
+        }), 201
 
     except Exception as e:
         print(f"❌ Error in scrape_telegram_group endpoint: {e}")
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
