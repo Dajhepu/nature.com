@@ -43,6 +43,12 @@ const MainApp = () => {
     setIsRegisterView(false); // Reset to login view on logout
   };
 
+  const handleInvalidBusiness = () => {
+    alert("Your session's business ID is invalid. Please register your business again.");
+    setBusinessId(null);
+    localStorage.removeItem('businessId');
+  };
+
   if (!user) {
     return isRegisterView ? (
       <Register onSwitchToLogin={() => setIsRegisterView(false)} />
@@ -58,7 +64,7 @@ const MainApp = () => {
     return <RegisterBusiness user={user} onBusinessRegistered={handleBusinessRegistered} />;
   }
 
-  return <App user={user} businessId={businessId} onLogout={handleLogout} />;
+  return <App user={user} businessId={businessId} onLogout={handleLogout} onInvalidBusiness={handleInvalidBusiness} />;
 };
 
 export default MainApp;
