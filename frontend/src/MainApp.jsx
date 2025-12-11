@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import App from './App';
 import Login from './Login';
+import Register from './Register';
 import RegisterBusiness from './RegisterBusiness';
 
 const MainApp = () => {
   const [user, setUser] = useState(null);
   const [businessId, setBusinessId] = useState(null);
+  const [isRegisterView, setIsRegisterView] = useState(false);
 
   useEffect(() => {
     // Check for user and business info in local storage to persist session
@@ -38,10 +40,18 @@ const MainApp = () => {
     setBusinessId(null);
     localStorage.removeItem('user');
     localStorage.removeItem('businessId');
+    setIsRegisterView(false); // Reset to login view on logout
   };
 
   if (!user) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    return isRegisterView ? (
+      <Register onSwitchToLogin={() => setIsRegisterView(false)} />
+    ) : (
+      <Login
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchToRegister={() => setIsRegisterView(true)}
+      />
+    );
   }
 
   if (!businessId) {
