@@ -58,12 +58,19 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
+            # Foydalanuvchiga tegishli biznesni qidirish
+            business = Business.query.filter_by(user_id=user.id).first()
+            business_data = None
+            if business:
+                business_data = {"id": business.id, "name": business.name}
+
             return jsonify({
                 "message": "Login successful",
                 "user": {
                     "id": user.id,
                     "username": user.username
-                }
+                },
+                "business": business_data  # Biznes ma'lumotlarini qo'shish
             }), 200
 
         return jsonify({"error": "Invalid credentials"}), 401
