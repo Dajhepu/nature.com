@@ -3,7 +3,7 @@ from . import db
 from .models import User, Business, Lead, Campaign, Message
 from .scraper import find_dissatisfied_customers
 from .telegram_service import send_telegram_message
-from .instagram_scraper_real import scrape_instagram_hashtag
+from .telegram_scraper import get_group_members
 from flask import current_app as app
 import os
 
@@ -214,41 +214,42 @@ def get_campaign_metrics(campaign_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/scrape_instagram', methods=['POST'])
-def scrape_instagram():
-    """Real Instagram scraping with Instaloader"""
+@app.route('/api/telegram/scrape_group', methods=['POST'])
+def scrape_telegram_group():
+    """Scrapes members from a Telegram group and saves them as Leads."""
     try:
         data = request.get_json()
-        soha = data.get('soha')
-        business_id = data.get('business_id')
+        group_link = data.get('group_link')
+        business_id = data.get('business_id', 1) # Standart business_id=1
 
-        if not all([soha, business_id]):
-            return jsonify({"error": "Missing soha or business_id"}), 400
+        if not group_link:
+            return jsonify({"error": "Missing 'group_link' in request"}), 400
 
-        # Real scraping
-        print(f"🚀 Starting Instagram scraping for #{soha}")
-        comments_data = scrape_instagram_hashtag(soha, max_comments=20)
+        print(f"🚀 Starting Telegram group scraping for: {group_link}")
+        result = get_group_members(group_link, max_members=100)
 
-        if not comments_data:
-            return jsonify({
-                "error": "No comments found. Check Instagram credentials.",
-                "message": "Make sure INSTAGRAM_USERNAME and INSTAGRAM_PASSWORD are set."
-            }), 404
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 500
 
-        # Save to database
+        members = result.get("members", [])
+        if not members:
+            return jsonify({"message": "No active members found.", "saved_leads": 0}), 200
+
         saved_count = 0
-        for comment in comments_data:
+        for member in members:
+            customer_name = member['username'] or f"{member['first_name'] or ''} {member['last_name'] or ''}".strip()
+
+            # Agar mavjud bo'lsa, o'tkazib yuborish
             existing_lead = Lead.query.filter_by(
-                customer_name=comment['author_username'],
-                review_text=comment['text'],
+                customer_name=customer_name,
                 business_id=business_id
             ).first()
 
             if not existing_lead:
                 new_lead = Lead(
-                    customer_name=comment['author_username'],
-                    source='Instagram',
-                    review_text=comment['text'],
+                    customer_name=customer_name,
+                    source='Telegram',
+                    review_text=f"User ID: {member['user_id']}", # Qo'shimcha ma'lumot
                     sentiment='neutral',
                     business_id=business_id,
                 )
@@ -258,12 +259,12 @@ def scrape_instagram():
         db.session.commit()
 
         return jsonify({
-            "message": f"Successfully scraped {len(comments_data)} comments for #{soha}",
+            "message": f"Successfully scraped {len(members)} members and saved {saved_count} new leads.",
             "saved_leads": saved_count
         }), 200
 
     except Exception as e:
-        print(f"❌ Error in scrape_instagram: {e}")
+        print(f"❌ Error in scrape_telegram_group endpoint: {e}")
         return jsonify({"error": str(e)}), 500
 
 
