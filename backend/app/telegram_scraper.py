@@ -54,7 +54,7 @@ async def get_group_members_async(group_link, max_members=100):
 
                         if user.photo:
                             score += 20
-                        if user.bio:
+                        if getattr(user, 'bio', None):
                             score += 10
 
                         # Only include users with a minimum score
