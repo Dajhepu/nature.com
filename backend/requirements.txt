@@ -10,4 +10,5 @@ python-telegram-bot
 Flask-Migrate
 gunicorn
 gevent
-Telethon
+Pyrogram
+tgcrypto
