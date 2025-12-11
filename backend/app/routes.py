@@ -113,13 +113,19 @@ def generate_leads(business_id):
     try:
         business = Business.query.get_or_404(business_id)
 
-        mock_leads = [
-            {'full_name': 'Mock User 1', 'telegram_user_id': 111111, 'username': 'mockuser1', 'activity_score': 80, 'source': 'mock'},
-            {'full_name': 'Mock User 2', 'telegram_user_id': 222222, 'username': 'mockuser2', 'activity_score': 60, 'source': 'mock'},
+        mock_leads_data = [
+            {'full_name': 'Mock Lead 1', 'telegram_user_id': 9990001, 'username': 'mocklead1', 'activity_score': 75, 'source': 'mock_generation'},
+            {'full_name': 'Mock Lead 2', 'telegram_user_id': 9990002, 'username': 'mocklead2', 'activity_score': 50, 'source': 'mock_generation'},
         ]
 
-        for lead_data in mock_leads:
-            existing_lead = Lead.query.filter_by(telegram_user_id=lead_data['telegram_user_id']).first()
+        saved_count = 0
+        for lead_data in mock_leads_data:
+            # Check if a lead with this telegram_user_id already exists for this business
+            existing_lead = Lead.query.filter_by(
+                telegram_user_id=lead_data['telegram_user_id'],
+                business_id=business_id
+            ).first()
+
             if not existing_lead:
                 new_lead = Lead(
                     full_name=lead_data['full_name'],
@@ -127,15 +133,17 @@ def generate_leads(business_id):
                     username=lead_data['username'],
                     activity_score=lead_data['activity_score'],
                     source=lead_data['source'],
-                    business_id=business.id
+                    business_id=business_id,
                 )
                 db.session.add(new_lead)
+                saved_count += 1
 
         db.session.commit()
 
         return jsonify({
-            "message": f"{len(mock_leads)} mock leads generated for {business.name}"
+            "message": f"Successfully generated and saved {saved_count} new mock leads for {business.name}."
         }), 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
