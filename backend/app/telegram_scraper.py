@@ -34,11 +34,15 @@ async def get_group_members_async(group_link, max_members=100):
         count = 0
 
         async with app:
-            print(f"✅ Connection successful. Scraping group: {group_link}")
+            # Sanitize the group link to ensure it starts with '@'
+            username = group_link.split('/')[-1]
+            if not username.startswith('@'):
+                username = '@' + username
+            print(f"✅ Connection successful. Scraping username: {username}")
 
             try:
                 # Iterate through members of the specified group
-                async for member in app.get_chat_members(group_link):
+                async for member in app.get_chat_members(username):
                     if count >= max_members:
                         break
 
