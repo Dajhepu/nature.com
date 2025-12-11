@@ -1,7 +1,6 @@
 from flask import request, jsonify, send_from_directory
 from . import db
 from .models import User, Business, Lead, Campaign, Message
-from .scraper import find_dissatisfied_customers
 from .telegram_service import send_telegram_message
 from .telegram_scraper import get_group_members
 from flask import current_app as app
