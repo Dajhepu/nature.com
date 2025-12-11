@@ -20,7 +20,7 @@ async def generate_session_string():
         print("Please set TELEGRAM_API_ID and TELEGRAM_API_HASH environment variables.")
         return
 
-    async with TelegramClient(StringSession(), API_ID, API_HASH) as client:
+    async with TelegramClient(StringSession(), int(API_ID), API_HASH) as client:
         print("A confirmation code will be sent to your Telegram account.")
 
         try:
