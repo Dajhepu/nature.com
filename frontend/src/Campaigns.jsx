@@ -20,8 +20,8 @@ const Campaigns = ({ businessId, setCampaignId }) => {
       const data = await response.json();
       if (response.ok) {
         alert(data.message);
-        // TODO: Replace with the actual campaign ID from the API response
-        setCampaignId(1);
+        // ✅ API dan kelgan haqiqiy campaign_id ni ishlatamiz
+        setCampaignId(data.campaign_id);
       } else {
         alert(`Error: ${data.error}`);
       }
@@ -32,7 +32,7 @@ const Campaigns = ({ businessId, setCampaignId }) => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Create a New Campaign</h2>
       <form onSubmit={handleCreateCampaign}>
         <input
