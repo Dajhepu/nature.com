@@ -33,10 +33,11 @@ class Business(db.Model):
 
 class Lead(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    customer_name = db.Column(db.String(100), nullable=False)
-    source = db.Column(db.String(50), nullable=False)
-    review_text = db.Column(db.Text, nullable=False)
-    sentiment = db.Column(db.String(20), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    telegram_user_id = db.Column(db.BigInteger, unique=True, nullable=False)
+    username = db.Column(db.String(50), nullable=True)
+    activity_score = db.Column(db.Integer, nullable=False)
+    source = db.Column(db.String(50), nullable=False) # e.g., 'telegram_group_a'
     business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())
