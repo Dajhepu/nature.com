@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LeadsList from './LeadsList';
 import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
+import './App.css'; // Import the CSS file
 
 function App() {
   // --- Core State ---
@@ -139,41 +140,37 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ padding: '20px' }}>
+    <div className="App">
       <h1>Lead Generation Dashboard</h1>
 
       {!businessId ? (
-        <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+        <div className="container">
           <h2>Register Your Business</h2>
-          <form onSubmit={handleRegisterBusiness}>
-            <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Business Name" required style={{ padding: '8px', margin: '5px' }} />
-            <input type="text" name="business_type" value={formData.business_type} onChange={handleChange} placeholder="Business Type" required style={{ padding: '8px', margin: '5px' }}/>
-            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Location" required style={{ padding: '8px', margin: '5px' }}/>
-            <input type="text" name="status" value={formData.status} onChange={handleChange} placeholder="Status" style={{ padding: '8px', margin: '5px' }}/>
-            <button type="submit" style={{ padding: '8px 15px' }}>Register Business</button>
+          <form onSubmit={handleRegisterBusiness} className="form-group">
+            <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Business Name" required />
+            <input type="text" name="business_type" value={formData.business_type} onChange={handleChange} placeholder="Business Type" required />
+            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Location" required />
+            <input type="text" name="status" value={formData.status} onChange={handleChange} placeholder="Status" />
+            <button type="submit">Register Business</button>
           </form>
         </div>
       ) : (
         <div>
-          <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+          <div className="container">
             <h2>Lead Generation Tools</h2>
-            <div>
+            <p>Enter a public Telegram group link to scrape its active members and add them as leads.</p>
+            <div className="input-group">
               <input
                 type="text"
                 name="groupLink"
                 value={groupLink}
                 onChange={handleGroupLinkChange}
                 placeholder="e.g., @groupname or https://t.me/groupname"
-                style={{ width: '400px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
               />
-              <button
-                onClick={handleScrapeTelegramGroup}
-                disabled={isLoading}
-                style={{ marginLeft: '10px', padding: '10px 15px', cursor: 'pointer' }}
-              >
+              <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
                 {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
               </button>
-              <button onClick={handleGenerateLeads} style={{ marginLeft: '10px', padding: '10px 15px' }}>
+              <button onClick={handleGenerateLeads}>
                 Generate Leads (Mock)
               </button>
             </div>
