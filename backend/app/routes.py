@@ -6,6 +6,7 @@ from .telegram_scraper import get_group_members
 from .tasks import send_message_job
 from flask import current_app as app
 import os
+import traceback
 import google.generativeai as genai
 
 # =============================================
@@ -252,7 +253,9 @@ def generate_ai_template():
 
         return jsonify({"suggestions": suggestions}), 200
     except Exception as e:
-        return jsonify({"error": f"Error communicating with Google Gemini: {str(e)}"}), 500
+        print("❌ An exception occurred in generate_ai_template:")
+        traceback.print_exc() # Prints the full traceback to the log
+        return jsonify({"error": f"An internal error occurred while communicating with the AI service: {str(e)}"}), 500
 
 
 @app.route('/api/telegram/scrape_group', methods=['POST'])
