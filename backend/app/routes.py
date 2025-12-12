@@ -257,7 +257,7 @@ def delete_template(template_id):
         return jsonify({"error": str(e)}), 500
 
 
-import openai
+import google.generativeai as genai
 
 # =============================================
 # AI ROUTES
@@ -265,7 +265,7 @@ import openai
 
 @app.route('/api/ai/generate_template', methods=['POST'])
 def generate_ai_template():
-    """Generate message templates using OpenAI"""
+    """Generate message templates using Google Gemini"""
     try:
         data = request.get_json()
         prompt = data.get('prompt')
@@ -273,33 +273,30 @@ def generate_ai_template():
         if not prompt:
             return jsonify({"error": "Prompt is required"}), 400
 
-        if not app.config['OPENAI_API_KEY']:
-            return jsonify({"error": "OpenAI API key is not configured"}), 500
+        if not app.config['GEMINI_API_KEY']:
+            return jsonify({"error": "Google Gemini API key is not configured"}), 500
 
-        client = openai.OpenAI(api_key=app.config['OPENAI_API_KEY'])
+        genai.configure(api_key=app.config['GEMINI_API_KEY'])
+
+        model = genai.GenerativeModel('gemini-pro')
 
         system_prompt = (
             "You are an expert copywriter specializing in Telegram marketing. "
             "Generate three short, engaging, and professional message templates based on the user's prompt. "
             "The messages should be in Uzbek. Each message should be distinct in tone and approach (e.g., one formal, one friendly, one direct). "
-            "Return the response as a simple list of strings."
+            "Return the response as a simple list of strings, separated by '---'."
         )
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            n=3,
-            temperature=0.7,
-        )
+        full_prompt = f"{system_prompt}\n\nUser Prompt: {prompt}"
 
-        suggestions = [choice.message.content.strip() for choice in response.choices]
+        response = model.generate_content(full_prompt)
+
+        # Split the response into three suggestions
+        suggestions = [s.strip() for s in response.text.split('---')]
 
         return jsonify({"suggestions": suggestions}), 200
     except Exception as e:
-        return jsonify({"error": f"Error communicating with OpenAI: {str(e)}"}), 500
+        return jsonify({"error": f"Error communicating with Google Gemini: {str(e)}"}), 500
 
 
 @app.route('/api/telegram/scrape_group', methods=['POST'])
