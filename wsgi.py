@@ -1,4 +1,4 @@
-from app import create_app, db, models
+from backend.app import create_app, db, models
 from flask_migrate import upgrade
 
 app = create_app()
