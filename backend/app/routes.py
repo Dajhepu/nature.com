@@ -235,7 +235,7 @@ def generate_ai_template():
 
         genai.configure(api_key=app.config['GEMINI_API_KEY'])
 
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
         system_prompt = (
             "You are an expert copywriter specializing in Telegram marketing. "
