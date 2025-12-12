@@ -14,3 +14,4 @@ Pyrogram
 tgcrypto
 Flask-RQ2
 redis
+openai

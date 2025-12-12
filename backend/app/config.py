@@ -28,3 +28,6 @@ class Config:
     # Flask-RQ2 configuration
     RQ_REDIS_URL = os.environ.get('RQ_REDIS_URL') or 'redis://localhost:6379/0'
     RQ_ASYNC = True
+
+    # OpenAI API Key
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
