@@ -4,7 +4,7 @@ import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
 import './App.css'; // Import the CSS file
 
-function App({ user, businessId, onLogout, onInvalidBusiness }) {
+function App({ user, businessId, onInvalidBusiness }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
   const [campaignId, setCampaignId] = useState(null);
@@ -116,7 +116,6 @@ function App({ user, businessId, onLogout, onInvalidBusiness }) {
     <div className="App">
       <header className="App-header">
         <h1>Lead Generation Dashboard</h1>
-        <button onClick={onLogout} className="logout-button">Logout</button>
       </header>
 
       <div>
