@@ -23,6 +23,10 @@ COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 # Copy wsgi
 COPY wsgi.py ./backend/
 
-WORKDIR /app/backend
+WORKDIR /app
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:$PORT", "wsgi:app"]
+# Copy and set up the entrypoint script
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
