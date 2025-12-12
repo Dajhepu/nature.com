@@ -1,12 +1,14 @@
 from app import create_app, db, models
+from flask_migrate import upgrade
 
 app = create_app()
 
 # Database tables yaratish (har safar startup'da)
 with app.app_context():
     try:
-        # db.create_all() # Let migrations handle table creation
-        print("✅ Database tables created/verified")
+        # Apply database migrations
+        upgrade()
+        print("✅ Database migrations applied.")
 
         # Create a default user and business if they don't exist
         if not models.User.query.get(1):
