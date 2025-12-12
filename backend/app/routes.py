@@ -6,6 +6,7 @@ from .telegram_scraper import get_group_members
 from .tasks import send_message_job
 from flask import current_app as app
 import os
+import google.generativeai as genai
 
 # =============================================
 # HELPERS
@@ -212,8 +213,6 @@ def delete_template(template_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-
-import google.generativeai as genai
 
 # =============================================
 # AI ROUTES
