@@ -21,7 +21,7 @@ COPY backend/ ./backend/
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
 # Copy wsgi
-COPY wsgi.py ./backend/
+COPY wsgi.py .
 
 WORKDIR /app
 
