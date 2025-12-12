@@ -24,3 +24,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
     INSTAGRAM_SESSIONID = os.environ.get('INSTAGRAM_SESSIONID')
+
+    # Flask-RQ2 configuration
+    RQ_REDIS_URL = os.environ.get('RQ_REDIS_URL') or 'redis://localhost:6379/0'
+    RQ_ASYNC = True

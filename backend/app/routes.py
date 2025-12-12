@@ -1,10 +1,18 @@
 from flask import request, jsonify, send_from_directory
 from . import db
-from .models import User, Business, Lead, Campaign, Message
+from .models import User, Business, Lead, Campaign, Message, MessageTemplate
 from .telegram_service import send_telegram_message
 from .telegram_scraper import get_group_members
+from .tasks import send_message_job
 from flask import current_app as app
 import os
+
+# =============================================
+# HELPERS
+# =============================================
+def _get_current_user():
+    """Mock user fetching. In a real app, this would use session or JWT."""
+    return User.query.get(1)
 
 # =============================================
 # API ROUTES (BIRINCHI!)
@@ -80,48 +88,54 @@ def get_leads(business_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/campaigns', methods=['POST'])
-def create_campaign():
-    """Create campaign"""
+@app.route('/api/campaigns/start', methods=['POST'])
+def start_campaign():
+    """Start a messaging campaign"""
     try:
         data = request.get_json()
-        name = data.get('name')
+        name = data.get('name', 'New Campaign')
         business_id = data.get('business_id')
+        template_id = data.get('template_id')
+        lead_ids = data.get('lead_ids')
 
-        if not all([name, business_id]):
+        if not all([business_id, template_id, lead_ids]):
             return jsonify({"error": "Missing required fields"}), 400
 
         business = Business.query.get_or_404(business_id)
+        template = db.session.get(MessageTemplate, template_id)
+        if not template or template.business_id != business.id:
+            return jsonify({"error": "MessageTemplate not found or access denied"}), 404
 
-        new_campaign = Campaign(name=name, business_id=business.id)
+        new_campaign = Campaign(
+            name=name,
+            business_id=business.id,
+            message_template_id=template.id
+        )
         db.session.add(new_campaign)
-        db.session.commit()
+        db.session.flush()
 
-        # for lead in business.leads:
-        #     message_text = (
-        #         f"Yangi kampaniya: '{name}'\n"
-        #         f"Potensial mijoz: {lead.full_name}\n"
-        #         f"Manba: {lead.source}\n"
-        #         f"Izoh: {lead.review_text}"
-        #     )
-        #     send_telegram_message(chat_id='5073336035', text=message_text)
-
-        #     new_message = Message(
-        #         campaign_id=new_campaign.id,
-        #         lead_id=lead.id,
-        #         subject=f"Telegram message for {lead.full_name}",
-        #         body=message_text,
-        #         status="sent_telegram"
-        #     )
-        #     db.session.add(new_message)
+        messages_queued = 0
+        for lead_id in lead_ids:
+            lead = db.session.get(Lead, lead_id)
+            if lead and lead.business_id == business.id:
+                new_message = Message(
+                    campaign_id=new_campaign.id,
+                    lead_id=lead.id,
+                    status='queued'
+                )
+                db.session.add(new_message)
+                db.session.flush()  # Ensure the message gets an ID
+                send_message_job.queue(new_message.id)
+                messages_queued += 1
 
         db.session.commit()
 
         return jsonify({
-            "message": f"Campaign '{name}' created and initiated for {business.name}",
+            "message": f"Campaign '{name}' started and {messages_queued} messages have been queued.",
             "campaign_id": new_campaign.id
         }), 201
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
@@ -142,6 +156,129 @@ def get_campaign_metrics(campaign_id):
             "roi": roi,
             "guarantee_progress": (total_leads * conversion_rate) / 15 * 100
         }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# =============================================
+# MESSAGE TEMPLATE ROUTES
+# =============================================
+
+@app.route('/api/business/<int:business_id>/templates', methods=['POST'])
+def create_template(business_id):
+    """Create a new message template"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        content = data.get('content')
+
+        if not all([name, content]):
+            return jsonify({"error": "Missing 'name' or 'content'"}), 400
+
+        business = Business.query.get_or_404(business_id)
+
+        new_template = MessageTemplate(
+            name=name,
+            content=content,
+            business_id=business.id
+        )
+        db.session.add(new_template)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Template created successfully",
+            "template": {
+                "id": new_template.id,
+                "name": new_template.name,
+                "content": new_template.content
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/business/<int:business_id>/templates', methods=['GET'])
+def get_templates(business_id):
+    """Get all message templates for a business"""
+    try:
+        business = Business.query.get_or_404(business_id)
+        templates = [
+            {"id": t.id, "name": t.name, "content": t.content}
+            for t in business.message_templates
+        ]
+        return jsonify(templates), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/templates/<int:template_id>', methods=['PUT'])
+def update_template(template_id):
+    """Update a message template"""
+    try:
+        data = request.get_json()
+        template = db.session.get(MessageTemplate, template_id)
+        if not template:
+            return jsonify({"error": "Template not found"}), 404
+
+        current_user = _get_current_user()
+        business = Business.query.get_or_404(template.business_id)
+        if business.user_id != current_user.id:
+            return jsonify({"error": "Access denied"}), 403
+
+        template.name = data.get('name', template.name)
+        template.content = data.get('content', template.content)
+        db.session.commit()
+
+        return jsonify({"message": "Template updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/templates/<int:template_id>', methods=['DELETE'])
+def delete_template(template_id):
+    """Delete a message template"""
+    try:
+        template = db.session.get(MessageTemplate, template_id)
+        if not template:
+            return jsonify({"error": "Template not found"}), 404
+
+        current_user = _get_current_user()
+        business = Business.query.get_or_404(template.business_id)
+        if business.user_id != current_user.id:
+            return jsonify({"error": "Access denied"}), 403
+
+        db.session.delete(template)
+        db.session.commit()
+
+        return jsonify({"message": "Template deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+# =============================================
+# AI ROUTES
+# =============================================
+
+@app.route('/api/ai/generate_template', methods=['POST'])
+def generate_ai_template():
+    """Generate message templates using a mock AI service"""
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt')
+
+        if not prompt:
+            return jsonify({"error": "Prompt is required"}), 400
+
+        # Mock AI-generated content based on the prompt
+        suggestions = [
+            f"AI Suggestion 1 for '{prompt}': Bizning yangi mahsulotimiz bilan tanishing! Sizga chegirma taklif qilamiz.",
+            f"AI Suggestion 2 for '{prompt}': Salom! Sizning faoliyatingiz bizni qiziqtirdi. Hamkorlik qilishimiz mumkinmi?",
+            f"AI Suggestion 3 for '{prompt}': Maxsus taklif! Faqat siz uchun {prompt} bo'yicha eksklyuziv narxlar."
+        ]
+
+        return jsonify({"suggestions": suggestions}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

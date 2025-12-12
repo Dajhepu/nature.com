@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import LeadsList from './LeadsList';
-import Campaigns from './Campaigns';
 import Dashboard from './Dashboard';
+import MessageTemplates from './MessageTemplates';
 import './App.css'; // Import the CSS file
 
 function App({ user, businessId, onInvalidBusiness }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
-  const [campaignId, setCampaignId] = useState(null);
+  const [currentView, setCurrentView] = useState('leads'); // 'leads' or 'templates'
 
   // --- UI State for Telegram Scraper ---
   const [groupLink, setGroupLink] = useState('');
@@ -116,34 +116,44 @@ function App({ user, businessId, onInvalidBusiness }) {
     <div className="App">
       <header className="App-header">
         <h1>Lead Generation Dashboard</h1>
+        <nav>
+          <button onClick={() => setCurrentView('leads')} className={currentView === 'leads' ? 'active' : ''}>
+            Leads
+          </button>
+          <button onClick={() => setCurrentView('templates')} className={currentView === 'templates' ? 'active' : ''}>
+            Message Templates
+          </button>
+        </nav>
       </header>
 
       <div>
-        <div className="container">
-          <h2>Lead Generation Tools</h2>
-          <p>Enter a public Telegram group link to scrape its active members and add them as leads.</p>
-          <div className="input-group">
-            <input
-              type="text"
-              name="groupLink"
-              value={groupLink}
-              onChange={handleGroupLinkChange}
-              placeholder="e.g., @groupname or https://t.me/groupname"
-            />
-            <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
-              {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
-            </button>
-            <button onClick={handleGenerateLeads}>
-              Generate Leads (Mock)
-            </button>
-          </div>
-          {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
-        </div>
-
-        <LeadsList leads={leads} />
-        <Campaigns businessId={businessId} setCampaignId={setCampaignId} />
-
-        {campaignId && <Dashboard campaignId={campaignId} />}
+        {currentView === 'leads' ? (
+          <>
+            <div className="container">
+              <h2>Lead Generation Tools</h2>
+              <p>Enter a public Telegram group link to scrape its active members and add them as leads.</p>
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="groupLink"
+                  value={groupLink}
+                  onChange={handleGroupLinkChange}
+                  placeholder="e.g., @groupname or https://t.me/groupname"
+                />
+                <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
+                  {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
+                </button>
+                <button onClick={handleGenerateLeads}>
+                  Generate Leads (Mock)
+                </button>
+              </div>
+              {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
+            </div>
+            <LeadsList leads={leads} businessId={businessId} />
+          </>
+        ) : (
+          <MessageTemplates businessId={businessId} />
+        )}
       </div>
     </div>
   );
