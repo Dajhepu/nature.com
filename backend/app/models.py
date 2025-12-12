@@ -29,6 +29,16 @@ class Business(db.Model):
                            server_default=func.now())
     leads = db.relationship('Lead', backref='business', lazy=True)
     campaigns = db.relationship('Campaign', backref='business', lazy=True)
+    message_templates = db.relationship('MessageTemplate', backref='business', lazy=True)
+
+
+class MessageTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True),
+                           server_default=func.now())
 
 
 class Lead(db.Model):
@@ -48,17 +58,17 @@ class Campaign(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+    message_template_id = db.Column(db.Integer, db.ForeignKey('message_template.id'), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())
     messages = db.relationship('Message', backref='campaign', lazy=True)
+    message_template = db.relationship('MessageTemplate')
 
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
     lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
-    subject = db.Column(db.String(200), nullable=False)
-    body = db.Column(db.Text, nullable=False)
     sent_at = db.Column(db.DateTime(timezone=True),
                           server_default=func.now())
-    status = db.Column(db.String(20), default='sent')  # e.g., sent, opened, replied
+    status = db.Column(db.String(20), default='pending')  # pending, sent, failed
