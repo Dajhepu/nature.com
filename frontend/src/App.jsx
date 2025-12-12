@@ -40,32 +40,6 @@ function App({ user, businessId, onInvalidBusiness }) {
   }, [businessId]);
 
   // --- Event Handlers ---
-  const handleGenerateLeads = async () => {
-    if (!businessId) {
-      alert('Please register a business first.');
-      return;
-    }
-    try {
-      const generateResponse = await fetch(
-        `/api/business/${businessId}/generate_leads`,
-        { method: 'POST' }
-      );
-      const generateData = await generateResponse.json();
-      if (generateResponse.ok) {
-        alert(generateData.message);
-        fetchLeads(); // Refresh leads list
-      } else {
-        alert(`Error: ${generateData.error}`);
-        if (generateData.error && generateData.error.includes('not found')) {
-          onInvalidBusiness();
-        }
-      }
-    } catch (error) {
-      console.error('Error generating leads:', error);
-      alert('An error occurred while generating leads.');
-    }
-  };
-
   const handleGroupLinkChange = (e) => {
     setGroupLink(e.target.value);
   };
@@ -142,9 +116,6 @@ function App({ user, businessId, onInvalidBusiness }) {
                 />
                 <button onClick={handleScrapeTelegramGroup} disabled={isLoading}>
                   {isLoading ? 'Scraping...' : 'Scrape Telegram Leads'}
-                </button>
-                <button onClick={handleGenerateLeads}>
-                  Generate Leads (Mock)
                 </button>
               </div>
               {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}

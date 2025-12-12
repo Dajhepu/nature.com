@@ -24,50 +24,6 @@ def health():
     return jsonify({"status": "ok", "message": "Backend is running"}), 200
 
 
-
-
-@app.route('/api/business/<int:business_id>/generate_leads', methods=['POST'])
-def generate_leads(business_id):
-    """Generate mock leads"""
-    try:
-        business = Business.query.get_or_404(business_id)
-
-        mock_leads_data = [
-            {'full_name': 'Mock Lead 1', 'telegram_user_id': 9990001, 'username': 'mocklead1', 'activity_score': 75, 'source': 'mock_generation'},
-            {'full_name': 'Mock Lead 2', 'telegram_user_id': 9990002, 'username': 'mocklead2', 'activity_score': 50, 'source': 'mock_generation'},
-        ]
-
-        saved_count = 0
-        for lead_data in mock_leads_data:
-            # Check if a lead with this telegram_user_id already exists for this business
-            existing_lead = Lead.query.filter_by(
-                telegram_user_id=lead_data['telegram_user_id'],
-                business_id=business_id
-            ).first()
-
-            if not existing_lead:
-                new_lead = Lead(
-                    full_name=lead_data['full_name'],
-                    telegram_user_id=lead_data['telegram_user_id'],
-                    username=lead_data['username'],
-                    activity_score=lead_data['activity_score'],
-                    source=lead_data['source'],
-                    business_id=business_id,
-                )
-                db.session.add(new_lead)
-                saved_count += 1
-
-        db.session.commit()
-
-        return jsonify({
-            "message": f"Successfully generated and saved {saved_count} new mock leads for {business.name}."
-        }), 201
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route('/api/business/<int:business_id>/leads', methods=['GET'])
 def get_leads(business_id):
     """Get leads for a business"""
