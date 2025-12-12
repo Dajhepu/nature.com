@@ -229,8 +229,9 @@ def generate_ai_template():
         if not prompt:
             return jsonify({"error": "Prompt is required"}), 400
 
-        if not app.config['GEMINI_API_KEY']:
-            return jsonify({"error": "Google Gemini API key is not configured"}), 500
+        gemini_api_key = app.config.get('GEMINI_API_KEY')
+        if not gemini_api_key:
+            return jsonify({"error": "The AI feature has not been configured by the administrator. (GEMINI_API_KEY is not set)"}), 500
 
         genai.configure(api_key=app.config['GEMINI_API_KEY'])
 
