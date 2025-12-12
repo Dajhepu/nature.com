@@ -1,70 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import App from './App';
-import Login from './Login';
-import Register from './Register';
-import RegisterBusiness from './RegisterBusiness';
 
 const MainApp = () => {
-  const [user, setUser] = useState(null);
-  const [businessId, setBusinessId] = useState(null);
-  const [isRegisterView, setIsRegisterView] = useState(false);
-
-  useEffect(() => {
-    // Check for user and business info in local storage to persist session
-    const storedUser = localStorage.getItem('user');
-    const storedBusinessId = localStorage.getItem('businessId');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      if (storedBusinessId) {
-        setBusinessId(storedBusinessId);
-      }
-    }
-  }, []);
-
-  const handleLoginSuccess = (data) => {
-    setUser(data.user);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    if (data.business) {
-      setBusinessId(data.business.id);
-      localStorage.setItem('businessId', data.business.id);
-    }
-  };
-
-  const handleBusinessRegistered = (newBusinessId) => {
-    setBusinessId(newBusinessId);
-    localStorage.setItem('businessId', newBusinessId);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setBusinessId(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('businessId');
-    setIsRegisterView(false); // Reset to login view on logout
-  };
+  // Hardcoded user and businessId for simplicity
+  const user = { id: 1, username: 'default_user' };
+  const businessId = 1;
 
   const handleInvalidBusiness = () => {
-    alert("Your session's business ID is invalid. Please register your business again.");
-    setBusinessId(null);
-    localStorage.removeItem('businessId');
+    console.log("Business validation has been removed.");
   };
 
-  if (!user) {
-    return isRegisterView ? (
-      <Register onSwitchToLogin={() => setIsRegisterView(false)} />
-    ) : (
-      <Login
-        onLoginSuccess={handleLoginSuccess}
-        onSwitchToRegister={() => setIsRegisterView(true)}
-      />
-    );
-  }
-
-  if (!businessId) {
-    return <RegisterBusiness user={user} onBusinessRegistered={handleBusinessRegistered} />;
-  }
-
-  return <App user={user} businessId={businessId} onLogout={handleLogout} onInvalidBusiness={handleInvalidBusiness} />;
+  return <App user={user} businessId={businessId} onInvalidBusiness={handleInvalidBusiness} />;
 };
 
 export default MainApp;
