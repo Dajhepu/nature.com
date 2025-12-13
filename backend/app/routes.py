@@ -247,7 +247,7 @@ def generate_ai_template():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-            model="llama3-8b-8192", # A fast and capable model from Groq
+            model="llama-3.1-8b-instant", # A fast and capable model from Groq
         )
 
         response_content = chat_completion.choices[0].message.content
