@@ -1,6 +1,7 @@
 # backend/app/trend_analyzer.py
 from . import db
 from .models import WordFrequency, Trend
+from .ai_analyzer import analyze_text_with_ai
 from datetime import date, timedelta
 
 def calculate_trend_score(word, current_frequency, past_frequency):
@@ -20,9 +21,9 @@ def calculate_trend_score(word, current_frequency, past_frequency):
 
     return score
 
-def analyze_trends_for_business(business_id, analysis_date=None):
+def analyze_trends_for_business(business_id, all_messages, analysis_date=None):
     """
-    Belgilangan biznes uchun so'z chastotalarini tahlil qiladi va trendlarni aniqlaydi.
+    Belgilangan biznes uchun so'z chastotalarini tahlil qiladi, AI yordamida boyitadi va trendlarni aniqlaydi.
     """
     if analysis_date is None:
         analysis_date = date.today()
@@ -57,11 +58,20 @@ def analyze_trends_for_business(business_id, analysis_date=None):
             score = calculate_trend_score(word, today_freq, yesterday_freq)
 
             if score > 10: # Minimal skor chegarasi
+                # AI tahlili uchun shu so'z qatnashgan xabarlarni topish
+                related_messages = [msg for msg in all_messages if word in msg.lower()]
+
+                ai_result = {"sentiment": "neutral", "summary": ""}
+                if related_messages:
+                    ai_result = analyze_text_with_ai(word, related_messages)
+
                 new_trend = Trend(
                     word=word,
                     trend_score=score,
                     date=analysis_date,
-                    business_id=business_id
+                    business_id=business_id,
+                    sentiment=ai_result.get('sentiment'),
+                    summary=ai_result.get('summary')
                 )
                 trends.append(new_trend)
 
@@ -70,9 +80,10 @@ def analyze_trends_for_business(business_id, analysis_date=None):
         trends.sort(key=lambda t: t.trend_score, reverse=True)
 
         # Eng yaxshi 10 yoki undan kam trendni saqlash
-        db.session.add_all(trends[:10])
+        top_trends = trends[:10]
+        db.session.add_all(top_trends)
         db.session.commit()
-        print(f"   ✅ Saved {len(trends[:10])} new trends to the database.")
+        print(f"   ✅ Saved {len(top_trends)} new trends to the database after AI analysis.")
     else:
         print("   ℹ️ No significant trends were identified.")
 

@@ -4,6 +4,21 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContaine
 import WordCloud from 'react-wordcloud';
 
 const TrendAnalysis = ({ businessId }) => {
+
+  const getSentimentEmoji = (sentiment) => {
+    switch (sentiment) {
+      case 'positive': return '😊';
+      case 'negative': return '😠';
+      default: return '😐';
+    }
+  };
+
+  const trendItemStyle = {
+    marginBottom: '1rem',
+    paddingBottom: '0.5rem',
+    borderBottom: '1px solid #444'
+  };
+
   const [groups, setGroups] = useState([]);
   const [newGroupLink, setNewGroupLink] = useState('');
   const [trends, setTrends] = useState([]);
@@ -128,8 +143,12 @@ const TrendAnalysis = ({ businessId }) => {
           {trends.length > 0 ? (
             <ul>
               {trends.map(t => (
-                <li key={t.word}>
-                  <strong>{t.word}</strong> - Trend Skori: {t.trend_score}
+                <li key={t.word} style={trendItemStyle}>
+                  <div>
+                    <strong>{t.word}</strong> {getSentimentEmoji(t.sentiment)}
+                  </div>
+                  <small>Trend Skori: {t.trend_score}</small>
+                  <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>"{t.summary}"</p>
                 </li>
               ))}
             </ul>

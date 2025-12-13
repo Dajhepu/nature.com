@@ -100,3 +100,5 @@ class Trend(db.Model):
     trend_score = db.Column(db.Float, nullable=False)
     date = db.Column(db.Date, nullable=False)
     business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+    sentiment = db.Column(db.String(20), default='neutral') # positive, negative, neutral
+    summary = db.Column(db.Text, nullable=True)

@@ -368,7 +368,12 @@ def get_trends(business_id):
     trends = Trend.query.filter_by(business_id=business_id, date=today).order_by(Trend.trend_score.desc()).all()
 
     return jsonify([
-        {"word": t.word, "trend_score": round(t.trend_score, 2)}
+        {
+            "word": t.word,
+            "trend_score": round(t.trend_score, 2),
+            "sentiment": t.sentiment,
+            "summary": t.summary
+        }
         for t in trends
     ]), 200
 
@@ -419,7 +424,7 @@ def trigger_analysis(business_id):
         db.session.commit()
 
         # 5. Trendlarni tahlil qilish
-        analyze_trends_for_business(business_id, today)
+        analyze_trends_for_business(business_id, all_messages, today)
 
         return jsonify({"message": f"Analysis complete. Processed {len(all_messages)} messages and identified new trends."}), 200
 
