@@ -219,32 +219,6 @@ def delete_template(template_id):
 # AI ROUTES
 # =============================================
 
-@app.route('/api/ai/list_models', methods=['GET'])
-def list_ai_models():
-    """(Temporary) Diagnostic endpoint to list available Gemini models."""
-    try:
-        gemini_api_key = app.config.get('GEMINI_API_KEY')
-        if not gemini_api_key:
-            return jsonify({"error": "GEMINI_API_KEY is not set"}), 500
-
-        genai.configure(api_key=gemini_api_key)
-
-        print("🔍 Listing available models...")
-        models_list = []
-        for m in genai.list_models():
-            # We only care about models that support the 'generateContent' method
-            if 'generateContent' in m.supported_generation_methods:
-                models_list.append(m.name)
-
-        print("✅ Available models for generateContent:", models_list)
-        return jsonify({"available_models": models_list}), 200
-
-    except Exception as e:
-        print("❌ An exception occurred in list_ai_models:")
-        traceback.print_exc()
-        return jsonify({"error": f"An internal error occurred: {str(e)}"}), 500
-
-
 @app.route('/api/ai/generate_template', methods=['POST'])
 def generate_ai_template():
     """Generate message templates using Google Gemini"""
@@ -261,7 +235,7 @@ def generate_ai_template():
 
         genai.configure(api_key=app.config['GEMINI_API_KEY'])
 
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('models/gemini-pro-latest')
 
         system_prompt = (
             "You are an expert copywriter specializing in Telegram marketing. "
