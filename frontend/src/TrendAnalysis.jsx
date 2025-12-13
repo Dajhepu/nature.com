@@ -1,7 +1,7 @@
 // frontend/src/TrendAnalysis.jsx
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
-import WordCloud from 'react-wordcloud';
+import { WordCloud } from '@isoterik/react-word-cloud';
 
 const TrendAnalysis = ({ businessId }) => {
 
@@ -162,11 +162,8 @@ const TrendAnalysis = ({ businessId }) => {
             <div style={{ height: '400px', width: '100%' }}>
               <WordCloud
                 words={trends.map(t => ({ text: t.word, value: t.trend_score }))}
-                options={{
-                  fontSizes: [20, 60],
-                  rotations: 2,
-                  rotationAngles: [-90, 0],
-                }}
+                width={400}
+                height={400}
               />
             </div>
           ) : (
