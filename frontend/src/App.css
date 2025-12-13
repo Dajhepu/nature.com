@@ -108,6 +108,7 @@ nav button.active {
 @media (max-width: 600px) {
   body {
     padding-top: 1rem;
+    padding-bottom: 60px; /* Pastki navigatsiya uchun joy */
   }
 
   #root {
@@ -116,6 +117,24 @@ nav button.active {
 
   .App {
     padding: 1.5rem;
+  }
+
+  nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--card-background-color);
+    border-top: 1px solid var(--input-border-color);
+    border-bottom: none;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    z-index: 1000;
+    margin: 0;
+  }
+
+  nav button {
+    border-radius: 6px;
   }
 
   .input-group {
