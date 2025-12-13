@@ -48,6 +48,7 @@ class Lead(db.Model):
     username = db.Column(db.String(50), nullable=True)
     activity_score = db.Column(db.Integer, nullable=False)
     source = db.Column(db.String(50), nullable=False) # e.g., 'telegram_group_a'
+    status = db.Column(db.String(50), default='New', nullable=False)  # New, Contacted, Interested, Converted, etc.
     business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())

@@ -1,9 +1,30 @@
 import React, { useState } from 'react';
 import CampaignModal from './CampaignModal';
 
-const LeadsList = ({ leads, businessId }) => {
+const LeadsList = ({ leads, businessId, setLeads }) => {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleStatusChange = async (leadId, newStatus) => {
+    try {
+      const response = await fetch(`/api/leads/${leadId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        const updatedLead = await response.json();
+        setLeads(leads.map(lead => (lead.id === updatedLead.id ? updatedLead : lead)));
+      } else {
+        console.error('Failed to update lead status');
+      }
+    } catch (error) {
+      console.error('Error updating lead status:', error);
+    }
+  };
 
   const handleSelectLead = (leadId) => {
     setSelectedLeads(prev =>
@@ -34,6 +55,17 @@ const LeadsList = ({ leads, businessId }) => {
             />
             <strong>{lead.full_name}</strong> (Reyting: {lead.activity_score})
             <p>@{lead.username || 'Mavjud Emas'} - Manba: {lead.source}</p>
+            <select
+              value={lead.status || 'New'}
+              onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+              style={{ marginLeft: 'auto' }}
+            >
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Interested">Interested</option>
+              <option value="Converted">Converted</option>
+              <option value="Not Interested">Not Interested</option>
+            </select>
           </li>
         ))}
       </ul>

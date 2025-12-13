@@ -3,12 +3,13 @@ import LeadsList from './LeadsList';
 import Dashboard from './Dashboard';
 import MessageTemplates from './MessageTemplates';
 import TrendAnalysis from './TrendAnalysis'; // Import the new component
+import Analytics from './Analytics'; // Import the new component
 import './App.css'; // Import the CSS file
 
 function App({ user, businessId, onInvalidBusiness }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
-  const [currentView, setCurrentView] = useState('leads'); // 'leads', 'templates', or 'trends'
+  const [currentView, setCurrentView] = useState('leads'); // 'leads', 'templates', 'trends', or 'analytics'
 
   // --- UI State for Telegram Scraper ---
   const [groupLink, setGroupLink] = useState('');
@@ -101,6 +102,9 @@ function App({ user, businessId, onInvalidBusiness }) {
           <button onClick={() => setCurrentView('trends')} className={currentView === 'trends' ? 'active' : ''}>
             Trend Analysis
           </button>
+          <button onClick={() => setCurrentView('analytics')} className={currentView === 'analytics' ? 'active' : ''}>
+            Analytics
+          </button>
         </nav>
       </header>
 
@@ -124,11 +128,12 @@ function App({ user, businessId, onInvalidBusiness }) {
               </div>
               {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
             </div>
-            <LeadsList leads={leads} businessId={businessId} />
+            <LeadsList leads={leads} businessId={businessId} setLeads={setLeads} />
           </>
         )}
         {currentView === 'templates' && <MessageTemplates businessId={businessId} />}
         {currentView === 'trends' && <TrendAnalysis businessId={businessId} />}
+        {currentView === 'analytics' && <Analytics businessId={businessId} />}
       </div>
     </div>
   );
