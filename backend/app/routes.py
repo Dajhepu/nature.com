@@ -11,6 +11,7 @@ import os
 import traceback
 from groq import Groq
 from datetime import date, datetime
+from sqlalchemy import func
 
 # =============================================
 # HELPERS
@@ -41,12 +42,73 @@ def get_leads(business_id):
                 "username": lead.username,
                 "activity_score": lead.activity_score,
                 "source": lead.source,
+                "status": lead.status,
             }
             for lead in business.leads
         ]
         return jsonify(leads), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/leads/<int:lead_id>/status', methods=['PUT'])
+def update_lead_status(lead_id):
+    user = _get_current_user()
+    lead = Lead.query.get_or_404(lead_id)
+    # Ensure the lead belongs to one of the user's businesses
+    if lead.business.owner.id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    data = request.get_json()
+    if not data or 'status' not in data:
+        return jsonify({'error': 'Missing status in request body'}), 400
+
+    # Basic validation for status field
+    allowed_statuses = ['New', 'Contacted', 'Interested', 'Converted', 'Not Interested']
+    if data['status'] not in allowed_statuses:
+        return jsonify({'error': f'Invalid status. Must be one of {allowed_statuses}'}), 400
+
+    lead.status = data['status']
+    db.session.commit()
+
+    return jsonify({
+        "id": lead.id,
+        "full_name": lead.full_name,
+        "username": lead.username,
+        "activity_score": lead.activity_score,
+        "source": lead.source,
+        "status": lead.status
+    })
+
+@app.route('/api/business/<int:business_id>/analytics', methods=['GET'])
+def get_business_analytics(business_id):
+    user = _get_current_user()
+    business = Business.query.get_or_404(business_id)
+    if business.owner.id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Total leads
+    total_leads = Lead.query.filter_by(business_id=business_id).count()
+
+    # Lead status distribution
+    lead_status_distribution = db.session.query(Lead.status, func.count(Lead.status)).filter_by(business_id=business_id).group_by(Lead.status).all()
+    lead_status_distribution = dict(lead_status_distribution)
+
+    # Leads by source
+    leads_by_source = db.session.query(Lead.source, func.count(Lead.source)).filter_by(business_id=business_id).group_by(Lead.source).all()
+    leads_by_source = dict(leads_by_source)
+
+    # Total messages sent
+    total_messages_sent = Message.query.join(Lead).filter(Lead.business_id == business_id, Message.status == 'sent').count()
+
+    analytics_data = {
+        'total_leads': total_leads,
+        'lead_status_distribution': lead_status_distribution,
+        'leads_by_source': leads_by_source,
+        'total_messages_sent': total_messages_sent
+    }
+
+    return jsonify(analytics_data)
 
 
 @app.route('/api/campaigns/start', methods=['POST'])
