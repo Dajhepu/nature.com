@@ -94,3 +94,51 @@ async def get_group_members_async(group_link, max_members=100):
 def get_group_members(group_link, max_members=100):
     """Synchronous wrapper to run the async Pyrogram scraper."""
     return asyncio.run(get_group_members_async(group_link, max_members))
+
+async def get_group_messages_async(group_link, limit=100):
+    """
+    Scrapes recent text messages from a public Telegram group using Pyrogram.
+    """
+    if not all([API_ID, API_HASH, SESSION_STRING]):
+        error_message = "❌ Telegram credentials are not fully configured."
+        print(error_message)
+        return {"error": error_message}
+
+    print(f"--- 📜 Starting Message Scraper for {group_link} 📜 ---")
+
+    try:
+        app = Client(
+            name="pyrogram_session_messages",
+            api_id=int(API_ID),
+            api_hash=API_HASH,
+            session_string=SESSION_STRING,
+            in_memory=True
+        )
+
+        messages_data = []
+        async with app:
+            print("✅ Connection for message scraping successful.")
+            try:
+                async for message in app.get_chat_history(group_link, limit=limit):
+                    if message.text: # Only process messages with text content
+                        messages_data.append({
+                            'message_id': message.id,
+                            'content': message.text,
+                            'sent_at': message.date
+                        })
+                print(f"✅ Found {len(messages_data)} text messages.")
+            except Exception as e:
+                error_message = f"❌ Could not access messages for group '{group_link}'. Details: {e}"
+                print(error_message)
+                return {"error": error_message}
+
+        return {"messages": messages_data}
+
+    except Exception as e:
+        error_message = f"❌ An unexpected error occurred during message scraping client initialization: {e}"
+        print(error_message)
+        return {"error": error_message}
+
+def get_group_messages(group_link, limit=100):
+    """Synchronous wrapper to run the async Pyrogram message scraper."""
+    return asyncio.run(get_group_messages_async(group_link, limit))
