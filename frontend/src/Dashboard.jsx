@@ -26,16 +26,16 @@ const Dashboard = ({ campaignId }) => {
   }, [campaignId]);
 
   if (!metrics) {
-    return <div>Loading dashboard...</div>;
+    return <div>Dashboard yuklanmoqda...</div>;
   }
 
   return (
     <div>
-      <h2>{metrics.campaign_name} Dashboard</h2>
-      <p>Total Leads: {metrics.total_leads}</p>
-      <p>Conversion Rate: {metrics.conversion_rate * 100}%</p>
-      <p>ROI: {metrics.roi * 100}%</p>
-      <p>Guarantee Progress: {metrics.guarantee_progress.toFixed(2)}%</p>
+      <h2>{metrics.campaign_name}: Boshqaruv paneli</h2>
+      <p>Jami Kontaktlar: {metrics.total_leads}</p>
+      <p>Konversiya Darajasi: {metrics.conversion_rate * 100}%</p>
+      <p>ROI (Kiritilgan sarmoya rentabelligi): {metrics.roi * 100}%</p>
+      <p>Kafolat Jarayoni: {metrics.guarantee_progress.toFixed(2)}%</p>
     </div>
   );
 };

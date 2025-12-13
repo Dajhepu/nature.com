@@ -16,10 +16,10 @@ const LeadsList = ({ leads, businessId }) => {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Generated Leads ({leads.length})</h2>
+        <h2>Yig'ilgan Kontaktlar ({leads.length})</h2>
         {selectedLeads.length > 0 && (
           <button onClick={() => setIsModalOpen(true)}>
-            Send Message to {selectedLeads.length} Lead(s)
+            {selectedLeads.length} ta kontaktga xabar yuborish
           </button>
         )}
       </div>
@@ -32,8 +32,8 @@ const LeadsList = ({ leads, businessId }) => {
               onChange={() => handleSelectLead(lead.id)}
               style={{ marginRight: '1rem' }}
             />
-            <strong>{lead.full_name}</strong> (Score: {lead.activity_score})
-            <p>@{lead.username || 'N/A'} - Source: {lead.source}</p>
+            <strong>{lead.full_name}</strong> (Reyting: {lead.activity_score})
+            <p>@{lead.username || 'Mavjud Emas'} - Manba: {lead.source}</p>
           </li>
         ))}
       </ul>

@@ -11,7 +11,7 @@ function MessageTemplates({ businessId }) {
     if (!businessId) return;
     try {
       const response = await fetch(`/api/business/${businessId}/templates`);
-      if (!response.ok) throw new Error('Failed to fetch templates');
+      if (!response.ok) throw new Error('Shablonlarni yuklab bolmadi');
       const data = await response.json();
       setTemplates(data);
     } catch (err) {
@@ -33,7 +33,7 @@ function MessageTemplates({ businessId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-      if (!response.ok) throw new Error('Failed to get suggestions');
+      if (!response.ok) throw new Error('Takliflarni olib bolmadi');
       const data = await response.json();
       setSuggestions(data.suggestions);
     } catch (err) {
@@ -44,14 +44,14 @@ function MessageTemplates({ businessId }) {
   };
 
   const handleSaveTemplate = async (content) => {
-    const name = prompt.substring(0, 20) || 'New AI Template';
+    const name = prompt.substring(0, 20) || 'Yangi AI Shablon';
     try {
       const response = await fetch(`/api/business/${businessId}/templates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, content }),
       });
-      if (!response.ok) throw new Error('Failed to save template');
+      if (!response.ok) throw new Error('Shablonni saqlashda xatolik');
       fetchTemplates(); // Refresh the list
       setSuggestions([]); // Clear suggestions
     } catch (err) {

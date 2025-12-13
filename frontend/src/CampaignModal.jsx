@@ -13,7 +13,7 @@ const CampaignModal = ({ businessId, leadIds, onClose, onCampaignStart }) => {
       if (!businessId) return;
       try {
         const response = await fetch(`/api/business/${businessId}/templates`);
-        if (!response.ok) throw new Error('Failed to fetch templates');
+        if (!response.ok) throw new Error('Shablonlarni yuklab bolmadi');
         const data = await response.json();
         setTemplates(data);
       } catch (err) {
@@ -39,7 +39,7 @@ const CampaignModal = ({ businessId, leadIds, onClose, onCampaignStart }) => {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to start campaign');
+        throw new Error(errorData.error || 'Kampaniyani boshlashda xatolik');
       }
       const data = await response.json();
       alert(data.message); // Show success message from the backend
@@ -54,22 +54,22 @@ const CampaignModal = ({ businessId, leadIds, onClose, onCampaignStart }) => {
   return (
     <div className="modal-backdrop">
       <div className="modal-content">
-        <h2>Start a New Campaign</h2>
-        <p>You are about to send a message to {leadIds.length} lead(s).</p>
+        <h2>Yangi Kampaniya Boshlash</h2>
+        <p>Siz {leadIds.length} ta kontaktga xabar yubormoqchisiz.</p>
 
         <div className="form-group">
-          <label htmlFor="campaignName">Campaign Name</label>
+          <label htmlFor="campaignName">Kampaniya Nomi</label>
           <input
             type="text"
             id="campaignName"
             value={campaignName}
             onChange={(e) => setCampaignName(e.target.value)}
-            placeholder="e.g., 'Q1 Promo'"
+            placeholder="Masalan, 'Birinchi chorak aksiyasi'"
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="templateSelect">Select Message Template</label>
+          <label htmlFor="templateSelect">Xabar Shablonini Tanlang</label>
           <select
             id="templateSelect"
             value={selectedTemplate}
@@ -87,9 +87,9 @@ const CampaignModal = ({ businessId, leadIds, onClose, onCampaignStart }) => {
         {error && <p className="error-message">{error}</p>}
 
         <div className="modal-actions">
-          <button onClick={onClose} disabled={isLoading}>Cancel</button>
+          <button onClick={onClose} disabled={isLoading}>Bekor qilish</button>
           <button onClick={handleStartCampaign} disabled={isLoading || !selectedTemplate || !campaignName}>
-            {isLoading ? 'Starting...' : 'Start Campaign'}
+            {isLoading ? 'Boshlanmoqda...' : 'Kampaniyani Boshlash'}
           </button>
         </div>
       </div>
