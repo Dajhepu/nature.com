@@ -4,7 +4,7 @@ set -e
 # Set environment variables
 export FLASK_APP=wsgi:app
 export PYTHONPATH=$PYTHONPATH:./backend
-export GEMINI_API_KEY=${GEMINI_API_KEY:-} # Set placeholder if not provided
+export GROQ_API_KEY=${GROQ_API_KEY:-} # Set placeholder if not provided
 
 # Wait for the database to be ready (optional, but good practice)
 # Add a database check here if needed in the future

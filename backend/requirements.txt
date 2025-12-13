@@ -14,5 +14,5 @@ Pyrogram
 tgcrypto
 Flask-RQ2
 redis
-google-generativeai
+groq
 setuptools

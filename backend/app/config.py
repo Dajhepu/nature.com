@@ -29,5 +29,5 @@ class Config:
     RQ_REDIS_URL = os.environ.get('RQ_REDIS_URL') or 'redis://localhost:6379/0'
     RQ_ASYNC = True
 
-    # Google Gemini API Key
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+    # Groq API Key
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
