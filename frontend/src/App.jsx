@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import LeadsList from './LeadsList';
 import Dashboard from './Dashboard';
 import MessageTemplates from './MessageTemplates';
+import TrendAnalysis from './TrendAnalysis'; // Import the new component
 import './App.css'; // Import the CSS file
 
 function App({ user, businessId, onInvalidBusiness }) {
   // --- Core State ---
   const [leads, setLeads] = useState([]);
-  const [currentView, setCurrentView] = useState('leads'); // 'leads' or 'templates'
+  const [currentView, setCurrentView] = useState('leads'); // 'leads', 'templates', or 'trends'
 
   // --- UI State for Telegram Scraper ---
   const [groupLink, setGroupLink] = useState('');
@@ -97,11 +98,14 @@ function App({ user, businessId, onInvalidBusiness }) {
           <button onClick={() => setCurrentView('templates')} className={currentView === 'templates' ? 'active' : ''}>
             Message Templates
           </button>
+          <button onClick={() => setCurrentView('trends')} className={currentView === 'trends' ? 'active' : ''}>
+            Trend Analysis
+          </button>
         </nav>
       </header>
 
       <div>
-        {currentView === 'leads' ? (
+        {currentView === 'leads' && (
           <>
             <div className="container">
               <h2>Lead Generation Tools</h2>
@@ -122,9 +126,9 @@ function App({ user, businessId, onInvalidBusiness }) {
             </div>
             <LeadsList leads={leads} businessId={businessId} />
           </>
-        ) : (
-          <MessageTemplates businessId={businessId} />
         )}
+        {currentView === 'templates' && <MessageTemplates businessId={businessId} />}
+        {currentView === 'trends' && <TrendAnalysis businessId={businessId} />}
       </div>
     </div>
   );

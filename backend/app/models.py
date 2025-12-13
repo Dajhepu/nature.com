@@ -72,3 +72,33 @@ class Message(db.Model):
     sent_at = db.Column(db.DateTime(timezone=True),
                           server_default=func.now())
     status = db.Column(db.String(20), default='pending')  # pending, sent, failed
+
+
+# =============================================
+# Trend Analysis Models
+# =============================================
+
+class MonitoredGroup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    group_link = db.Column(db.String(255), unique=True, nullable=False)
+    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+    last_scraped_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
+class WordFrequency(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(100), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False, index=True)
+    frequency = db.Column(db.Integer, nullable=False)
+    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False, index=True)
+
+    __table_args__ = (db.UniqueConstraint('word', 'date', 'business_id', name='_word_date_business_uc'),)
+
+class Trend(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(100), nullable=False)
+    trend_score = db.Column(db.Float, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    business_id = db.Column(db.Integer, db.ForeignKey('business.id'), nullable=False)
+    sentiment = db.Column(db.String(20), default='neutral') # positive, negative, neutral
+    summary = db.Column(db.Text, nullable=True)

@@ -1,13 +1,16 @@
 from flask import request, jsonify, send_from_directory
 from . import db
-from .models import User, Business, Lead, Campaign, Message, MessageTemplate
+from .models import User, Business, Lead, Campaign, Message, MessageTemplate, MonitoredGroup, WordFrequency, Trend
 from .telegram_service import send_telegram_message
-from .telegram_scraper import get_group_members
+from .telegram_scraper import get_group_members, get_group_messages
 from .tasks import send_message_job
+from .text_processor import get_word_frequencies
+from .trend_analyzer import analyze_trends_for_business
 from flask import current_app as app
 import os
 import traceback
 from groq import Groq
+from datetime import date, datetime
 
 # =============================================
 # HELPERS
@@ -318,6 +321,117 @@ def scrape_telegram_group():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+
+# =============================================
+# TREND ANALYSIS ROUTES
+# =============================================
+
+@app.route('/api/business/<int:business_id>/monitored_groups', methods=['POST'])
+def add_monitored_group(business_id):
+    """Kuzatish uchun yangi guruh qo'shadi"""
+    data = request.get_json()
+    group_link = data.get('group_link')
+
+    if not group_link:
+        return jsonify({"error": "Group link is required"}), 400
+
+    # Check if business exists
+    business = Business.query.get_or_404(business_id)
+
+    # Check if group link is already monitored for this business
+    existing = MonitoredGroup.query.filter_by(business_id=business_id, group_link=group_link).first()
+    if existing:
+        return jsonify({"error": "This group is already being monitored."}), 409
+
+    new_group = MonitoredGroup(
+        group_link=group_link,
+        business_id=business_id
+    )
+    db.session.add(new_group)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Group added for monitoring.",
+        "group": {"id": new_group.id, "group_link": new_group.group_link}
+    }), 201
+
+@app.route('/api/business/<int:business_id>/monitored_groups', methods=['GET'])
+def get_monitored_groups(business_id):
+    """Biznes uchun barcha kuzatilayotgan guruhlarni oladi"""
+    groups = MonitoredGroup.query.filter_by(business_id=business_id).all()
+    return jsonify([{"id": g.id, "group_link": g.group_link} for g in groups]), 200
+
+@app.route('/api/business/<int:business_id>/trends', methods=['GET'])
+def get_trends(business_id):
+    """Eng so'nggi trendlarni oladi"""
+    today = date.today()
+    trends = Trend.query.filter_by(business_id=business_id, date=today).order_by(Trend.trend_score.desc()).all()
+
+    return jsonify([
+        {
+            "word": t.word,
+            "trend_score": round(t.trend_score, 2),
+            "sentiment": t.sentiment,
+            "summary": t.summary
+        }
+        for t in trends
+    ]), 200
+
+@app.route('/api/business/<int:business_id>/trigger_analysis', methods=['POST'])
+def trigger_analysis(business_id):
+    """Trend tahlilini qo'lda ishga tushiradi"""
+    try:
+        # 1. Guruhlarni topish
+        groups = MonitoredGroup.query.filter_by(business_id=business_id).all()
+        if not groups:
+            return jsonify({"message": "No groups are being monitored for this business."}), 200
+
+        all_messages = []
+        # 2. Har bir guruhdan xabarlarni yig'ish
+        for group in groups:
+            result = get_group_messages(group.group_link, limit=200) # Oxirgi 200 ta xabar
+            if "error" in result:
+                # Agar biror guruhda xato bo'lsa, davom etamiz
+                print(f"Warning: Could not scrape messages from {group.group_link}. Error: {result['error']}")
+                continue
+
+            # TODO: Xabarlarni GroupMessage jadvaliga saqlash mantiqi bu yerga qo'shilishi mumkin
+
+            all_messages.extend([msg['content'] for msg in result.get("messages", [])])
+            group.last_scraped_at = datetime.utcnow()
+
+        if not all_messages:
+            return jsonify({"message": "No new messages found to analyze."}), 200
+
+        # 3. So'zlar chastotasini hisoblash
+        frequencies = get_word_frequencies(all_messages)
+
+        # 4. Chastotalarni ma'lumotlar bazasiga saqlash
+        today = date.today()
+        for word, freq in frequencies.items():
+            wf = WordFrequency.query.filter_by(business_id=business_id, word=word, date=today).first()
+            if wf:
+                wf.frequency += freq
+            else:
+                wf = WordFrequency(
+                    word=word,
+                    frequency=freq,
+                    date=today,
+                    business_id=business_id
+                )
+                db.session.add(wf)
+
+        db.session.commit()
+
+        # 5. Trendlarni tahlil qilish
+        analyze_trends_for_business(business_id, all_messages, today)
+
+        return jsonify({"message": f"Analysis complete. Processed {len(all_messages)} messages and identified new trends."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        traceback.print_exc()
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 # =============================================
 # FRONTEND ROUTES (OXIRIDA!)
