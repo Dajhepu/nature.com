@@ -7,7 +7,7 @@ from .tasks import send_message_job
 from flask import current_app as app
 import os
 import traceback
-import google.generativeai as genai
+from groq import Groq
 
 # =============================================
 # HELPERS
@@ -221,7 +221,7 @@ def delete_template(template_id):
 
 @app.route('/api/ai/generate_template', methods=['POST'])
 def generate_ai_template():
-    """Generate message templates using Google Gemini"""
+    """Generate message templates using Groq"""
     try:
         data = request.get_json()
         prompt = data.get('prompt')
@@ -229,13 +229,11 @@ def generate_ai_template():
         if not prompt:
             return jsonify({"error": "Prompt is required"}), 400
 
-        gemini_api_key = app.config.get('GEMINI_API_KEY')
-        if not gemini_api_key:
-            return jsonify({"error": "The AI feature has not been configured by the administrator. (GEMINI_API_KEY is not set)"}), 500
+        groq_api_key = app.config.get('GROQ_API_KEY')
+        if not groq_api_key:
+            return jsonify({"error": "The AI feature has not been configured by the administrator. (GROQ_API_KEY is not set)"}), 500
 
-        genai.configure(api_key=app.config['GEMINI_API_KEY'])
-
-        model = genai.GenerativeModel('models/gemini-pro-latest')
+        client = Groq(api_key=groq_api_key)
 
         system_prompt = (
             "You are an expert copywriter specializing in Telegram marketing. "
@@ -244,12 +242,18 @@ def generate_ai_template():
             "Return the response as a simple list of strings, separated by '---'."
         )
 
-        full_prompt = f"{system_prompt}\n\nUser Prompt: {prompt}"
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama3-8b-8192", # A fast and capable model from Groq
+        )
 
-        response = model.generate_content(full_prompt)
+        response_content = chat_completion.choices[0].message.content
 
         # Split the response into three suggestions
-        suggestions = [s.strip() for s in response.text.split('---')]
+        suggestions = [s.strip() for s in response_content.split('---')]
 
         return jsonify({"suggestions": suggestions}), 200
     except Exception as e:
