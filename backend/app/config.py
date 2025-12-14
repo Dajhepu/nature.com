@@ -26,7 +26,8 @@ class Config:
     INSTAGRAM_SESSIONID = os.environ.get('INSTAGRAM_SESSIONID')
 
     # Flask-RQ2 configuration
-    RQ_REDIS_URL = os.environ.get('RQ_REDIS_URL') or 'redis://localhost:6379/0'
+    # Railway provides REDIS_URL, so we prioritize it.
+    RQ_REDIS_URL = os.environ.get('REDIS_URL') or os.environ.get('RQ_REDIS_URL') or 'redis://localhost:6379/0'
     RQ_ASYNC = True
 
     # Groq API Key
