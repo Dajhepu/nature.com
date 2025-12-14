@@ -1,10 +1,12 @@
 from flask import request, jsonify, send_from_directory
 from . import db
 from .models import User, Business, Lead, Campaign, Message, MessageTemplate, MonitoredGroup, WordFrequency, Trend
-from .telegram_service import send_telegram_message
+from .telegram_service import send_telegram_message_async
+from .pyrogram_client import pyrogram_manager
 from .telegram_scraper import get_group_members, get_group_messages
 from .text_processor import get_word_frequencies
 from .trend_analyzer import analyze_trends_for_business
+import asyncio
 from flask import current_app as app
 import os
 import traceback
@@ -112,57 +114,65 @@ def get_business_analytics(business_id):
 
 @app.route('/api/campaigns/start', methods=['POST'])
 def start_campaign():
-    """Start a messaging campaign"""
+    """Start a messaging campaign with efficient, batch-based message sending."""
+    data = request.get_json()
+    name = data.get('name', 'New Campaign')
+    business_id = data.get('business_id')
+    template_id = data.get('template_id')
+    lead_ids = data.get('lead_ids')
+
+    if not all([business_id, template_id, lead_ids]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    business = Business.query.get_or_404(business_id)
+    template = db.session.get(MessageTemplate, template_id)
+    if not template or template.business_id != business.id:
+        return jsonify({"error": "MessageTemplate not found or access denied"}), 404
+
+    # Create campaign and message records first
+    new_campaign = Campaign(name=name, business_id=business.id, message_template_id=template.id)
+    db.session.add(new_campaign)
+    db.session.flush()
+
+    messages_to_send = []
+    for lead_id in lead_ids:
+        lead = db.session.get(Lead, lead_id)
+        if lead and lead.business_id == business.id:
+            msg = Message(campaign_id=new_campaign.id, lead_id=lead.id, status='pending')
+            db.session.add(msg)
+            messages_to_send.append({'lead': lead, 'message_record': msg})
+
+    db.session.commit() # Commit records before sending
+
+    # --- Async Batch Sending ---
+    async def _send_campaign_async():
+        client = pyrogram_manager.get_client()
+        results = {'sent': 0, 'failed': 0}
+        for item in messages_to_send:
+            lead = item['lead']
+            # Now we pass the already-started client to the async function
+            was_sent = await send_telegram_message_async(client, lead.telegram_user_id, template.content)
+            if was_sent:
+                results['sent'] += 1
+                item['message_record'].status = 'sent'
+            else:
+                results['failed'] += 1
+                item['message_record'].status = 'failed'
+        return results
+
     try:
-        data = request.get_json()
-        name = data.get('name', 'New Campaign')
-        business_id = data.get('business_id')
-        template_id = data.get('template_id')
-        lead_ids = data.get('lead_ids')
-
-        if not all([business_id, template_id, lead_ids]):
-            return jsonify({"error": "Missing required fields"}), 400
-
-        business = Business.query.get_or_404(business_id)
-        template = db.session.get(MessageTemplate, template_id)
-        if not template or template.business_id != business.id:
-            return jsonify({"error": "MessageTemplate not found or access denied"}), 404
-
-        new_campaign = Campaign(
-            name=name,
-            business_id=business.id,
-            message_template_id=template.id
-        )
-        db.session.add(new_campaign)
-        db.session.flush()
-
-        messages_sent = 0
-        for lead_id in lead_ids:
-            lead = db.session.get(Lead, lead_id)
-            if lead and lead.business_id == business.id:
-                new_message = Message(
-                    campaign_id=new_campaign.id,
-                    lead_id=lead.id,
-                    status='sending'
-                )
-                db.session.add(new_message)
-                try:
-                    send_telegram_message(lead.telegram_user_id, template.content)
-                    new_message.status = 'sent'
-                    messages_sent += 1
-                except Exception as e:
-                    print(f"Failed to send message to {lead.full_name}: {e}")
-                    new_message.status = 'failed'
-
-        db.session.commit()
-
+        # Using a helper to run the async code from a sync context
+        results = asyncio.run(_send_campaign_async())
+        db.session.commit()  # Commit status updates
         return jsonify({
-            "message": f"Campaign '{name}' completed. {messages_sent} messages sent.",
+            "message": f"Campaign '{name}' completed. Sent: {results['sent']}, Failed: {results['failed']}.",
             "campaign_id": new_campaign.id
         }), 201
     except Exception as e:
+        app.logger.error(f"A critical error occurred during campaign sending: {e}", exc_info=True)
+        # Rollback any potential lingering DB changes
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An unexpected error occurred during the campaign."}), 500
 
 
 @app.route('/api/campaigns/<int:campaign_id>/metrics', methods=['GET'])
