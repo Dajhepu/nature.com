@@ -104,6 +104,39 @@ const TrendAnalysis = ({ businessId }) => {
     }
   };
 
+  const handleDeleteGroup = async (groupId) => {
+    if (!window.confirm("Haqiqatan ham bu guruhni o'chirmoqchimisiz?")) return;
+    try {
+      const response = await fetch(`/api/monitored_groups/${groupId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setGroups(groups.filter(g => g.id !== groupId));
+      } else {
+        alert("Guruhni o'chirishda xatolik yuz berdi.");
+      }
+    } catch (err) {
+      alert("Guruhni o'chirishda kutilmagan xatolik.");
+    }
+  };
+
+  const handleClearAnalysis = async () => {
+    if (!window.confirm("Barcha tahlil ma'lumotlarini o'chirmoqchimisiz? Bu amalni bekor qilib bo'lmaydi.")) return;
+    try {
+      const response = await fetch(`/api/business/${businessId}/trends`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setTrends([]); // Clear trends from UI
+        alert("Tahlil ma'lumotlari muvaffaqiyatli o'chirildi.");
+      } else {
+        alert("Ma'lumotlarni o'chirishda xatolik yuz berdi.");
+      }
+    } catch (err) {
+      alert("Ma'lumotlarni o'chirishda kutilmagan xatolik.");
+    }
+  };
+
   return (
     <div className="container">
       <h2>Trend Tahlili</h2>
@@ -111,8 +144,13 @@ const TrendAnalysis = ({ businessId }) => {
       {/* Group Management */}
       <div className="input-group">
         <h3>Kuzatiladigan Guruhlar</h3>
-        <ul>
-          {groups.map(g => <li key={g.id}>{g.group_link}</li>)}
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {groups.map(g => (
+            <li key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span>{g.group_link}</span>
+              <button onClick={() => handleDeleteGroup(g.id)} style={{ marginLeft: '1rem', background: 'darkred' }}>O'chirish</button>
+            </li>
+          ))}
         </ul>
         <input
           type="text"
@@ -131,6 +169,9 @@ const TrendAnalysis = ({ businessId }) => {
         <p>Guruhlardagi so'nggi xabarlarni tahlil qilish uchun quyidagi tugmani bosing.</p>
         <button onClick={handleTriggerAnalysis} disabled={isLoading}>
           {isLoading ? 'Tahlil qilinmoqda...' : 'Tahlilni Boshlash'}
+        </button>
+        <button onClick={handleClearAnalysis} disabled={isLoading} style={{ marginLeft: '1rem', background: 'darkred' }}>
+          Tahlilni Tozalash
         </button>
       </div>
 

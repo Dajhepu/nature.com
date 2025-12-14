@@ -447,6 +447,38 @@ def get_monitored_groups(business_id):
     groups = MonitoredGroup.query.filter_by(business_id=business_id).all()
     return jsonify([{"id": g.id, "group_link": g.group_link} for g in groups]), 200
 
+@app.route('/api/monitored_groups/<int:group_id>', methods=['DELETE'])
+def delete_monitored_group(group_id):
+    """Kuzatilayotgan guruhni o'chiradi"""
+    user = _get_current_user()
+    group = MonitoredGroup.query.get_or_404(group_id)
+
+    # Foydalanuvchi ushbu guruhga egalik qiluvchi biznesning egasi ekanligini tekshirish
+    if group.business.owner.id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    db.session.delete(group)
+    db.session.commit()
+
+    return jsonify({'message': 'Group removed successfully'}), 200
+
+@app.route('/api/business/<int:business_id>/trends', methods=['DELETE'])
+def clear_analysis_data(business_id):
+    """Biznes uchun barcha trend tahlili ma'lumotlarini o'chiradi"""
+    user = _get_current_user()
+    business = Business.query.get_or_404(business_id)
+
+    if business.owner.id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Bu biznesga tegishli barcha Trend va WordFrequency yozuvlarini o'chirish
+    Trend.query.filter_by(business_id=business_id).delete()
+    WordFrequency.query.filter_by(business_id=business_id).delete()
+
+    db.session.commit()
+
+    return jsonify({'message': 'Trend analysis data cleared successfully'}), 200
+
 @app.route('/api/business/<int:business_id>/trends', methods=['GET'])
 def get_trends(business_id):
     """Eng so'nggi trendlarni oladi"""
