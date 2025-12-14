@@ -1,32 +1,18 @@
 import asyncio
 from flask import current_app
-from .pyrogram_client import get_pyrogram_client
 
-async def send_telegram_message_async(chat_id, text):
+async def send_telegram_message_async(app, chat_id, text):
     """
-    Asynchronously sends a message to a Telegram user using the shared Pyrogram client.
+    Asynchronously sends a message to a Telegram user using an active Pyrogram client.
+    Returns True on success, False on failure.
     """
-    print(f"--- 🚀 Preparing to send message to {chat_id} 🚀 ---")
     try:
-        app = get_pyrogram_client()
-        await app.start()
-        try:
-            await app.send_message(chat_id=chat_id, text=text)
-            print(f"✅ Message sent successfully to chat_id: {chat_id}")
-            return True
-        except Exception as e:
-            print(f"❌ Failed to send message to {chat_id}: {e}")
-            return False
-        finally:
-            await app.stop()
-            print("🛑 Pyrogram client stopped.")
+        await app.send_message(chat_id=chat_id, text=text)
+        current_app.logger.info(f"Message sent successfully to chat_id: {chat_id}")
+        return True
     except Exception as e:
-        print(f"❌ An error occurred during Pyrogram client handling: {e}")
+        current_app.logger.error(f"Failed to send message to {chat_id}: {e}", exc_info=True)
         return False
 
-def send_telegram_message(chat_id, text):
-    """
-    Synchronous wrapper to run the async Pyrogram message sender.
-    """
-    with current_app.app_context():
-        return asyncio.run(send_telegram_message_async(chat_id, text))
+# The synchronous wrapper is no longer needed here.
+# The client lifecycle will be managed directly in the route for batch sending.
