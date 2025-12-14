@@ -3,7 +3,6 @@ from . import db
 from .models import User, Business, Lead, Campaign, Message, MessageTemplate, MonitoredGroup, WordFrequency, Trend
 from .telegram_service import send_telegram_message
 from .telegram_scraper import get_group_members, get_group_messages
-from .tasks import send_message_job
 from .text_processor import get_word_frequencies
 from .trend_analyzer import analyze_trends_for_business
 from flask import current_app as app
@@ -137,24 +136,28 @@ def start_campaign():
         db.session.add(new_campaign)
         db.session.flush()
 
-        messages_queued = 0
+        messages_sent = 0
         for lead_id in lead_ids:
             lead = db.session.get(Lead, lead_id)
             if lead and lead.business_id == business.id:
                 new_message = Message(
                     campaign_id=new_campaign.id,
                     lead_id=lead.id,
-                    status='queued'
+                    status='sending'
                 )
                 db.session.add(new_message)
-                db.session.flush()  # Ensure the message gets an ID
-                send_message_job.queue(new_message.id)
-                messages_queued += 1
+                try:
+                    send_telegram_message(lead.telegram_user_id, template.content)
+                    new_message.status = 'sent'
+                    messages_sent += 1
+                except Exception as e:
+                    print(f"Failed to send message to {lead.full_name}: {e}")
+                    new_message.status = 'failed'
 
         db.session.commit()
 
         return jsonify({
-            "message": f"Campaign '{name}' started and {messages_queued} messages have been queued.",
+            "message": f"Campaign '{name}' completed. {messages_sent} messages sent.",
             "campaign_id": new_campaign.id
         }), 201
     except Exception as e:
