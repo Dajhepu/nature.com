@@ -30,6 +30,7 @@ class Business(db.Model):
     leads = db.relationship('Lead', backref='business', lazy=True)
     campaigns = db.relationship('Campaign', backref='business', lazy=True)
     message_templates = db.relationship('MessageTemplate', backref='business', lazy=True)
+    monitored_groups = db.relationship('MonitoredGroup', backref='business', lazy=True)
 
 
 class MessageTemplate(db.Model):
