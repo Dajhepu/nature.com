@@ -13,7 +13,7 @@ WORKDIR /app
 # Python dependencies
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
-RUN python -c "import nltk; nltk.download('punkt')"
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 
 # Copy backend code
 COPY backend/ ./backend/
