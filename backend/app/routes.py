@@ -284,6 +284,8 @@ def delete_template(template_id):
 # AI ROUTES
 # =============================================
 
+import json
+
 @app.route('/api/ai/generate_template', methods=['POST'])
 def generate_ai_template():
     """Generate message templates using Groq"""
@@ -294,37 +296,46 @@ def generate_ai_template():
         if not prompt:
             return jsonify({"error": "Prompt is required"}), 400
 
-        groq_api_key = app.config.get('GROQ_API_KEY')
-        if not groq_api_key:
-            return jsonify({"error": "The AI feature has not been configured by the administrator. (GROQ_API_KEY is not set)"}), 500
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            print("WARNING: GROQ_API_KEY not set. Returning mock data.")
+            return jsonify({
+                "suggestions": [
+                    "Mock suggestion 1: Check your GROQ_API_KEY.",
+                    "Mock suggestion 2: The AI service is currently offline.",
+                    "Mock suggestion 3: Have a great day!"
+                ]
+            }), 200
 
-        client = Groq(api_key=groq_api_key)
-
-        system_prompt = (
-            "You are an expert copywriter specializing in Telegram marketing. "
-            "Generate three short, engaging, and professional message templates based on the user's prompt. "
-            "The messages should be in Uzbek. Each message should be distinct in tone and approach (e.g., one formal, one friendly, one direct). "
-            "Return the response as a simple list of strings, separated by '---'."
-        )
-
+        client = Groq(api_key=api_key)
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a marketing expert specializing in Telegram outreach. "
+                        "Based on the user's prompt, generate 3 distinct, short, and engaging message templates. "
+                        "Each template must be a maximum of 2 sentences. "
+                        "Your response MUST be a valid JSON object with a single key 'suggestions' "
+                        "which contains a list of the 3 string templates. For example: "
+                        "{\"suggestions\": [\"Template 1\", \"Template 2\", \"Template 3\"]}"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
             ],
-            model="llama-3.1-8b-instant", # A fast and capable model from Groq
+            model="llama-3.1-8b-instant",
+            response_format={"type": "json_object"},
         )
-
         response_content = chat_completion.choices[0].message.content
+        suggestions = json.loads(response_content)
+        return jsonify(suggestions)
 
-        # Split the response into three suggestions
-        suggestions = [s.strip() for s in response_content.split('---')]
-
-        return jsonify({"suggestions": suggestions}), 200
     except Exception as e:
-        print("❌ An exception occurred in generate_ai_template:")
-        traceback.print_exc() # Prints the full traceback to the log
-        return jsonify({"error": f"An internal error occurred while communicating with the AI service: {str(e)}"}), 500
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to generate AI suggestions: {str(e)}"}), 500
 
 
 @app.route('/api/telegram/scrape_group', methods=['POST'])

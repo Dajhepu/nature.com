@@ -6,6 +6,7 @@ function MessageTemplates({ businessId }) {
   const [templates, setTemplates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editingTemplate, setEditingTemplate] = useState(null);
 
   const fetchTemplates = async () => {
     if (!businessId) return;
@@ -14,6 +15,49 @@ function MessageTemplates({ businessId }) {
       if (!response.ok) throw new Error('Shablonlarni yuklab bolmadi');
       const data = await response.json();
       setTemplates(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (templateId) => {
+    if (window.confirm("Haqiqatdan ham bu shablonni o'chirmoqchimisiz?")) {
+      try {
+        const response = await fetch(`/api/templates/${templateId}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error("Shablonni o'chirishda xatolik");
+        fetchTemplates(); // Refresh the list
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  };
+
+  const handleEdit = (template) => {
+    setEditingTemplate(template);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingTemplate) return;
+
+    try {
+      const response = await fetch(`/api/templates/${editingTemplate.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editingTemplate.name,
+          content: editingTemplate.content,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Shablonni yangilashda xatolik");
+
+      setEditingTemplate(null);
+      fetchTemplates(); // Refresh the list
     } catch (err) {
       setError(err.message);
     }
@@ -90,13 +134,42 @@ function MessageTemplates({ businessId }) {
         <ul className="templates-list">
           {templates.map(t => (
             <li key={t.id} className="template-item">
-              <strong>{t.name}</strong>
-              <p>{t.content}</p>
-              {/* Add edit/delete buttons later */}
+              <div>
+                <strong>{t.name}</strong>
+                <p>{t.content}</p>
+              </div>
+              <div className="template-actions">
+                <button onClick={() => handleEdit(t)}>Tahrirlash</button>
+                <button onClick={() => handleDelete(t.id)}>O'chirish</button>
+              </div>
             </li>
           ))}
         </ul>
       </div>
+
+      {editingTemplate && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>Shablonni Tahrirlash</h2>
+            <form onSubmit={handleUpdate}>
+              <input
+                type="text"
+                value={editingTemplate.name}
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+              />
+              <textarea
+                value={editingTemplate.content}
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, content: e.target.value })}
+                rows="5"
+              />
+              <div className="modal-actions">
+                <button type="submit">Saqlash</button>
+                <button type="button" onClick={() => setEditingTemplate(null)}>Bekor qilish</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
