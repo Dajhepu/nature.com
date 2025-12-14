@@ -14,3 +14,4 @@ Pyrogram
 tgcrypto
 groq
 setuptools
+nest_asyncio

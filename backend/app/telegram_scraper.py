@@ -45,17 +45,7 @@ def get_group_members(group_link, max_members=100):
         async def _run():
             member_list = await get_group_members_async(client, group_link, max_members)
             return {"members": member_list}
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            # Fallback for environments where an event loop is already running
-            return asyncio.run(_run())
-        else:
-            return asyncio.run(_run())
+        return asyncio.run(_run())
 
 
 async def get_group_messages_async(app, group_link, limit=100):
@@ -81,13 +71,4 @@ def get_group_messages(group_link, limit=100):
         async def _run():
             messages_list = await get_group_messages_async(client, group_link, limit)
             return {"messages": messages_list}
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            return asyncio.run(_run())
-        else:
-            return asyncio.run(_run())
+        return asyncio.run(_run())

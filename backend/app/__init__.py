@@ -10,9 +10,11 @@ import os
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 migrate = Migrate()
+import nest_asyncio
 # rq = RQ()
 
 def create_app(config_class=Config):
+    nest_asyncio.apply()
     app = Flask(__name__)
     app.config.from_object(config_class)
 
