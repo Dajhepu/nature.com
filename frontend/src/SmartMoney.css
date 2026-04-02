@@ -1,0 +1,1080 @@
+.SmartMoney {
+  --bg: #04050d;
+  --surface: #080b18;
+  --surface2: #0d1121;
+  --border: #151c30;
+  --border2: #1e2840;
+  --buy: #00e87a;
+  --sell: #ff3358;
+  --accent: #00b4ff;
+  --warn: #ffa500;
+  --text: #d4ddf7;
+  --muted: #4a5878;
+  --muted2: #6b7a99;
+  --glow-buy: 0 0 20px rgba(0,232,122,0.3);
+  --glow-sell: 0 0 20px rgba(255,51,88,0.3);
+  --glow-accent: 0 0 20px rgba(0,180,255,0.3);
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1002;
+  overflow: hidden;
+}
+
+.SmartMoney * {
+  box-sizing: border-box;
+}
+
+.SmartMoney .topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.SmartMoney .logo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--accent), var(--buy));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+
+.SmartMoney .logo span {
+  color: var(--sell);
+  -webkit-text-fill-color: var(--sell);
+}
+
+.SmartMoney .chain-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.SmartMoney .chain-pill {
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--muted2);
+  transition: all 0.15s;
+}
+
+.SmartMoney .chain-pill.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 180, 255, 0.07);
+}
+
+.SmartMoney .chain-pill:hover:not(.active) {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.SmartMoney .spacer {
+  flex: 1;
+}
+
+.SmartMoney .live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 232, 122, 0.3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--buy);
+}
+
+.SmartMoney .live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--buy);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 232, 122, 0.5);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 0 6px rgba(0, 232, 122, 0);
+  }
+}
+
+.SmartMoney .tg-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  font-size: 11px;
+  color: var(--muted2);
+  transition: all 0.15s;
+}
+
+.SmartMoney .tg-status.connected {
+  border-color: rgba(0, 180, 255, 0.4);
+  color: var(--accent);
+}
+
+.SmartMoney .tg-status:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.SmartMoney .btn {
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted2);
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.SmartMoney .btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 180, 255, 0.05);
+}
+
+.SmartMoney .btn.primary {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 180, 255, 0.1);
+}
+
+.SmartMoney .btn.danger {
+  border-color: var(--sell);
+  color: var(--sell);
+  background: rgba(255, 51, 88, 0.08);
+}
+
+.SmartMoney .main-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.SmartMoney .sidebar-left {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.SmartMoney .panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.SmartMoney .panel-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--muted2);
+  text-transform: uppercase;
+}
+
+.SmartMoney .badge-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(0, 180, 255, 0.12);
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  color: var(--accent);
+}
+
+.SmartMoney .wallet-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.SmartMoney .wallet-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.15s;
+  position: relative;
+  background: var(--surface2);
+}
+
+.SmartMoney .wallet-item:hover {
+  border-color: var(--border2);
+  background: rgba(13, 17, 33, 0.8);
+}
+
+.SmartMoney .wallet-item.active {
+  border-color: rgba(0, 180, 255, 0.25);
+  background: rgba(0, 180, 255, 0.04);
+}
+
+.SmartMoney .wallet-item.firing {
+  border-color: rgba(0, 232, 122, 0.4);
+  background: rgba(0, 232, 122, 0.04);
+  animation: fire 0.5s ease;
+}
+
+@keyframes fire {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 232, 122, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 15px 3px rgba(0, 232, 122, 0);
+  }
+}
+
+.SmartMoney .wallet-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.SmartMoney .wallet-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--border2);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.SmartMoney .wallet-label {
+  font-weight: 600;
+  font-size: 12px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.SmartMoney .wallet-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--muted2);
+  margin-bottom: 6px;
+}
+
+.SmartMoney .wallet-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.SmartMoney .wstat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.SmartMoney .wstat-label {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.SmartMoney .wstat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.SmartMoney .wstat-val.green {
+  color: var(--buy);
+}
+
+.SmartMoney .wstat-val.red {
+  color: var(--sell);
+}
+
+.SmartMoney .wstat-val.blue {
+  color: var(--accent);
+}
+
+.SmartMoney .wallet-indicator {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--buy);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.SmartMoney .wallet-item.firing .wallet-indicator {
+  opacity: 1;
+}
+
+.SmartMoney .add-wallet-btn {
+  margin: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px dashed var(--border2);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.SmartMoney .add-wallet-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 180, 255, 0.04);
+}
+
+.SmartMoney .feed-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+
+.SmartMoney .feed-controls {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.SmartMoney .filter-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  font-size: 11px;
+  color: var(--muted2);
+  transition: all 0.15s;
+  background: transparent;
+  font-family: inherit;
+}
+
+.SmartMoney .filter-btn.active {
+  border-color: var(--buy);
+  color: var(--buy);
+  background: rgba(0, 232, 122, 0.07);
+}
+
+.SmartMoney .filter-btn.sell-active {
+  border-color: var(--sell);
+  color: var(--sell);
+  background: rgba(255, 51, 88, 0.07);
+}
+
+.SmartMoney .filter-btn:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.SmartMoney .min-usd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted2);
+}
+
+.SmartMoney .min-usd input {
+  width: 80px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.SmartMoney .feed-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.SmartMoney .trade-card {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.SmartMoney .trade-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.SmartMoney .trade-card.buy::before {
+  background: var(--buy);
+}
+
+.SmartMoney .trade-card.sell::before {
+  background: var(--sell);
+}
+
+.SmartMoney .trade-card:hover {
+  border-color: var(--border2);
+}
+
+.SmartMoney .trade-card.buy:hover {
+  border-color: rgba(0, 232, 122, 0.25);
+}
+
+.SmartMoney .trade-card.sell:hover {
+  border-color: rgba(255, 51, 88, 0.25);
+}
+
+.SmartMoney .trade-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.SmartMoney .trade-type-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.SmartMoney .trade-type-badge.buy {
+  background: rgba(0, 232, 122, 0.12);
+  color: var(--buy);
+  border: 1px solid rgba(0, 232, 122, 0.25);
+}
+
+.SmartMoney .trade-type-badge.sell {
+  background: rgba(255, 51, 88, 0.12);
+  color: var(--sell);
+  border: 1px solid rgba(255, 51, 88, 0.25);
+}
+
+.SmartMoney .trade-token {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.SmartMoney .trade-chain {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+}
+
+.SmartMoney .trade-time {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.SmartMoney .trade-mid {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.SmartMoney .trade-usd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.SmartMoney .trade-usd.buy {
+  color: var(--buy);
+}
+
+.SmartMoney .trade-usd.sell {
+  color: var(--sell);
+}
+
+.SmartMoney .trade-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted2);
+}
+
+.SmartMoney .trade-bottom {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.SmartMoney .trade-meta {
+  display: flex;
+  gap: 16px;
+}
+
+.SmartMoney .tmeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.SmartMoney .tmeta-label {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.SmartMoney .tmeta-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.SmartMoney .trade-wallet {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+}
+
+.SmartMoney .signal-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: rgba(0, 180, 255, 0.08);
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  color: var(--accent);
+}
+
+.SmartMoney .empty-feed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.SmartMoney .empty-icon {
+  font-size: 40px;
+  opacity: 0.3;
+}
+
+.SmartMoney .empty-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.SmartMoney .sidebar-right {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.SmartMoney .right-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.SmartMoney .rtab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.SmartMoney .rtab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.SmartMoney .rtab:hover:not(.active) {
+  color: var(--text);
+}
+
+.SmartMoney .right-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.SmartMoney .signal-item {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  margin-bottom: 6px;
+  animation: slideIn 0.3s ease;
+}
+
+.SmartMoney .signal-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.SmartMoney .signal-item-token {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.SmartMoney .signal-item-type {
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.SmartMoney .signal-item-type.buy {
+  background: rgba(0, 232, 122, 0.1);
+  color: var(--buy);
+}
+
+.SmartMoney .signal-item-type.sell {
+  background: rgba(255, 51, 88, 0.1);
+  color: var(--sell);
+}
+
+.SmartMoney .signal-item-time {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.SmartMoney .signal-item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.SmartMoney .signal-item-label {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.SmartMoney .signal-item-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text);
+}
+
+.SmartMoney .signal-sent-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
+.SmartMoney .config-section {
+  margin-bottom: 16px;
+}
+
+.SmartMoney .config-section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.SmartMoney .form-group {
+  margin-bottom: 8px;
+  display: block;
+}
+
+.SmartMoney .form-label {
+  font-size: 10px;
+  color: var(--muted2);
+  margin-bottom: 4px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+.SmartMoney .form-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.SmartMoney .form-input:focus {
+  border-color: var(--accent);
+}
+
+.SmartMoney .form-input::placeholder {
+  color: var(--muted);
+}
+
+.SmartMoney .form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.SmartMoney .form-row .form-group {
+  flex: 1;
+}
+
+.SmartMoney .save-btn {
+  width: 100%;
+  padding: 9px;
+  border-radius: 5px;
+  background: rgba(0, 180, 255, 0.1);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+
+.SmartMoney .save-btn:hover {
+  background: rgba(0, 180, 255, 0.18);
+  box-shadow: var(--glow-accent);
+}
+
+.SmartMoney .test-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.SmartMoney .test-btn:hover {
+  border-color: var(--buy);
+  color: var(--buy);
+}
+
+.SmartMoney .stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.SmartMoney .stat-card {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.SmartMoney .stat-card-label {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.SmartMoney .stat-card-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.SmartMoney .stat-card-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--muted2);
+  margin-top: 2px;
+}
+
+.SmartMoney .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.SmartMoney .modal-overlay.hidden {
+  display: none;
+}
+
+.SmartMoney .modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 24px;
+  width: 460px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.SmartMoney .modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.SmartMoney .modal-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.SmartMoney .cancel-btn {
+  padding: 8px 20px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.SmartMoney .cancel-btn:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.SmartMoney .confirm-btn {
+  padding: 8px 20px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 180, 255, 0.4);
+  background: rgba(0, 180, 255, 0.1);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.SmartMoney .confirm-btn:hover {
+  background: rgba(0, 180, 255, 0.2);
+}
+
+.SmartMoney .statusbar {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.SmartMoney .status-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.SmartMoney .status-item .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.SmartMoney .status-item.ok .dot {
+  background: var(--buy);
+}
+
+.SmartMoney .status-item.warn .dot {
+  background: var(--warn);
+}
+
+.SmartMoney .status-item.err .dot {
+  background: var(--sell);
+}
+
+.SmartMoney .status-right {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.SmartMoney .chain-eth {
+  color: #627eea;
+}
+
+.SmartMoney .chain-bsc {
+  color: #f0b90b;
+}
+
+.SmartMoney .chain-base {
+  color: #0052ff;
+}
+
+.SmartMoney .chain-arb {
+  color: #28a0f0;
+}
+
+.SmartMoney .chain-sol {
+  color: #9945ff;
+}
+
+.SmartMoney .chain-avax {
+  color: #e84142;
+}
+
+.SmartMoney .chain-poly {
+  color: #8247e5;
+}
+
+.SmartMoney a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.SmartMoney a:hover {
+  text-decoration: underline;
+}
+
+.SmartMoney .close-btn {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 101;
+}
+
+.SmartMoney .close-btn:hover {
+  color: var(--text);
+}
