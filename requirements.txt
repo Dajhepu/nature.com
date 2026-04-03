@@ -1,2 +1,5 @@
-requests
+python-telegram-bot
+aiohttp
+aiosqlite
 python-dotenv
+colorlog
