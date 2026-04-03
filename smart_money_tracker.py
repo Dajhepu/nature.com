@@ -87,6 +87,7 @@ class ChainConfig:
     chain_id: int
     native_symbol: str
     dexscreener_id: str
+    gecko_id: str
     explorer_url: str
     explorer_api: str
     api_key_env: str
@@ -96,43 +97,50 @@ class ChainConfig:
 CHAINS: Dict[str, ChainConfig] = {
     "ethereum": ChainConfig(
         name="Ethereum", chain_id=1, native_symbol="ETH",
-        dexscreener_id="ethereum", explorer_url="https://etherscan.io",
+        dexscreener_id="ethereum", gecko_id="eth",
+        explorer_url="https://etherscan.io",
         explorer_api="https://api.etherscan.io/api",
         api_key_env="ETHERSCAN_API_KEY", llama_slug="ethereum",
     ),
     "bsc": ChainConfig(
         name="BSC", chain_id=56, native_symbol="BNB",
-        dexscreener_id="bsc", explorer_url="https://bscscan.com",
+        dexscreener_id="bsc", gecko_id="bsc",
+        explorer_url="https://bscscan.com",
         explorer_api="https://api.bscscan.com/api",
         api_key_env="BSCSCAN_API_KEY", llama_slug="bsc",
     ),
     "base": ChainConfig(
         name="Base", chain_id=8453, native_symbol="ETH",
-        dexscreener_id="base", explorer_url="https://basescan.org",
+        dexscreener_id="base", gecko_id="base",
+        explorer_url="https://basescan.org",
         explorer_api="https://api.basescan.org/api",
         api_key_env="BASESCAN_API_KEY", llama_slug="base",
     ),
     "arbitrum": ChainConfig(
         name="Arbitrum", chain_id=42161, native_symbol="ETH",
-        dexscreener_id="arbitrum", explorer_url="https://arbiscan.io",
+        dexscreener_id="arbitrum", gecko_id="arbitrum",
+        explorer_url="https://arbiscan.io",
         explorer_api="https://api.arbiscan.io/api",
         api_key_env="ARBISCAN_API_KEY", llama_slug="arbitrum",
     ),
     "polygon": ChainConfig(
         name="Polygon", chain_id=137, native_symbol="MATIC",
-        dexscreener_id="polygon", explorer_url="https://polygonscan.com",
+        dexscreener_id="polygon", gecko_id="polygon_pos",
+        explorer_url="https://polygonscan.com",
         explorer_api="https://api.polygonscan.com/api",
         api_key_env="POLYGONSCAN_API_KEY", llama_slug="polygon",
     ),
     "avalanche": ChainConfig(
         name="Avalanche", chain_id=43114, native_symbol="AVAX",
-        dexscreener_id="avalanche", explorer_url="https://snowtrace.io",
+        dexscreener_id="avalanche", gecko_id="avalanche",
+        explorer_url="https://snowtrace.io",
         explorer_api="https://api.snowtrace.io/api",
         api_key_env="SNOWTRACE_API_KEY", llama_slug="avalanche",
     ),
     "solana": ChainConfig(
         name="Solana", chain_id=0, native_symbol="SOL",
-        dexscreener_id="solana", explorer_url="https://solscan.io",
+        dexscreener_id="solana", gecko_id="solana",
+        explorer_url="https://solscan.io",
         explorer_api="https://public-api.solscan.io",
         api_key_env="", llama_slug="solana",
     ),
@@ -162,6 +170,7 @@ EMOJI = {
 DEXSCREENER_TRENDING = "https://api.dexscreener.com/token-boosts/top/v1"
 DEXSCREENER_LATEST   = "https://api.dexscreener.com/token-boosts/latest/v1"
 DEXSCREENER_TOKENS   = "https://api.dexscreener.com/latest/dex/tokens"
+GECKO_TRENDING       = "https://api.geckoterminal.com/api/v2/networks/{}/trending_pools"
 SOLSCAN_BASE         = "https://public-api.solscan.io"
 LLAMA_BASE           = "https://coins.llama.fi"
 
@@ -419,17 +428,38 @@ async def _http_get(url: str, headers: Optional[Dict] = None,
                 log.warning(f"HTTP {resp.status}: {url}")
                 return None
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            ename = type(e).__name__
+            if "DNSError" in ename or "DNS" in str(e):
+                log.warning(f"🌐 DNS Xatoligi ({attempt+1}/{retries}): {url}. "
+                            "Internet ulanishini yoki DNS sozlamalarini tekshiring.")
+
             if attempt < retries - 1:
                 await asyncio.sleep(2 ** attempt)
                 continue
-            log.error(f"HTTP error ({type(e).__name__}): {url} -> {e}")
+            log.error(f"HTTP error ({ename}): {url} -> {e}")
             return None
     return None
 
 
 # ═══════════════════════════════════════════════════════════════
-#  DEXSCREENER  —  trending tokens
+#  TRENDING DISCOVERY (DexScreener & GeckoTerminal)
 # ═══════════════════════════════════════════════════════════════
+
+async def discovery_trending(chain: str) -> List[Dict]:
+    """Unified trending discovery with GeckoTerminal fallback."""
+    # 1. Try DexScreener
+    dex_tokens = await dex_trending(chain)
+    if dex_tokens:
+        return [_parse_dex_pair(t) for t in dex_tokens]
+
+    # 2. Fallback to GeckoTerminal
+    log.info(f"[{chain}] Falling back to GeckoTerminal for discovery")
+    gecko_data = await gecko_trending(chain)
+    if gecko_data:
+        return [_parse_gecko_pool(p, chain) for p in gecko_data]
+
+    return []
+
 
 async def dex_trending(chain: Optional[str] = None) -> List[Dict]:
     data = await _http_get(DEXSCREENER_TRENDING)
@@ -445,7 +475,17 @@ async def dex_trending(chain: Optional[str] = None) -> List[Dict]:
     return tokens[:50]
 
 
-def _parse_pair(pair: Dict) -> Dict:
+async def gecko_trending(chain: str) -> List[Dict]:
+    cfg = CHAINS.get(chain)
+    if not cfg: return []
+    url = GECKO_TRENDING.format(cfg.gecko_id)
+    data = await _http_get(url)
+    if data and "data" in data:
+        return data["data"][:30]
+    return []
+
+
+def _parse_dex_pair(pair: Dict) -> Dict:
     base  = pair.get("baseToken", {})
     vol   = pair.get("volume", {})
     liq   = pair.get("liquidity", {})
@@ -462,6 +502,33 @@ def _parse_pair(pair: Dict) -> Dict:
         "price_change_24h": float(pchg.get("h24", 0) or 0),
         "pair_created_at": pair.get("pairCreatedAt", 0),
         "url":            pair.get("url", ""),
+    }
+
+
+def _parse_gecko_pool(pool: Dict, chain: str) -> Dict:
+    attr  = pool.get("attributes", {})
+    rel   = pool.get("relationships", {})
+    # GeckoTerminal pools have base and quote.
+    # Usually the first base_token is what we want.
+    base_toks = rel.get("base_token", {}).get("data", [])
+    token_addr = ""
+    if base_toks:
+        # data is usually a single object or list with 'id' like "network_addr"
+        tid = base_toks[0].get("id", "") if isinstance(base_toks, list) else base_toks.get("id", "")
+        token_addr = tid.split("_")[-1] if "_" in tid else tid
+
+    return {
+        "pair_address":   attr.get("address", ""),
+        "chain":          chain,
+        "token_address":  token_addr,
+        "token_name":     attr.get("name", "Unknown"),
+        "token_symbol":   attr.get("symbol", "???"),
+        "price_usd":      float(attr.get("price_usd", 0) or 0),
+        "volume_24h":     float(attr.get("volume_usd", {}).get("h24", 0) or 0),
+        "liquidity_usd":  float(attr.get("reserve_in_usd", 0) or 0),
+        "price_change_24h": float(attr.get("price_change_percentage", {}).get("h24", 0) or 0),
+        "pair_created_at": 0,
+        "url":            f"https://www.geckoterminal.com/{CHAINS[chain].gecko_id}/pools/{attr.get('address')}",
     }
 
 
@@ -791,14 +858,13 @@ async def run_discovery(chains: Optional[List[str]] = None,
 
     for chain in chains:
         log.info(f"[{chain}] Discovery started")
-        trending = await dex_trending(chain)
+        trending = await discovery_trending(chain)
         if not trending:
             log.warning(f"[{chain}] No trending tokens")
             continue
         log.info(f"[{chain}] {len(trending)} trending tokens")
 
-        for i, raw_pair in enumerate(trending[:10]):
-            pair = _parse_pair(raw_pair)
+        for i, pair in enumerate(trending[:10]):
             token_addr = pair["token_address"]
             if not token_addr:
                 continue
