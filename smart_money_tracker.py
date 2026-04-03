@@ -997,10 +997,12 @@ def _auth(func):
     async def wrapper(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         uid = update.effective_user.id
         if CFG.allowed_users and uid not in CFG.allowed_users:
-            await update.message.reply_text(
-                f"{EMOJI['cross']} Ruxsat yo'q. Sizning ID: <code>{uid}</code>",
-                parse_mode=ParseMode.HTML,
-            )
+            target = update.message or (update.callback_query.message if update.callback_query else None)
+            if target:
+                await target.reply_text(
+                    f"{EMOJI['cross']} Ruxsat yo'q. Sizning ID: <code>{uid}</code>",
+                    parse_mode=ParseMode.HTML,
+                )
             return
         return await func(update, ctx)
     wrapper.__name__ = func.__name__
@@ -1142,7 +1144,8 @@ async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"{EMOJI['cross']} EVM manzil <code>0x</code> bilan boshlanishi kerak.")
         return
 
-    msg = await update.message.reply_text(
+    target = update.message or update.callback_query.message
+    msg = await target.reply_text(
         f"{EMOJI['clock']} Hamyon qo'shilmoqda va tahlil qilinmoqda…")
 
     is_new = await DB.add_wallet(address, chain, label=label)
@@ -1237,7 +1240,8 @@ async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await _reply(update, f"{EMOJI['cross']} Noma'lum tarmoq: {chain}")
         return
 
-    msg   = await update.message.reply_text(f"{EMOJI['clock']} Tahlil qilinmoqda…")
+    target = update.message or update.callback_query.message
+    msg   = await target.reply_text(f"{EMOJI['clock']} Tahlil qilinmoqda…")
     stats = await analyze_wallet(address, chain)
 
     chain_em = CHAIN_EMOJI.get(chain, "🌐")
@@ -1312,16 +1316,20 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # Simple routing
     if data == "cmd_start":
         await cmd_start(update, ctx)
-        await query.message.delete()
+        try: await query.message.delete()
+        except: pass
     elif data == "cmd_help":
         await cmd_help(update, ctx)
-        await query.message.delete()
+        try: await query.message.delete()
+        except: pass
     elif data == "cmd_list":
         await cmd_list(update, ctx)
-        await query.message.delete()
+        try: await query.message.delete()
+        except: pass
     elif data == "cmd_find":
         await cmd_find_select_chain(update, ctx)
-        await query.message.delete()
+        try: await query.message.delete()
+        except: pass
     elif data.startswith("find_run_"):
         chain = data.replace("find_run_", "")
         if chain == "all":
@@ -1441,7 +1449,8 @@ async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     chains_label = chain_filter.upper() if chain_filter else "Barcha tarmoqlar"
-    msg = await update.message.reply_text(
+    target = update.message or update.callback_query.message
+    msg = await target.reply_text(
         f"{EMOJI['search']} <b>Qidiruv boshlandi…</b>\n"
         f"{'─' * 28}\n"
         f"🌐 {chains_label}\n\n"
