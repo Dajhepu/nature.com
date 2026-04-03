@@ -263,7 +263,7 @@ class Tracker:
                             "win_rate": s["win_rate"], "pnl": s["pnl"], "trades": s["trades"], "active": True
                         }
                         new_wallets.append(new_wallet)
-                        self.tg.send_message(f"✨ <b>Smart Wallet Found!</b>\n\nAddr: <code>{buyer_addr}</code>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nTrades: {s['trades']}")
+                        self.tg.send_message(f"✨ <b>Yangi aqlli hamyon topildi!</b>\n\nManzil: <code>{buyer_addr}</code>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nSavdolar soni: {s['trades']}")
         self.wallets.extend(new_wallets)
         self.save_state()
 
@@ -300,10 +300,10 @@ class Tracker:
         amt = int(traded_tx.get("value") or 0) / (10**decimals)
         usd_val = amt * t_data["price"]
         if usd_val < MIN_USD_THRESHOLD: return
-        msg = f"{'🟢 BUY' if is_buy else '🔴 SELL'} <b>{t_symbol}</b> (${self.tg.format_num(usd_val)})\n"
-        msg += f"Wallet: {wallet['label']} (WR: {wallet['win_rate']:.1f}%)\n"
-        msg += f"Price: ${t_data['price_str']} | MCAP: ${self.tg.format_num(t_data['mcap'])}\n"
-        msg += f"<a href='https://dexscreener.com/{chain}/{t_data['pair_addr']}'>DexScreener</a>"
+        msg = f"{'🟢 SOTIB OLINDI' if is_buy else '🔴 SOTILDI'} <b>{t_symbol}</b> (${self.tg.format_num(usd_val)})\n"
+        msg += f"Hamyon: {wallet['label']} (WinRate: {wallet['win_rate']:.1f}%)\n"
+        msg += f"Narx: ${t_data['price_str']} | MCAP: ${self.tg.format_num(t_data['mcap'])}\n"
+        msg += f"<a href='https://dexscreener.com/{chain}/{t_data['pair_addr']}'>DexScreener orqali ko'rish</a>"
         self.tg.send_message(msg)
 
     def handle_commands(self):
@@ -317,31 +317,31 @@ class Tracker:
             cmd = parts[0]
             args = parts[1:]
             if cmd == "/start":
-                self.tg.send_message("🚀 <b>Smart Money Tracker PRO</b>\n\nCommands:\n/list - Monitored wallets\n/add &lt;addr&gt; &lt;chain&gt; - Add wallet\n/remove &lt;addr&gt; - Remove wallet\n/find - Trigger discovery\n/stats &lt;addr&gt; &lt;chain&gt; - Get metrics", cid)
+                self.tg.send_message("🚀 <b>Smart Money Tracker PRO</b>\n\nBuyruqlar:\n/list - Kuzatuvdagi hamyonlar\n/add &lt;manzil&gt; &lt;tarmoq&gt; - Hamyon qo'shish\n/remove &lt;manzil&gt; - Hamyonni o'chirish\n/find - Yangi aqlli hamyonlarni qidirish\n/stats &lt;manzil&gt; &lt;tarmoq&gt; - Statistika", cid)
             elif cmd == "/list":
-                res = "<b>Monitored Wallets:</b>\n"
+                res = "<b>Kuzatuvdagi hamyonlar:</b>\n"
                 for w in self.wallets:
-                    res += f"• {w['label']} ({w['chain']}): {w['win_rate']:.1f}% WR, ${self.tg.format_num(w['pnl'])} PnL\n"
+                    res += f"• {w['label']} ({w['chain']}): {w['win_rate']:.1f}% WinRate, ${self.tg.format_num(w['pnl'])} PnL\n"
                 self.tg.send_message(res, cid)
             elif cmd == "/add" and len(args) >= 2:
                 addr, chain = args[0], args[1]
                 s = self.stats.calculate_wallet_stats(addr, chain)
-                w = {"addr": addr, "chain": chain, "label": f"Manual_{addr[:4]}", "win_rate": s["win_rate"], "pnl": s["pnl"], "trades": s["trades"], "active": True}
+                w = {"addr": addr, "chain": chain, "label": f"Qo'lda_{addr[:4]}", "win_rate": s["win_rate"], "pnl": s["pnl"], "trades": s["trades"], "active": True}
                 self.wallets.append(w)
-                self.tg.send_message(f"✅ Added {addr} on {chain}\nWR: {s['win_rate']:.1f}%, PnL: ${self.tg.format_num(s['pnl'])}", cid)
+                self.tg.send_message(f"✅ Hamyon qo'shildi: {addr} ({chain})\nWinRate: {s['win_rate']:.1f}%, PnL: ${self.tg.format_num(s['pnl'])}", cid)
                 self.save_state()
             elif cmd == "/remove" and len(args) >= 1:
                 addr = args[0]
                 self.wallets = [w for w in self.wallets if w["addr"].lower() != addr.lower()]
-                self.tg.send_message(f"🗑 Removed {addr}", cid)
+                self.tg.send_message(f"🗑 O'chirildi: {addr}", cid)
                 self.save_state()
             elif cmd == "/find":
-                self.tg.send_message("🔍 Starting discovery engine...", cid)
+                self.tg.send_message("🔍 Aqlli hamyonlarni qidirish tizimi ishga tushmoqda...", cid)
                 self.discover_wallets()
             elif cmd == "/stats" and len(args) >= 2:
                 addr, chain = args[0], args[1]
                 s = self.stats.calculate_wallet_stats(addr, chain)
-                res = f"📊 <b>Stats for {addr}</b>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nTotal Trades: {s['trades']}"
+                res = f"📊 <b>{addr} uchun statistika:</b>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nJami savdolar: {s['trades']}"
                 self.tg.send_message(res, cid)
 
 def main():
