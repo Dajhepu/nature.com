@@ -408,9 +408,19 @@ _HTTP_SESSION: Optional[aiohttp.ClientSession] = None
 async def _get_session() -> aiohttp.ClientSession:
     global _HTTP_SESSION
     if _HTTP_SESSION is None or _HTTP_SESSION.closed:
+        # Use a connector to force IPv4 and enable DNS caching to combat flaky mobile DNS
+        import socket
+        connector = aiohttp.TCPConnector(
+            family=socket.AF_INET,
+            use_dns_cache=True,
+            ttl_dns_cache=300,
+            limit=50
+        )
         _HTTP_SESSION = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30),
-            headers={"User-Agent": "Mozilla/5.0"}
+            connector=connector,
+            timeout=aiohttp.ClientTimeout(total=45), # Increased timeout for slow connections
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+            trust_env=True # Respect system-wide proxies/VPNs
         )
     return _HTTP_SESSION
 
@@ -431,7 +441,7 @@ async def _http_get(url: str, headers: Optional[Dict] = None,
             ename = type(e).__name__
             if "DNSError" in ename or "DNS" in str(e):
                 log.warning(f"🌐 DNS Xatoligi ({attempt+1}/{retries}): {url}. "
-                            "Internet ulanishini yoki DNS sozlamalarini tekshiring.")
+                            "Yechim: Telefoningizda Private DNS -> 1.1.1.1 yoki VPN yoqing.")
 
             if attempt < retries - 1:
                 await asyncio.sleep(2 ** attempt)
@@ -1126,7 +1136,10 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton(f"{EMOJI['chart']} Statistika", callback_data="cmd_stats_main"),
             InlineKeyboardButton(f"⚙️ Sozlamalar", callback_data="cmd_settings"),
         ],
-        [InlineKeyboardButton(f"{EMOJI['warning']} Yordam", callback_data="cmd_help")],
+        [
+            InlineKeyboardButton(f"🌐 DNS Muammo", callback_data="cmd_dns_fix"),
+            InlineKeyboardButton(f"{EMOJI['warning']} Yordam", callback_data="cmd_help")
+        ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1444,6 +1457,19 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await cmd_stats(update, ctx)
     elif data == "cmd_settings":
         await cmd_settings(update, ctx)
+    elif data == "cmd_dns_fix":
+        await _reply(update,
+            f"🌐 <b>DNS va Ulanish muammolarini hal qilish</b>\n{'─' * 30}\n\n"
+            f"Agar botda 'DNS Xatoligi' ko'rinsa, quyidagi amallarni bajaring:\n\n"
+            f"1️⃣ <b>Private DNS o'rnatish (Tavsiya):</b>\n"
+            f"   - Android Sozlamalari -> Tarmoq (Network) -> Private DNS\n"
+            f"   - <code>1.1.1.1</code> yoki <code>dns.google</code> deb yozing.\n\n"
+            f"2️⃣ <b>VPN ishlatish:</b>\n"
+            f"   - 1.1.1.1, Cloudflare yoki biror VPN ilovasini yoqing.\n\n"
+            f"3️⃣ <b>Internetni yangilash:</b>\n"
+            f"   - Airplane mode yoqib-o'chiring.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]])
+        )
     elif data == "set_wr_menu" or data.startswith("set_wr_"):
         if data.startswith("set_wr_"):
             change = 0
