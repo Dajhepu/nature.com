@@ -11,51 +11,34 @@ load_dotenv()
 # CONFIGURATION
 # ─────────────────────────────────────────────
 
-# API Keys
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "")
 BSCSCAN_API_KEY = os.getenv("BSCSCAN_API_KEY", "")
+BASESCAN_API_KEY = os.getenv("BASESCAN_API_KEY", "")
+ARBISCAN_API_KEY = os.getenv("ARBISCAN_API_KEY", "")
+POLYGONSCAN_API_KEY = os.getenv("POLYGONSCAN_API_KEY", "")
+SNOWTRACE_API_KEY = os.getenv("SNOWTRACE_API_KEY", "")
 
-# Monitoring Settings
 UPDATE_INTERVAL = int(os.getenv("UPDATE_INTERVAL", 30))
 MIN_USD_THRESHOLD = float(os.getenv("MIN_USD_THRESHOLD", 5000))
 
-# Chains
+# Professional Filtering Thresholds
+FILTER_WIN_RATE = float(os.getenv("FILTER_WIN_RATE", 70.0))
+FILTER_PNL = float(os.getenv("FILTER_PNL", 100000.0))
+FILTER_MIN_TRADES = int(os.getenv("FILTER_MIN_TRADES", 20))
+
 SCAN_APIS = {
-    "eth": {"url": "https://api.etherscan.io/api", "key_param": "apikey", "label": "Etherscan"},
-    "bsc": {"url": "https://api.bscscan.com/api", "key_param": "apikey", "label": "BSCScan"},
-    "base": {"url": "https://api.basescan.org/api", "key_param": "apikey", "label": "Basescan"},
-    "arbitrum": {"url": "https://api.arbiscan.io/api", "key_param": "apikey", "label": "Arbiscan"},
-    "polygon": {"url": "https://api.polygonscan.com/api", "key_param": "apikey", "label": "Polygonscan"},
-    "avalanche": {"url": "https://api.snowtrace.io/api", "key_param": "apikey", "label": "Snowtrace"},
+    "eth": {"url": "https://api.etherscan.io/api", "key_param": "apikey", "label": "Etherscan", "dex_chain": "ethereum", "api_key": ETHERSCAN_API_KEY},
+    "bsc": {"url": "https://api.bscscan.com/api", "key_param": "apikey", "label": "BSCScan", "dex_chain": "bsc", "api_key": BSCSCAN_API_KEY},
+    "base": {"url": "https://api.basescan.org/api", "key_param": "apikey", "label": "Basescan", "dex_chain": "base", "api_key": BASESCAN_API_KEY},
+    "arbitrum": {"url": "https://api.arbiscan.io/api", "key_param": "apikey", "label": "Arbiscan", "dex_chain": "arbitrum", "api_key": ARBISCAN_API_KEY},
+    "polygon": {"url": "https://api.polygonscan.com/api", "key_param": "apikey", "label": "Polygonscan", "dex_chain": "polygon", "api_key": POLYGONSCAN_API_KEY},
+    "avalanche": {"url": "https://api.snowtrace.io/api", "key_param": "apikey", "label": "Snowtrace", "dex_chain": "avalanche", "api_key": SNOWTRACE_API_KEY},
 }
 
-# Tokens for filtering
 STABLES = {"usdt", "usdc", "dai", "busd", "tusd", "usdp", "frax", "lusd", "gusd", "susd", "cusd", "usd+"}
 WRAPPERS = {"weth", "wbnb", "wmatic", "wavax", "wftm"}
-
-# Wallets to monitor (examples from demo data)
-WALLETS = [
-    {
-        "addr": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-        "label": "vitalik.eth",
-        "chain": "eth",
-        "winRate": "91%",
-        "pnl": "+$4.2M",
-        "trades30d": 23,
-        "notes": "Ethereum co-founder",
-    },
-    {
-        "addr": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B",
-        "label": "Alpha Whale #1",
-        "chain": "bsc",
-        "winRate": "78%",
-        "pnl": "+$890K",
-        "trades30d": 41,
-        "notes": "BSC meme caller",
-    },
-]
 
 # ─────────────────────────────────────────────
 # CLIENTS
@@ -66,25 +49,19 @@ class ExplorerClient:
         self.apis = SCAN_APIS
         self.solana_url = "https://api.mainnet-beta.solana.com"
 
-    def get_token_transactions(self, wallet_addr, chain):
+    def get_token_transactions(self, wallet_addr, chain, limit=20):
         if chain == "solana":
-            return self.get_solana_transactions(wallet_addr)
+            return self.get_solana_transactions(wallet_addr, limit)
 
         scan = self.apis.get(chain)
-        if not scan:
-            return []
+        if not scan: return []
 
-        api_key = BSCSCAN_API_KEY if chain == "bsc" else ETHERSCAN_API_KEY
+        api_key = scan.get("api_key")
         params = {
-            "module": "account",
-            "action": "tokentx",
-            "address": wallet_addr,
-            "sort": "desc",
-            "offset": 20,
-            "page": 1,
+            "module": "account", "action": "tokentx", "address": wallet_addr,
+            "sort": "desc", "offset": limit, "page": 1,
         }
-        if api_key:
-            params[scan["key_param"]] = api_key
+        if api_key: params[scan["key_param"]] = api_key
 
         try:
             response = requests.get(scan["url"], params=params, timeout=10)
@@ -93,21 +70,17 @@ class ExplorerClient:
                 return data["result"]
         except Exception as e:
             print(f"Error fetching from {scan['label']}: {e}")
-
         return []
 
-    def get_solana_transactions(self, wallet_addr):
+    def get_solana_transactions(self, wallet_addr, limit=20):
         payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "getSignaturesForAddress",
-            "params": [wallet_addr, {"limit": 20}]
+            "jsonrpc": "2.0", "id": 1, "method": "getSignaturesForAddress",
+            "params": [wallet_addr, {"limit": limit}]
         }
         try:
             response = requests.post(self.solana_url, json=payload, timeout=10)
             data = response.json()
-            if "result" in data:
-                return data["result"]
+            if "result" in data: return data["result"]
         except Exception as e:
             print(f"Error fetching from Solana: {e}")
         return []
@@ -121,19 +94,9 @@ class DexScreenerClient:
             response = requests.get(url, timeout=10)
             data = response.json()
             pairs = data.get("pairs", [])
-            if not pairs:
-                return None
+            if not pairs: return None
 
-            chain_map = {
-                "eth": "ethereum",
-                "bsc": "bsc",
-                "base": "base",
-                "arbitrum": "arbitrum",
-                "polygon": "polygon",
-                "avalanche": "avalanche"
-            }
-            dex_chain = chain_map.get(chain, chain)
-
+            dex_chain = SCAN_APIS.get(chain, {}).get("dex_chain", chain)
             chain_pairs = [p for p in pairs if p.get("chainId") == dex_chain]
             if not chain_pairs:
                 pair = pairs[0]
@@ -149,261 +112,253 @@ class DexScreenerClient:
                 "pair_addr": pair.get("pairAddress"),
                 "dex": pair.get("dexId"),
                 "liquidity": pair.get("liquidity", {}).get("usd", 0),
+                "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
             }
         except Exception as e:
             print(f"Error fetching DexScreener data: {e}")
             return None
 
+    def get_trending_tokens(self):
+        try:
+            url = f"{self.BASE_URL}/token-boosts/latest/v1"
+            response = requests.get(url, timeout=10)
+            return response.json()
+        except Exception as e:
+            print(f"Error fetching trending tokens: {e}")
+            return []
+
 class TelegramClient:
     def __init__(self):
         self.token = TELEGRAM_BOT_TOKEN
         self.chat_id = TELEGRAM_CHAT_ID
+        self.last_update_id = 0
 
     def format_num(self, n):
-        if not n or n == 0:
-            return "0"
-        if n >= 1e9:
-            return f"{n/1e9:.2f}B"
-        if n >= 1e6:
-            return f"{n/1e6:.2f}M"
-        if n >= 1e3:
-            return f"{n/1e3:.1f}K"
-        if n >= 1:
-            return f"{n:.2f}"
+        if not n or n == 0: return "0"
+        if abs(n) >= 1e9: return f"{n/1e9:.2f}B"
+        if abs(n) >= 1e6: return f"{n/1e6:.2f}M"
+        if abs(n) >= 1e3: return f"{n/1e3:.1f}K"
+        if abs(n) >= 1: return f"{n:.2f}"
         return f"{n:.4g}"
 
-    def format_signal_message(self, trade):
-        emoji = "🟢" if trade["type"] == "buy" else "🔴" if trade["type"] == "sell" else "⚪"
-        action_word = "BUY" if trade["type"] == "buy" else "SELL" if trade["type"] == "sell" else "SWAP"
-        usd_str = f"${self.format_num(trade['usd_value'])}" if trade["usd_value"] > 0 else "?"
-        td = trade["token_data"]
-        chain_up = trade["chain"].upper()
-
-        dex_link = f"https://dexscreener.com/{trade['chain']}/{td['pair_addr']}" if td and td.get("pair_addr") else ""
-
-        expl_links = {
-            "eth": f"https://etherscan.io/tx/{trade['hash']}",
-            "bsc": f"https://bscscan.com/tx/{trade['hash']}",
-            "base": f"https://basescan.org/tx/{trade['hash']}",
-            "arbitrum": f"https://arbiscan.io/tx/{trade['hash']}"
-        }
-        expl_link = expl_links.get(trade["chain"], "")
-
-        msg = f"{emoji} <b>{action_word} SIGNAL</b> — chainEDGE\n\n"
-        msg += f"💎 <b>Smart Money:</b> <code>{trade['wallet']['addr'][:6]}...{trade['wallet']['addr'][-4:]}</code> ({trade['wallet']['label']})\n"
-        msg += f"📊 <b>Token:</b> <b>${trade['token']}</b>\n"
-        msg += f"🔗 <b>Chain:</b> {chain_up}\n"
-        msg += f"💰 <b>Value:</b> <b>{usd_str}</b>\n"
-
-        if td:
-            msg += f"📈 <b>Price:</b> ${td['price_str']}\n"
-            if td.get("mcap", 0) > 0:
-                msg += f"💹 <b>Market Cap:</b> ${self.format_num(td['mcap'])}\n"
-            if td.get("vol24h", 0) > 0:
-                msg += f"📊 <b>24h Volume:</b> ${self.format_num(td['vol24h'])}\n"
-            if td.get("liquidity", 0) > 0:
-                msg += f"🏊 <b>Liquidity:</b> ${self.format_num(td['liquidity'])}\n"
-            if td.get("price_change_24h"):
-                change = td["price_change_24h"]
-                msg += f"📉 <b>24h Change:</b> {'+' if change > 0 else ''}{change:.1f}%\n"
-            if td.get("dex"):
-                msg += f"🏦 <b>DEX:</b> {td['dex']}\n"
-
-        msg += f"\n🏦 <b>Wallet Stats:</b>\n"
-        msg += f"• Win Rate: {trade['wallet']['winRate']}\n"
-        msg += f"• PnL: {trade['wallet']['pnl']}\n"
-        msg += f"• Trades (30d): {trade['wallet']['trades30d']}\n"
-        if trade["wallet"].get("notes"):
-            msg += f"• Notes: {trade['wallet']['notes']}\n"
-
-        msg += "\n"
-        links = []
-        if dex_link:
-            links.append(f'<a href="{dex_link}">DexScreener</a>')
-        if expl_link:
-            links.append(f'<a href="{expl_link}">TX</a>')
-
-        if links:
-            msg += " | ".join(links) + "\n"
-
-        timestamp_str = datetime.fromtimestamp(trade["timestamp"]).strftime("%H:%M:%S")
-        msg += f"⏰ {timestamp_str} UTC"
-
-        return msg
-
-    def send_signal(self, trade):
-        if not self.token or not self.chat_id:
-            return False
-
-        msg = self.format_signal_message(trade)
+    def send_message(self, text, chat_id=None):
+        target = chat_id or self.chat_id
+        if not self.token or not target: return False
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        payload = {
-            "chat_id": self.chat_id,
-            "text": msg,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": False,
-        }
+        payload = {"chat_id": target, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}
         try:
-            response = requests.post(url, json=payload, timeout=10)
-            return response.json().get("ok", False)
-        except Exception as e:
-            print(f"Error sending Telegram signal: {e}")
-            return False
+            res = requests.post(url, json=payload, timeout=10)
+            return res.json().get("ok", False)
+        except: return False
+
+    def get_updates(self):
+        if not self.token: return []
+        url = f"https://api.telegram.org/bot{self.token}/getUpdates"
+        params = {"offset": self.last_update_id + 1, "timeout": 2}
+        try:
+            res = requests.get(url, params=params, timeout=5)
+            data = res.json()
+            if data.get("ok"):
+                updates = data.get("result", [])
+                if updates:
+                    self.last_update_id = updates[-1]["update_id"]
+                return updates
+        except: pass
+        return []
 
 # ─────────────────────────────────────────────
-# CORE ENGINE
+# ANALYTICS ENGINE
+# ─────────────────────────────────────────────
+
+class StatsManager:
+    def __init__(self, explorer, dex):
+        self.explorer = explorer
+        self.dex = dex
+
+    def calculate_wallet_stats(self, addr, chain):
+        txs = self.explorer.get_token_transactions(addr, chain, limit=100)
+        if not txs: return {"win_rate": 0, "pnl": 0, "trades": 0}
+
+        tokens = {}
+        for tx in txs:
+            t_addr = tx.get("contractAddress")
+            if not t_addr: continue
+            sym = (tx.get("tokenSymbol") or "").lower()
+            if sym in STABLES or sym in WRAPPERS: continue
+            if t_addr not in tokens: tokens[t_addr] = {"buy_amt": 0, "sell_amt": 0}
+            decimals = int(tx.get("tokenDecimal") or 18)
+            amt = int(tx.get("value") or 0) / (10**decimals)
+            if tx.get("to", "").lower() == addr.lower(): tokens[t_addr]["buy_amt"] += amt
+            else: tokens[t_addr]["sell_amt"] += amt
+
+        total_pnl = 0
+        wins = 0
+        trade_count = 0
+        for t_addr, data in tokens.items():
+            if data["buy_amt"] == 0: continue
+            t_data = self.dex.get_token_data(t_addr, chain)
+            if not t_data: continue
+            price = t_data["price"]
+            current_value = (data["buy_amt"] - data["sell_amt"]) * price
+            if current_value < 0: current_value = 0
+            change_pct = t_data["price_change_24h"]
+            estimated_entry_price = price / (1 + (change_pct / 100))
+            estimated_cost = data["buy_amt"] * estimated_entry_price
+            estimated_revenue = data["sell_amt"] * price + current_value
+            pnl = estimated_revenue - estimated_cost
+            total_pnl += pnl
+            if pnl > 0: wins += 1
+            trade_count += 1
+        win_rate = (wins / trade_count * 100) if trade_count > 0 else 0
+        return {"win_rate": win_rate, "pnl": total_pnl, "trades": trade_count}
+
+# ─────────────────────────────────────────────
+# MAIN TRACKER
 # ─────────────────────────────────────────────
 
 class Tracker:
-    def __init__(self, explorer, dexscreener, telegram, wallets):
-        self.explorer = explorer
-        self.dex = dexscreener
-        self.tg = telegram
-        self.wallets = wallets
+    def __init__(self):
+        self.explorer = ExplorerClient()
+        self.dex = DexScreenerClient()
+        self.tg = TelegramClient()
+        self.stats = StatsManager(self.explorer, self.dex)
+        self.wallets = []
         self.polled_hashes = {}
-        self.state_file = "polled_hashes.json"
+        self.state_file = "tracker_state.json"
         self.load_state()
 
     def load_state(self):
         if os.path.exists(self.state_file):
             try:
                 with open(self.state_file, "r") as f:
-                    data = json.load(f)
-                    self.polled_hashes = {addr: set(hashes) for addr, hashes in data.items()}
-            except Exception as e:
-                print(f"Error loading state: {e}")
+                    state = json.load(f)
+                    self.wallets = state.get("wallets", [])
+                    hashes = state.get("polled_hashes", {})
+                    self.polled_hashes = {addr: set(h) for addr, h in hashes.items()}
+            except: pass
 
     def save_state(self):
         try:
             with open(self.state_file, "w") as f:
-                data = {addr: list(hashes) for addr, hashes in self.polled_hashes.items()}
-                json.dump(data, f)
-        except Exception as e:
-            print(f"Error saving state: {e}")
+                hashes = {addr: list(h) for addr, h in self.polled_hashes.items()}
+                json.dump({"wallets": self.wallets, "polled_hashes": hashes}, f)
+        except: pass
 
-    def poll_all(self):
+    def discover_wallets(self):
+        print("Running Discovery Engine...")
+        trending = self.dex.get_trending_tokens()
+        new_wallets = []
+        for item in trending[:5]:
+            t_addr = item.get("tokenAddress")
+            chain = item.get("chainId")
+            scan_chain = next((k for k, v in SCAN_APIS.items() if v["dex_chain"] == chain), chain)
+            txs = self.explorer.get_token_transactions(t_addr, scan_chain, limit=50)
+            for tx in txs:
+                buyer_addr = tx.get("to")
+                if buyer_addr and buyer_addr.lower() not in [w["addr"].lower() for w in self.wallets]:
+                    s = self.stats.calculate_wallet_stats(buyer_addr, scan_chain)
+                    if s["win_rate"] >= FILTER_WIN_RATE and s["pnl"] >= FILTER_PNL and s["trades"] >= FILTER_MIN_TRADES:
+                        new_wallet = {
+                            "addr": buyer_addr, "chain": scan_chain, "label": f"Smart_{buyer_addr[:4]}",
+                            "win_rate": s["win_rate"], "pnl": s["pnl"], "trades": s["trades"], "active": True
+                        }
+                        new_wallets.append(new_wallet)
+                        self.tg.send_message(f"✨ <b>Smart Wallet Found!</b>\n\nAddr: <code>{buyer_addr}</code>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nTrades: {s['trades']}")
+        self.wallets.extend(new_wallets)
+        self.save_state()
+
+    def poll_wallets(self):
         for wallet in self.wallets:
-            print(f"Polling {wallet['label']} ({wallet['addr']}) on {wallet['chain']}...")
-            txs = self.explorer.get_token_transactions(wallet["addr"], wallet["chain"])
-            if not txs:
-                continue
-
+            if not wallet.get("active"): continue
             addr = wallet["addr"]
+            chain = wallet["chain"]
+            txs = self.explorer.get_token_transactions(addr, chain)
+            if not txs: continue
             if addr not in self.polled_hashes:
                 self.polled_hashes[addr] = {tx.get("hash") or tx.get("signature") for tx in txs}
                 continue
-
             known = self.polled_hashes[addr]
-
             by_hash = {}
             for tx in txs:
-                tx_id = tx.get("hash") or tx.get("signature")
-                if tx_id in known:
-                    continue
-
-                if tx_id not in by_hash:
-                    by_hash[tx_id] = []
-                by_hash[tx_id].append(tx)
-                known.add(tx_id)
-
-            for tx_id, tx_group in by_hash.items():
-                self.process_tx_group(wallet, tx_group, wallet["chain"], tx_id)
-
-            time.sleep(0.5)
-
+                tid = tx.get("hash") or tx.get("signature")
+                if tid in known: continue
+                if tid not in by_hash: by_hash[tid] = []
+                by_hash[tid].append(tx)
+                known.add(tid)
+            for tid, group in by_hash.items():
+                self.process_signal(wallet, group, chain, tid)
         self.save_state()
 
-    def process_tx_group(self, wallet, tx_group, chain, tx_id):
-        if chain == "solana":
-            self.process_solana_tx(wallet, tx_id)
-            return
-
-        traded_tx = None
-        for tx in tx_group:
-            sym = (tx.get("tokenSymbol") or "").lower()
-            if sym not in STABLES and sym not in WRAPPERS:
-                traded_tx = tx
-                break
-
-        if not traded_tx:
-            traded_tx = tx_group[0]
-
-        token_symbol = traded_tx.get("tokenSymbol") or "UNKNOWN"
-        token_addr = traded_tx.get("contractAddress")
-        decimals = int(traded_tx.get("tokenDecimal") or 18)
-        value = int(traded_tx.get("value") or 0)
-        raw_amt = value / (10 ** decimals)
-
+    def process_signal(self, wallet, group, chain, tid):
+        traded_tx = next((tx for tx in group if tx.get("tokenSymbol", "").lower() not in STABLES | WRAPPERS), group[0])
+        t_symbol = traded_tx.get("tokenSymbol", "UNKNOWN")
+        t_addr = traded_tx.get("contractAddress")
         is_buy = traded_tx.get("to", "").lower() == wallet["addr"].lower()
-        trade_type = "buy" if is_buy else "sell"
+        t_data = self.dex.get_token_data(t_addr, chain)
+        if not t_data: return
+        decimals = int(traded_tx.get("tokenDecimal") or 18)
+        amt = int(traded_tx.get("value") or 0) / (10**decimals)
+        usd_val = amt * t_data["price"]
+        if usd_val < MIN_USD_THRESHOLD: return
+        msg = f"{'🟢 BUY' if is_buy else '🔴 SELL'} <b>{t_symbol}</b> (${self.tg.format_num(usd_val)})\n"
+        msg += f"Wallet: {wallet['label']} (WR: {wallet['win_rate']:.1f}%)\n"
+        msg += f"Price: ${t_data['price_str']} | MCAP: ${self.tg.format_num(t_data['mcap'])}\n"
+        msg += f"<a href='https://dexscreener.com/{chain}/{t_data['pair_addr']}'>DexScreener</a>"
+        self.tg.send_message(msg)
 
-        token_data = self.dex.get_token_data(token_addr, chain)
-
-        usd_value = 0
-        if token_data:
-            usd_value = raw_amt * token_data["price"]
-
-        if usd_value > 0 and usd_value < MIN_USD_THRESHOLD:
-            return
-
-        trade = {
-            "hash": tx_id,
-            "type": trade_type,
-            "wallet": wallet,
-            "chain": chain,
-            "token": token_symbol,
-            "token_addr": token_addr,
-            "amount": raw_amt,
-            "usd_value": usd_value,
-            "token_data": token_data,
-            "timestamp": int(traded_tx.get("timeStamp") or time.time()),
-        }
-
-        print(f"New Signal identified: {trade_type.upper()} {token_symbol} (${usd_value:.2f})")
-        sent = self.tg.send_signal(trade)
-        if sent:
-            print("Signal sent to Telegram.")
-
-    def process_solana_tx(self, wallet, tx_id):
-        trade = {
-            "hash": tx_id,
-            "type": "unknown",
-            "wallet": wallet,
-            "chain": "solana",
-            "token": "SOL TX",
-            "amount": 0,
-            "usd_value": 0,
-            "token_data": None,
-            "timestamp": int(time.time()),
-        }
-        print(f"New Solana TX for {wallet['label']}")
-        self.tg.send_signal(trade)
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
+    def handle_commands(self):
+        updates = self.tg.get_updates()
+        for u in updates:
+            msg = u.get("message", {})
+            text = msg.get("text", "")
+            cid = msg.get("chat", {}).get("id") or msg.get("from", {}).get("id")
+            if not text.startswith("/"): continue
+            parts = text.split()
+            cmd = parts[0]
+            args = parts[1:]
+            if cmd == "/start":
+                self.tg.send_message("🚀 <b>Smart Money Tracker PRO</b>\n\nCommands:\n/list - Monitored wallets\n/add &lt;addr&gt; &lt;chain&gt; - Add wallet\n/remove &lt;addr&gt; - Remove wallet\n/find - Trigger discovery\n/stats &lt;addr&gt; &lt;chain&gt; - Get metrics", cid)
+            elif cmd == "/list":
+                res = "<b>Monitored Wallets:</b>\n"
+                for w in self.wallets:
+                    res += f"• {w['label']} ({w['chain']}): {w['win_rate']:.1f}% WR, ${self.tg.format_num(w['pnl'])} PnL\n"
+                self.tg.send_message(res, cid)
+            elif cmd == "/add" and len(args) >= 2:
+                addr, chain = args[0], args[1]
+                s = self.stats.calculate_wallet_stats(addr, chain)
+                w = {"addr": addr, "chain": chain, "label": f"Manual_{addr[:4]}", "win_rate": s["win_rate"], "pnl": s["pnl"], "trades": s["trades"], "active": True}
+                self.wallets.append(w)
+                self.tg.send_message(f"✅ Added {addr} on {chain}\nWR: {s['win_rate']:.1f}%, PnL: ${self.tg.format_num(s['pnl'])}", cid)
+                self.save_state()
+            elif cmd == "/remove" and len(args) >= 1:
+                addr = args[0]
+                self.wallets = [w for w in self.wallets if w["addr"].lower() != addr.lower()]
+                self.tg.send_message(f"🗑 Removed {addr}", cid)
+                self.save_state()
+            elif cmd == "/find":
+                self.tg.send_message("🔍 Starting discovery engine...", cid)
+                self.discover_wallets()
+            elif cmd == "/stats" and len(args) >= 2:
+                addr, chain = args[0], args[1]
+                s = self.stats.calculate_wallet_stats(addr, chain)
+                res = f"📊 <b>Stats for {addr}</b>\nWin Rate: {s['win_rate']:.1f}%\nPnL: ${self.tg.format_num(s['pnl'])}\nTotal Trades: {s['trades']}"
+                self.tg.send_message(res, cid)
 
 def main():
-    print("🚀 chainEDGE Python - Starting Smart Money Tracker")
-    print(f"Tracking {len(WALLETS)} wallets. Update interval: {UPDATE_INTERVAL}s")
-
-    explorer = ExplorerClient()
-    dex = DexScreenerClient()
-    tg = TelegramClient()
-
-    tracker = Tracker(explorer, dex, tg, WALLETS)
-
-    try:
-        while True:
-            tracker.poll_all()
-            print(f"Scan complete. Sleeping for {UPDATE_INTERVAL}s...")
-            time.sleep(UPDATE_INTERVAL)
-    except KeyboardInterrupt:
-        print("\nStopping tracker...")
-        tracker.save_state()
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        tracker.save_state()
+    tracker = Tracker()
+    print("Tracker started...")
+    last_discovery = 0
+    last_poll = 0
+    while True:
+        tracker.handle_commands()
+        now = time.time()
+        if now - last_poll > UPDATE_INTERVAL:
+            tracker.poll_wallets()
+            last_poll = now
+        if now - last_discovery > 3600:
+            tracker.discover_wallets()
+            last_discovery = now
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
