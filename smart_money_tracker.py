@@ -443,9 +443,18 @@ async def _http_get(url: str, headers: Optional[Dict] = None,
             async with sess.get(url, headers=headers, params=params) as resp:
                 if resp.status == 200:
                     return await resp.json()
-                if resp.status in (429, 500, 502, 503, 504) and attempt < retries - 1:
+
+                if resp.status == 429 and attempt < retries - 1:
+                    # Specific wait for rate limits
+                    wait = 5 + (2 ** attempt)
+                    log.warning(f"🛑 Rate Limit (429): {url}. {wait}s kutilmoqda…")
+                    await asyncio.sleep(wait)
+                    continue
+
+                if resp.status in (500, 502, 503, 504) and attempt < retries - 1:
                     await asyncio.sleep(2 ** attempt)
                     continue
+
                 log.warning(f"HTTP {resp.status}: {url}")
                 return None
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
@@ -738,6 +747,8 @@ async def get_token_prices_dex(token_addresses: List[str]) -> Dict[str, float]:
 
 # ── Unified Fetcher ───────────────────────────────────────────
 
+_PRICE_CACHE: Dict[str, float] = {}
+
 async def get_swap_history(address: str, chain: str,
                             limit: int = 100) -> List[Dict]:
     if chain == "solana":
@@ -749,12 +760,25 @@ async def get_swap_history(address: str, chain: str,
         return []
 
     # Enrich with historical prices for PnL calculation
-    semaphore = asyncio.Semaphore(10) # Max 10 parallel llama calls
+    semaphore = asyncio.Semaphore(5) # Reduced concurrency for free APIs
 
     async def enrich_tx(tx):
+        cache_key = f"{chain}:{tx['token_addr']}:{tx['_ts_int'] // 3600}" # Hourly cache
+        if cache_key in _PRICE_CACHE:
+            tx["price_usd"] = _PRICE_CACHE[cache_key]
+            try:
+                val = int(tx.get("_raw_value", 0))
+                dec = int(tx.get("_raw_decimal", 18))
+                tx["amount_usd"] = (val / (10**dec)) * tx["price_usd"]
+            except Exception: pass
+            return tx
+
         async with semaphore:
+            # Add a small stagger to avoid bursts
+            await asyncio.sleep(0.1)
             price = await get_historical_price_llama(chain, tx["token_addr"], tx["_ts_int"])
             if price > 0:
+                _PRICE_CACHE[cache_key] = price
                 tx["price_usd"] = price
                 try:
                     val = int(tx.get("_raw_value", 0))
@@ -937,6 +961,10 @@ async def run_discovery(chains: Optional[List[str]] = None,
 
     for chain in chains:
         log.info(f"[{chain}] Discovery started")
+        # Stagger chain discovery
+        if chains.index(chain) > 0:
+            await asyncio.sleep(5)
+
         trending = await discovery_trending(chain)
         if not trending:
             log.warning(f"[{chain}] No trending tokens")
@@ -971,6 +999,10 @@ async def run_discovery(chains: Optional[List[str]] = None,
                     if isinstance(stats, Exception):
                         log.error(f"Analysis error: {stats}")
                         continue
+
+                    if not stats or not stats.address:
+                        continue
+
                     key = (stats.address.lower(), stats.chain)
                     if key in seen:
                         continue
@@ -996,7 +1028,7 @@ async def run_discovery(chains: Optional[List[str]] = None,
                         await DB.log_discovery(
                             chain, token_addr, len(buyers), len(all_qualified)
                         )
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(2.0) # Increased delay to avoid rate limits
 
     all_qualified.sort(key=lambda w: w.score, reverse=True)
     return all_qualified
@@ -1371,14 +1403,18 @@ async def cmd_remove(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     address, chain = args[0].strip(), args[1].lower().strip()
     ok = await DB.remove_wallet(address, chain)
+
+    target = update.message or update.callback_query.message
     if ok:
-        await _reply(update,
+        await target.reply_text(
             f"{EMOJI['remove']} Hamyon olib tashlandi:\n"
-            f"<code>{address[:10]}…</code>  [{chain}]")
+            f"<code>{address[:10]}…</code>  [{chain}]",
+            parse_mode=ParseMode.HTML)
     else:
-        await _reply(update,
+        await target.reply_text(
             f"{EMOJI['cross']} Hamyon topilmadi:\n"
-            f"<code>{address[:10]}…</code>  [{chain}]")
+            f"<code>{address[:10]}…</code>  [{chain}]",
+            parse_mode=ParseMode.HTML)
 
 
 # ── /stats ────────────────────────────────────────────────────
