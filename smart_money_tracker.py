@@ -29,9 +29,19 @@ import aiohttp
 import aiosqlite
 import colorlog
 from dotenv import load_dotenv
-from telegram import BotCommand, Update
+from telegram import (
+    BotCommand,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+)
 
 load_dotenv()
 
@@ -171,6 +181,10 @@ class AppConfig:
     db_path:         str   = field(default_factory=lambda: os.getenv("DATABASE_PATH", "smart_money.db"))
     active_chains:   List[str] = field(default_factory=lambda: list(CHAINS.keys()))
 
+    async def reload(self, db):
+        self.min_win_rate = float(await db.get_setting("min_win_rate", self.min_win_rate))
+        self.min_pnl_usd  = float(await db.get_setting("min_pnl_usd", self.min_pnl_usd))
+
 
 CFG = AppConfig()
 
@@ -213,6 +227,10 @@ CREATE TABLE IF NOT EXISTS discovery_log (
     token_addr          TEXT NOT NULL,
     wallets_found       INTEGER DEFAULT 0,
     wallets_qualified   INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_tx_wallet   ON transactions (wallet, chain);
 CREATE INDEX IF NOT EXISTS idx_tx_notified ON transactions (notified);
@@ -349,6 +367,22 @@ class Database:
                (run_at, chain, token_addr, wallets_found, wallets_qualified)
                VALUES (?, ?, ?, ?, ?)""",
             (datetime.utcnow().isoformat(), chain, token_addr, found, qualified),
+        )
+        await self._conn.commit()
+
+    # ── Settings ──────────────────────────────────────────────
+
+    async def get_setting(self, key: str, default: Any = None) -> Any:
+        async with self._conn.execute(
+            "SELECT value FROM settings WHERE key=?", (key,)
+        ) as cur:
+            row = await cur.fetchone()
+            return row[0] if row else default
+
+    async def set_setting(self, key: str, value: Any):
+        await self._conn.execute(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+            (key, str(value)),
         )
         await self._conn.commit()
 
@@ -974,8 +1008,22 @@ def _auth(func):
 
 
 async def _reply(update: Update, text: str, **kw):
+    target = update.message
+    if not target and update.callback_query:
+        target = update.callback_query.message
+
+    if not target:
+        return
+
     for chunk in [text[i:i+4096] for i in range(0, len(text), 4096)]:
-        await update.message.reply_text(
+        if update.callback_query and not kw.get("reply_markup"):
+             # If it's a callback and no new markup, maybe we want to edit?
+             # But _reply is usually for new messages.
+             # Let's keep it simple: always send new message for now,
+             # or edit if it's the first chunk of a callback.
+             pass
+
+        await target.reply_text(
             chunk, parse_mode=ParseMode.HTML,
             disable_web_page_preview=True, **kw
         )
@@ -988,8 +1036,21 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     chains_txt = "".join(
         f"  {CHAIN_EMOJI[k]} {cfg.name}\n" for k, cfg in CHAINS.items()
     )
+    keyboard = [
+        [
+            InlineKeyboardButton(f"{EMOJI['search']} Qidirish", callback_data="cmd_find"),
+            InlineKeyboardButton(f"{EMOJI['list']} Ro'yxat", callback_data="cmd_list"),
+        ],
+        [
+            InlineKeyboardButton(f"{EMOJI['chart']} Statistika", callback_data="cmd_stats_main"),
+            InlineKeyboardButton(f"⚙️ Sozlamalar", callback_data="cmd_settings"),
+        ],
+        [InlineKeyboardButton(f"{EMOJI['warning']} Yordam", callback_data="cmd_help")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await _reply(update,
-        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b> (Free v1.2)\n"
+        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b> (Free v1.3)\n"
         f"{'═' * 32}\n\n"
         f"Blockchain tarmog'idagi aqlli treyderlarni\n"
         f"avtomatik topish va real vaqtda kuzatish.\n"
@@ -997,13 +1058,8 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"<b>Tarmoqlar:</b>\n{chains_txt}\n"
         f"<b>Filtr:</b>  WinRate ≥ {CFG.min_win_rate}%  |  "
         f"PnL ≥ ${CFG.min_pnl_usd:,.0f}  |  Savdolar ≥ {CFG.min_trade_count}\n\n"
-        f"<b>Buyruqlar:</b>\n"
-        f"  /find   — Yangi aqlli hamyonlar qidirish\n"
-        f"  /list   — Kuzatuvdagi hamyonlar\n"
-        f"  /add    — Hamyon qo'shish\n"
-        f"  /remove — Hamyonni o'chirish\n"
-        f"  /stats  — Statistika\n"
-        f"  /help   — Yordam\n"
+        f"Quyidagi tugmalardan foydalaning:",
+        reply_markup=reply_markup
     )
 
 
@@ -1011,6 +1067,8 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 @_auth
 async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = [[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     await _reply(update,
         f"{EMOJI['search']} <b>Buyruqlar</b>\n{'─' * 30}\n\n"
         f"<b>/find</b> [chain]\n"
@@ -1025,7 +1083,8 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"<b>/stats</b> [address chain]\n"
         f"  Tizim yoki hamyon statistikasi.\n\n"
         f"<b>Qo'llab-quvvatlanadigan tarmoqlar:</b>\n"
-        f"  {', '.join(CHAINS.keys())}\n"
+        f"  {', '.join(CHAINS.keys())}\n",
+        reply_markup=reply_markup
     )
 
 
@@ -1035,15 +1094,26 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def cmd_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     wallets = await DB.list_wallets(active_only=True)
     if not wallets:
+        keyboard = [[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]]
         await _reply(update,
             f"{EMOJI['warning']} Kuzatuvda hech qanday hamyon yo'q.\n"
-            f"/add yoki /find buyrug'ini ishlating.")
+            f"/add yoki /find buyrug'ini ishlating.",
+            reply_markup=InlineKeyboardMarkup(keyboard))
         return
+
     lines = [f"{EMOJI['list']} <b>Kuzatuvdagi hamyonlar</b> ({len(wallets)} ta)\n"
              f"{'═' * 30}\n\n"]
-    for i, w in enumerate(wallets, 1):
+
+    # We'll use a simplified list if there are many, or just provide buttons for the top ones
+    for i, w in enumerate(wallets[:20], 1):
         lines.append(fmt_wallet_row(w, i) + "\n")
-    await _reply(update, "".join(lines))
+
+    keyboard = [
+        [InlineKeyboardButton(f"{EMOJI['remove']} Hamyonni o'chirish", callback_data="list_remove_select")],
+        [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]
+    ]
+
+    await _reply(update, "".join(lines), reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 # ── /add ──────────────────────────────────────────────────────
@@ -1205,7 +1275,159 @@ async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# ── /settings ─────────────────────────────────────────────────
+
+@_auth
+async def cmd_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton(f"Win Rate ({CFG.min_win_rate}%)", callback_data="set_wr_menu"),
+            InlineKeyboardButton(f"PnL (${CFG.min_pnl_usd:,.0f})", callback_data="set_pnl_menu"),
+        ],
+        [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await _reply(update,
+        f"⚙️ <b>Sozlamalar</b>\n"
+        f"{'─' * 28}\n\n"
+        f"Bu yerda hamyonlarni saralash filtrlarini o'zgartirishingiz mumkin.\n\n"
+        f"✅ <b>Win Rate:</b> {CFG.min_win_rate}%\n"
+        f"💰 <b>Minimal PnL:</b> ${CFG.min_pnl_usd:,.0f}",
+        reply_markup=reply_markup
+    )
+
+
+# ── CALLBACK HANDLER ──────────────────────────────────────────
+
+async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    uid   = query.from_user.id
+    if CFG.allowed_users and uid not in CFG.allowed_users:
+        await query.answer("Ruxsat yo'q!", show_alert=True)
+        return
+
+    data = query.data
+    await query.answer()
+
+    # Simple routing
+    if data == "cmd_start":
+        await cmd_start(update, ctx)
+        await query.message.delete()
+    elif data == "cmd_help":
+        await cmd_help(update, ctx)
+        await query.message.delete()
+    elif data == "cmd_list":
+        await cmd_list(update, ctx)
+        await query.message.delete()
+    elif data == "cmd_find":
+        await cmd_find_select_chain(update, ctx)
+        await query.message.delete()
+    elif data.startswith("find_run_"):
+        chain = data.replace("find_run_", "")
+        if chain == "all":
+            ctx.args = []
+        else:
+            ctx.args = [chain]
+        await cmd_find(update, ctx)
+    elif data == "list_remove_select":
+        wallets = await DB.list_wallets(active_only=True)
+        if not wallets:
+            await query.edit_message_text("Hamyonlar yo'q.")
+            return
+        keyboard = []
+        for w in wallets[:15]: # Limit to avoid huge keyboard
+            short = f"{w['address'][:6]}…{w['address'][-4:]}"
+            keyboard.append([InlineKeyboardButton(
+                f"{EMOJI['remove']} {short} [{w['chain']}]",
+                callback_data=f"remove_confirm_{w['address']}_{w['chain']}"
+            )])
+        keyboard.append([InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_list")])
+        await query.edit_message_text(
+            "<b>O'chirish uchun hamyonni tanlang:</b>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    elif data.startswith("remove_confirm_"):
+        parts = data.replace("remove_confirm_", "").split("_")
+        if len(parts) >= 2:
+            address, chain = parts[0], parts[1]
+            ctx.args = [address, chain]
+            await cmd_remove(update, ctx)
+    elif data == "cmd_stats_main":
+        await cmd_stats(update, ctx)
+    elif data == "cmd_settings":
+        await cmd_settings(update, ctx)
+    elif data == "set_wr_menu" or data.startswith("set_wr_"):
+        if data.startswith("set_wr_"):
+            change = 0
+            if "up_1" in data: change = 1
+            elif "up_5" in data: change = 5
+            elif "down_1" in data: change = -1
+            elif "down_5" in data: change = -5
+            CFG.min_win_rate = max(0, min(100, CFG.min_win_rate + change))
+            await DB.set_setting("min_win_rate", CFG.min_win_rate)
+
+        keyboard = [
+            [
+                InlineKeyboardButton("-5%", callback_data="set_wr_down_5"),
+                InlineKeyboardButton("-1%", callback_data="set_wr_down_1"),
+                InlineKeyboardButton("+1%", callback_data="set_wr_up_1"),
+                InlineKeyboardButton("+5%", callback_data="set_wr_up_5"),
+            ],
+            [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_settings")]
+        ]
+        await query.edit_message_text(
+            f"<b>Win Rate sozlamalari</b>\n\nJoriy: {CFG.min_win_rate}%\n\nO'zgartirish:",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    elif data == "set_pnl_menu" or data.startswith("set_pnl_"):
+        if data.startswith("set_pnl_"):
+            change = 0
+            if "up_1000" in data: change = 1000
+            if "up_10000" in data: change = 10000
+            if "down_1000" in data: change = -1000
+            if "down_10000" in data: change = -10000
+            CFG.min_pnl_usd = max(0, CFG.min_pnl_usd + change)
+            await DB.set_setting("min_pnl_usd", CFG.min_pnl_usd)
+
+        keyboard = [
+            [
+                InlineKeyboardButton("-10k", callback_data="set_pnl_down_10000"),
+                InlineKeyboardButton("-1k", callback_data="set_pnl_down_1000"),
+                InlineKeyboardButton("+1k", callback_data="set_pnl_up_1000"),
+                InlineKeyboardButton("+10k", callback_data="set_pnl_up_10000"),
+            ],
+            [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_settings")]
+        ]
+        await query.edit_message_text(
+            f"<b>Minimal PnL sozlamalari</b>\n\nJoriy: ${CFG.min_pnl_usd:,.0f}\n\nO'zgartirish:",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+
 # ── /find ─────────────────────────────────────────────────────
+
+@_auth
+async def cmd_find_select_chain(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = []
+    # 2 chains per row
+    chain_list = list(CHAINS.keys())
+    for i in range(0, len(chain_list), 2):
+        row = []
+        for c in chain_list[i:i+2]:
+            row.append(InlineKeyboardButton(f"{CHAIN_EMOJI[c]} {c.upper()}", callback_data=f"find_run_{c}"))
+        keyboard.append(row)
+
+    keyboard.append([InlineKeyboardButton("🌐 BARCHA TARMOQLAR", callback_data="find_run_all")])
+    keyboard.append([InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")])
+
+    await _reply(update,
+        f"{EMOJI['search']} <b>Qaysi tarmoqdan qidiramiz?</b>\n"
+        f"Trending tokenlar orqali smart walletlar qidiriladi.",
+        reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 @_auth
 async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -1312,7 +1534,7 @@ class Broadcaster:
 def _banner():
     print("""
 ╔══════════════════════════════════════════════════════════╗
-║     💎  Smart Money Finder & Tracker (FREE) v1.2        ║
+║     💎  Smart Money Finder & Tracker (FREE) v1.3        ║
 ╠══════════════════════════════════════════════════════════╣""")
     for k, cfg in CHAINS.items():
         em = CHAIN_EMOJI.get(k, "🌐")
@@ -1342,6 +1564,7 @@ async def main():
 
     log.info("Ma'lumotlar bazasi ulanmoqda…")
     await DB.connect()
+    await CFG.reload(DB)
 
     log.info("Telegram bot yaratilmoqda…")
     app = Application.builder().token(CFG.bot_token).build()
@@ -1357,6 +1580,8 @@ async def main():
         ("find",   cmd_find),
     ]:
         app.add_handler(CommandHandler(cmd, handler))
+
+    app.add_handler(CallbackQueryHandler(on_callback))
 
     # Set bot command menu
     await app.initialize()
