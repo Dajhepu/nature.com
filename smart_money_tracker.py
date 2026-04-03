@@ -182,9 +182,9 @@ class AppConfig:
     allowed_users:   List[int] = field(default_factory=lambda: [
         int(x) for x in os.getenv("ALLOWED_USER_IDS", "798283148").split(",") if x.strip()
     ])
-    min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "70")))
-    min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "100000")))
-    min_trade_count: int   = field(default_factory=lambda: int(os.getenv("MIN_TRADE_COUNT", "20")))
+    min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "50")))
+    min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "1000")))
+    min_trade_count: int   = field(default_factory=lambda: int(os.getenv("MIN_TRADE_COUNT", "5")))
     min_tx_history:  int   = field(default_factory=lambda: int(os.getenv("MIN_TX_HISTORY", "100")))
     monitor_interval:    int = field(default_factory=lambda: int(os.getenv("MONITOR_INTERVAL", "30")))
     discovery_interval:  int = field(default_factory=lambda: int(os.getenv("DISCOVERY_INTERVAL", "3600")))
@@ -943,19 +943,20 @@ async def run_discovery(chains: Optional[List[str]] = None,
             continue
         log.info(f"[{chain}] {len(trending)} trending tokens")
 
-        for i, pair in enumerate(trending[:10]):
+        for i, pair in enumerate(trending[:15]):
             token_addr = pair["token_address"]
             if not token_addr:
                 continue
 
             if progress_cb:
                 await _safe_cb(progress_cb,
-                    f"🔍 [{chain.upper()}] Token {i+1}/10: "
+                    f"🔍 [{chain.upper()}] Token {i+1}/15: "
                     f"{pair['token_symbol']} ({pair['token_name']})"
                 )
 
+            # Analyze more buyers per token to find better wallets
             buyers = await get_early_buyers(
-                token_addr, chain, top_n=30,
+                token_addr, chain, top_n=50,
                 pool_address=pair.get("pair_address")
             )
             log.info(f"[{chain}] {pair['token_symbol']}: {len(buyers)} potential smart wallets found")
@@ -974,18 +975,24 @@ async def run_discovery(chains: Optional[List[str]] = None,
                     if key in seen:
                         continue
                     seen.add(key)
-                    if stats.qualifies:
+
+                    # No strict 'qualifies' filter for discovery - we take the best ones by score
+                    # but ensure at least some activity or profit to avoid junk
+                    if stats.score > 0 or stats.total_pnl > 0 or stats.trade_count > 2:
                         all_qualified.append(stats)
                         log.info(
                             f"✅ [{chain}] {stats.address[:10]}… "
-                            f"WR={stats.win_rate:.1f}% PnL=${stats.total_pnl:,.0f}"
+                            f"WR={stats.win_rate:.1f}% PnL=${stats.total_pnl:,.0f} Score={stats.score:.1f}"
                         )
-                        await DB.upsert_wallet(
-                            stats.address, chain,
-                            {"win_rate": stats.win_rate,
-                             "total_pnl": stats.total_pnl,
-                             "trade_count": stats.trade_count},
-                        )
+                        # Only auto-save to DB if it's actually good (meets the settings)
+                        if stats.qualifies:
+                             await DB.upsert_wallet(
+                                stats.address, chain,
+                                {"win_rate": stats.win_rate,
+                                 "total_pnl": stats.total_pnl,
+                                 "trade_count": stats.trade_count},
+                            )
+
                         await DB.log_discovery(
                             chain, token_addr, len(buyers), len(all_qualified)
                         )
@@ -1675,16 +1682,13 @@ async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     if not results:
         await msg.edit_text(
-            f"{EMOJI['warning']} Aqlli hamyon topilmadi.\n\n"
-            f"Filtr: WR≥{CFG.min_win_rate}%  "
-            f"PnL≥${CFG.min_pnl_usd:,.0f}  "
-            f"Savdo≥{CFG.min_trade_count}",
+            f"{EMOJI['warning']} Tahlil qilingan hamyonlar ichidan mos keladigani topilmadi.",
             parse_mode=ParseMode.HTML,
         )
         return
 
     lines = [
-        f"{EMOJI['fire']} <b>Topilgan: {len(results)} ta aqlli hamyon</b>\n"
+        f"{EMOJI['fire']} <b>Eng yaxshi topilgan hamyonlar:</b>\n"
         f"{'═' * 30}\n\n"
     ]
     for i, s in enumerate(results[:15], 1):
