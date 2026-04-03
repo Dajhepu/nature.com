@@ -158,9 +158,9 @@ LLAMA_BASE           = "https://coins.llama.fi"
 
 @dataclass
 class AppConfig:
-    bot_token:       str   = field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", ""))
+    bot_token:       str   = field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", "8489499074:AAEbc1ZNVEBprLhPhnoiY0orE4oRmno9UYM"))
     allowed_users:   List[int] = field(default_factory=lambda: [
-        int(x) for x in os.getenv("ALLOWED_USER_IDS", "").split(",") if x.strip()
+        int(x) for x in os.getenv("ALLOWED_USER_IDS", "798283148").split(",") if x.strip()
     ])
     min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "70")))
     min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "100000")))
