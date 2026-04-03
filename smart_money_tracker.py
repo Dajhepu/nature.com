@@ -80,7 +80,7 @@ class ChainConfig:
     explorer_url: str
     explorer_api: str
     api_key_env: str
-    moralis_chain: str
+    llama_slug: str
 
 
 CHAINS: Dict[str, ChainConfig] = {
@@ -88,43 +88,43 @@ CHAINS: Dict[str, ChainConfig] = {
         name="Ethereum", chain_id=1, native_symbol="ETH",
         dexscreener_id="ethereum", explorer_url="https://etherscan.io",
         explorer_api="https://api.etherscan.io/api",
-        api_key_env="ETHERSCAN_API_KEY", moralis_chain="eth",
+        api_key_env="ETHERSCAN_API_KEY", llama_slug="ethereum",
     ),
     "bsc": ChainConfig(
         name="BSC", chain_id=56, native_symbol="BNB",
         dexscreener_id="bsc", explorer_url="https://bscscan.com",
         explorer_api="https://api.bscscan.com/api",
-        api_key_env="BSCSCAN_API_KEY", moralis_chain="bsc",
+        api_key_env="BSCSCAN_API_KEY", llama_slug="bsc",
     ),
     "base": ChainConfig(
         name="Base", chain_id=8453, native_symbol="ETH",
         dexscreener_id="base", explorer_url="https://basescan.org",
         explorer_api="https://api.basescan.org/api",
-        api_key_env="BASESCAN_API_KEY", moralis_chain="base",
+        api_key_env="BASESCAN_API_KEY", llama_slug="base",
     ),
     "arbitrum": ChainConfig(
         name="Arbitrum", chain_id=42161, native_symbol="ETH",
         dexscreener_id="arbitrum", explorer_url="https://arbiscan.io",
         explorer_api="https://api.arbiscan.io/api",
-        api_key_env="ARBISCAN_API_KEY", moralis_chain="arbitrum",
+        api_key_env="ARBISCAN_API_KEY", llama_slug="arbitrum",
     ),
     "polygon": ChainConfig(
         name="Polygon", chain_id=137, native_symbol="MATIC",
         dexscreener_id="polygon", explorer_url="https://polygonscan.com",
         explorer_api="https://api.polygonscan.com/api",
-        api_key_env="POLYGONSCAN_API_KEY", moralis_chain="polygon",
+        api_key_env="POLYGONSCAN_API_KEY", llama_slug="polygon",
     ),
     "avalanche": ChainConfig(
         name="Avalanche", chain_id=43114, native_symbol="AVAX",
         dexscreener_id="avalanche", explorer_url="https://snowtrace.io",
         explorer_api="https://api.snowtrace.io/api",
-        api_key_env="SNOWTRACE_API_KEY", moralis_chain="avalanche",
+        api_key_env="SNOWTRACE_API_KEY", llama_slug="avalanche",
     ),
     "solana": ChainConfig(
         name="Solana", chain_id=0, native_symbol="SOL",
         dexscreener_id="solana", explorer_url="https://solscan.io",
         explorer_api="https://public-api.solscan.io",
-        api_key_env="", moralis_chain="solana",
+        api_key_env="", llama_slug="solana",
     ),
 }
 
@@ -152,8 +152,8 @@ EMOJI = {
 DEXSCREENER_TRENDING = "https://api.dexscreener.com/token-boosts/top/v1"
 DEXSCREENER_LATEST   = "https://api.dexscreener.com/token-boosts/latest/v1"
 DEXSCREENER_TOKENS   = "https://api.dexscreener.com/latest/dex/tokens"
-MORALIS_BASE         = "https://deep-index.moralis.io/api/v2.2"
 SOLSCAN_BASE         = "https://public-api.solscan.io"
+LLAMA_BASE           = "https://coins.llama.fi"
 
 
 @dataclass
@@ -162,7 +162,6 @@ class AppConfig:
     allowed_users:   List[int] = field(default_factory=lambda: [
         int(x) for x in os.getenv("ALLOWED_USER_IDS", "").split(",") if x.strip()
     ])
-    moralis_api_key: str   = field(default_factory=lambda: os.getenv("MORALIS_API_KEY", ""))
     min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "70")))
     min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "100000")))
     min_trade_count: int   = field(default_factory=lambda: int(os.getenv("MIN_TRADE_COUNT", "20")))
@@ -423,41 +422,6 @@ def _parse_pair(pair: Dict) -> Dict:
 #  BLOCKCHAIN  —  transaction fetchers
 # ═══════════════════════════════════════════════════════════════
 
-# ── Moralis ───────────────────────────────────────────────────
-
-async def moralis_swaps(address: str, chain: str,
-                         limit: int = 100) -> List[Dict]:
-    if not CFG.moralis_api_key:
-        return []
-    mc  = CHAINS[chain].moralis_chain
-    url = f"{MORALIS_BASE}/wallets/{address}/defi/transactions"
-    hdr = {"Accept": "application/json",
-           "X-API-Key": CFG.moralis_api_key}
-    data = await _http_get(url, headers=hdr,
-                            params={"chain": mc, "limit": limit})
-    return data.get("result", []) if data else []
-
-
-def _normalize_moralis(raw: List[Dict]) -> List[Dict]:
-    out = []
-    for tx in raw:
-        try:
-            out.append({
-                "hash":         tx.get("transactionHash", ""),
-                "action":       "buy" if tx.get("transaction_type") == "buy" else "sell",
-                "token_addr":   tx.get("tokenAddress", ""),
-                "token_name":   tx.get("tokenName", ""),
-                "token_symbol": tx.get("tokenSymbol", ""),
-                "amount_usd":   float(tx.get("usdValue", 0) or 0),
-                "price_usd":    float(tx.get("priceUsd", 0) or 0),
-                "timestamp":    tx.get("blockTimestamp",
-                                       datetime.now(timezone.utc).isoformat()),
-            })
-        except Exception:
-            pass
-    return out
-
-
 # ── Explorer (Etherscan-compatible) ───────────────────────────
 
 async def explorer_tokentx(address: str, chain: str,
@@ -483,8 +447,9 @@ def _normalize_explorer(address: str, raw: List[Dict]) -> List[Dict]:
     for tx in raw:
         try:
             is_buy = tx.get("to", "").lower() == wal_low
+            ts_int = int(tx.get("timeStamp", "0"))
             ts = datetime.fromtimestamp(
-                int(tx.get("timeStamp", "0")), tz=timezone.utc
+                ts_int, tz=timezone.utc
             ).isoformat()
             out.append({
                 "hash":         tx.get("hash", ""),
@@ -495,6 +460,10 @@ def _normalize_explorer(address: str, raw: List[Dict]) -> List[Dict]:
                 "amount_usd":   0.0,
                 "price_usd":    0.0,
                 "timestamp":    ts,
+                # Store raw values for enrichment
+                "_ts_int":      ts_int,
+                "_raw_value":   tx.get("value", "0"),
+                "_raw_decimal": tx.get("tokenDecimal", "18"),
             })
         except Exception:
             pass
@@ -570,18 +539,91 @@ def _normalize_solana(raw: List[Dict]) -> List[Dict]:
     return out
 
 
+# ── Price Enrichment (DeFiLlama & DexScreener) ────────────────
+
+async def get_historical_price_llama(chain: str, token_addr: str,
+                                     timestamp: int) -> float:
+    """Fetch historical USD price from DeFiLlama."""
+    cfg = CHAINS.get(chain)
+    if not cfg or not cfg.llama_slug:
+        return 0.0
+
+    coin_id = f"{cfg.llama_slug}:{token_addr}"
+    url = f"{LLAMA_BASE}/prices/historical/{timestamp}/{coin_id}"
+    data = await _http_get(url)
+    if data and "coins" in data and coin_id in data["coins"]:
+        return float(data["coins"][coin_id].get("price", 0))
+    return 0.0
+
+
+async def get_token_prices_dex(token_addresses: List[str]) -> Dict[str, float]:
+    """Fetch current USD prices for a list of tokens from DexScreener."""
+    if not token_addresses:
+        return {}
+    # DexScreener API handles up to 30 tokens at once
+    out = {}
+    for i in range(0, len(token_addresses), 30):
+        batch = token_addresses[i:i+30]
+        url = f"{DEXSCREENER_TOKENS}/{','.join(batch)}"
+        data = await _http_get(url)
+        if data and "pairs" in data:
+            for pair in data["pairs"]:
+                addr = pair.get("baseToken", {}).get("address", "").lower()
+                price = float(pair.get("priceUsd", 0) or 0)
+                if addr and price > 0:
+                    out[addr] = price
+    return out
+
+
 # ── Unified Fetcher ───────────────────────────────────────────
 
 async def get_swap_history(address: str, chain: str,
                             limit: int = 100) -> List[Dict]:
     if chain == "solana":
         return _normalize_solana(await solana_defi(address, limit))
-    if CFG.moralis_api_key:
-        raw = await moralis_swaps(address, chain, limit)
-        if raw:
-            return _normalize_moralis(raw)
-    return _normalize_explorer(address,
-                                await explorer_tokentx(address, chain, limit))
+
+    raw_txs = await explorer_tokentx(address, chain, limit)
+    normalized = _normalize_explorer(address, raw_txs)
+    if not normalized:
+        return []
+
+    # Enrich with historical prices for PnL calculation
+    semaphore = asyncio.Semaphore(10) # Max 10 parallel llama calls
+
+    async def enrich_tx(tx):
+        async with semaphore:
+            price = await get_historical_price_llama(chain, tx["token_addr"], tx["_ts_int"])
+            if price > 0:
+                tx["price_usd"] = price
+                try:
+                    val = int(tx.get("_raw_value", 0))
+                    dec = int(tx.get("_raw_decimal", 18))
+                    tx["amount_usd"] = (val / (10**dec)) * price
+                except Exception:
+                    pass
+            return tx
+
+    # Enrich in parallel
+    tasks = [enrich_tx(tx) for tx in normalized]
+    await asyncio.gather(*tasks)
+
+    # Fallback to current DexScreener prices for any missing prices
+    missing_addrs = list(set(tx["token_addr"] for tx in normalized if tx["price_usd"] == 0))
+    if missing_addrs:
+        current_prices = await get_token_prices_dex(missing_addrs)
+        for tx in normalized:
+            if tx["price_usd"] == 0:
+                addr = tx["token_addr"].lower()
+                if addr in current_prices:
+                    tx["price_usd"] = current_prices[addr]
+                    try:
+                        val = int(tx.get("_raw_value", 0))
+                        dec = int(tx.get("_raw_decimal", 18))
+                        tx["amount_usd"] = (val / (10**dec)) * current_prices[addr]
+                    except Exception:
+                        pass
+
+    return normalized
 
 
 async def get_early_buyers(token_address: str, chain: str,
@@ -947,10 +989,11 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"  {CHAIN_EMOJI[k]} {cfg.name}\n" for k, cfg in CHAINS.items()
     )
     await _reply(update,
-        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b>\n"
+        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b> (Free v1.2)\n"
         f"{'═' * 32}\n\n"
         f"Blockchain tarmog'idagi aqlli treyderlarni\n"
-        f"avtomatik topish va real vaqtda kuzatish.\n\n"
+        f"avtomatik topish va real vaqtda kuzatish.\n"
+        f"<i>Barcha API'lar abadiy tekin va ochiq.</i>\n\n"
         f"<b>Tarmoqlar:</b>\n{chains_txt}\n"
         f"<b>Filtr:</b>  WinRate ≥ {CFG.min_win_rate}%  |  "
         f"PnL ≥ ${CFG.min_pnl_usd:,.0f}  |  Savdolar ≥ {CFG.min_trade_count}\n\n"
@@ -1269,7 +1312,7 @@ class Broadcaster:
 def _banner():
     print("""
 ╔══════════════════════════════════════════════════════════╗
-║         💎  Smart Money Finder & Tracker  v1.0          ║
+║     💎  Smart Money Finder & Tracker (FREE) v1.2        ║
 ╠══════════════════════════════════════════════════════════╣""")
     for k, cfg in CHAINS.items():
         em = CHAIN_EMOJI.get(k, "🌐")
@@ -1286,8 +1329,6 @@ def _validate():
         errors.append("❌  TELEGRAM_BOT_TOKEN .env faylida belgilanmagan.")
     if not CFG.allowed_users:
         print("⚠️   ALLOWED_USER_IDS belgilanmagan — barcha foydalanuvchilar kirishi mumkin!")
-    if not CFG.moralis_api_key:
-        print("⚠️   MORALIS_API_KEY yo'q — block explorer API ishlatiladi (cheklangan).")
     for e in errors:
         print(e)
     if errors:
