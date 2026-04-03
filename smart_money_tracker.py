@@ -408,19 +408,29 @@ _HTTP_SESSION: Optional[aiohttp.ClientSession] = None
 async def _get_session() -> aiohttp.ClientSession:
     global _HTTP_SESSION
     if _HTTP_SESSION is None or _HTTP_SESSION.closed:
-        # Use a connector to force IPv4 and enable DNS caching to combat flaky mobile DNS
         import socket
+
+        # Try to use aiodns resolver for faster/more reliable resolution
+        resolver = None
+        try:
+            from aiohttp.resolver import AsyncResolver
+            resolver = AsyncResolver(nameservers=["1.1.1.1", "8.8.8.8"])
+        except Exception:
+            pass
+
+        # Use a connector to force IPv4 and enable DNS caching to combat flaky mobile DNS
         connector = aiohttp.TCPConnector(
             family=socket.AF_INET,
+            resolver=resolver,
             use_dns_cache=True,
             ttl_dns_cache=300,
             limit=50
         )
         _HTTP_SESSION = aiohttp.ClientSession(
             connector=connector,
-            timeout=aiohttp.ClientTimeout(total=45), # Increased timeout for slow connections
+            timeout=aiohttp.ClientTimeout(total=45, connect=15),
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
-            trust_env=True # Respect system-wide proxies/VPNs
+            trust_env=True
         )
     return _HTTP_SESSION
 
@@ -1458,8 +1468,21 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif data == "cmd_settings":
         await cmd_settings(update, ctx)
     elif data == "cmd_dns_fix":
+        # Check connection status
+        results = []
+        for host in ["google.com", "api.dexscreener.com", "api.geckoterminal.com"]:
+            try:
+                import socket
+                socket.gethostbyname(host)
+                results.append(f"✅ {host}")
+            except:
+                results.append(f"❌ {host}")
+
+        status_txt = "\n".join(results)
+
         await _reply(update,
-            f"🌐 <b>DNS va Ulanish muammolarini hal qilish</b>\n{'─' * 30}\n\n"
+            f"🌐 <b>DNS va Ulanish holati:</b>\n{status_txt}\n\n"
+            f"{'─' * 30}\n\n"
             f"Agar botda 'DNS Xatoligi' ko'rinsa, quyidagi amallarni bajaring:\n\n"
             f"1️⃣ <b>Private DNS o'rnatish (Tavsiya):</b>\n"
             f"   - Android Sozlamalari -> Tarmoq (Network) -> Private DNS\n"
