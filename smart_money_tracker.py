@@ -491,18 +491,45 @@ async def discovery_trending(chain: str) -> List[Dict]:
     return []
 
 
+async def dex_get_token_pair(token_address: str) -> Optional[Dict]:
+    """Fetch the best pair information for a specific token address."""
+    url = f"{DEXSCREENER_TOKENS}/{token_address}"
+    data = await _http_get(url)
+    if data and "pairs" in data and data["pairs"]:
+        # Return the pair with the highest liquidity
+        pairs = sorted(data["pairs"], key=lambda x: float(x.get("liquidity", {}).get("usd", 0)), reverse=True)
+        return pairs[0]
+    return None
+
+
 async def dex_trending(chain: Optional[str] = None) -> List[Dict]:
     data = await _http_get(DEXSCREENER_TRENDING)
     if not data:
         data = await _http_get(DEXSCREENER_LATEST)
     if not data:
         return []
-    tokens = data if isinstance(data, list) else data.get("pairs", [])
+
+    # DexScreener token-boosts API returns a list of objects with 'tokenAddress' and 'chainId'
+    raw_tokens = data if isinstance(data, list) else data.get("pairs", [])
     if chain:
         did = CHAINS[chain].dexscreener_id if chain in CHAINS else chain
-        tokens = [t for t in tokens
-                  if t.get("chainId", "").lower() == did.lower()]
-    return tokens[:50]
+        raw_tokens = [t for t in raw_tokens
+                      if t.get("chainId", "").lower() == did.lower()]
+
+    # We need to enrich these with pair addresses for trade discovery
+    enriched = []
+    for t in raw_tokens[:15]: # Process top 15
+        addr = t.get("tokenAddress")
+        if not addr: continue
+
+        pair_info = await dex_get_token_pair(addr)
+        if pair_info:
+            enriched.append(pair_info)
+        else:
+            # Fallback for old schema
+            enriched.append(t)
+
+    return enriched
 
 
 async def gecko_trending(chain: str) -> List[Dict]:
@@ -520,10 +547,14 @@ def _parse_dex_pair(pair: Dict) -> Dict:
     vol   = pair.get("volume", {})
     liq   = pair.get("liquidity", {})
     pchg  = pair.get("priceChange", {})
+
+    # Handle both boosted tokens and standard pairs
+    token_addr = base.get("address", pair.get("tokenAddress", ""))
+
     return {
         "pair_address":   pair.get("pairAddress", ""),
         "chain":          pair.get("chainId", ""),
-        "token_address":  base.get("address", ""),
+        "token_address":  token_addr,
         "token_name":     base.get("name", "Unknown"),
         "token_symbol":   base.get("symbol", "???"),
         "price_usd":      float(pair.get("priceUsd", 0) or 0),
@@ -814,10 +845,12 @@ async def get_swap_history(address: str, chain: str,
 async def get_gecko_pool_trades(chain: str, pool_address: str) -> List[str]:
     """Fetch recent trade makers from a GeckoTerminal pool."""
     cfg = CHAINS.get(chain)
-    if not cfg: return []
+    if not cfg or not pool_address: return []
+
     url = GECKO_TRADES.format(cfg.gecko_id, pool_address)
     data = await _http_get(url)
     if not data or "data" not in data:
+        # Retry with just pool address if chain mapping is weird
         return []
 
     makers = set()
@@ -837,17 +870,36 @@ async def get_early_buyers(token_address: str, chain: str,
     # 1. Explorer (True early buyers)
     if chain != "solana":
         early = await explorer_early_buyers(token_address, chain, top_n=top_n)
-        buyers.extend(early)
+        if early:
+            buyers.extend(early)
+            log.info(f"[{chain}] Explorer: Found {len(early)} early buyers")
     else:
+        # Solscan API is often restricted, so we rely more on pool trades for Solana
         early = await solana_early_buyers(token_address, top_n=top_n)
-        buyers.extend(early)
+        if early:
+            buyers.extend(early)
+            log.info(f"[{chain}] Solscan: Found {len(early)} holders")
 
     # 2. Gecko (Currently active buyers/makers)
+    # This is a very reliable fallback for wallet data
     if pool_address:
         active = await get_gecko_pool_trades(chain, pool_address)
-        buyers.extend(active)
+        if active:
+            buyers.extend(active)
+            log.info(f"[{chain}] GeckoTrades: Found {len(active)} active makers")
 
-    return list(set(buyers))
+    # Remove duplicates
+    unique_buyers = list(set(buyers))
+
+    # If still no buyers found, try to find pool from token address for Gecko fallback
+    if not unique_buyers and not pool_address:
+        token_info = await dex_get_token_pair(token_address)
+        if token_info and token_info.get("pairAddress"):
+             active = await get_gecko_pool_trades(chain, token_info["pairAddress"])
+             unique_buyers = list(set(active))
+             log.info(f"[{chain}] GeckoTrades (Fallback): Found {len(active)} active makers")
+
+    return unique_buyers
 
 
 # ═══════════════════════════════════════════════════════════════
