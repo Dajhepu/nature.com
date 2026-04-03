@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Offer Certificate</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .certificate-container { text-align: left; max-width: 600px; }
+        .offer-card { border: 2px dashed #007bff; padding: 2rem; border-radius: 10px; background: #f8f9fa; }
+        .price-details { display: flex; justify-content: space-around; margin: 1.5rem 0; }
+        .price-box { text-align: center; }
+        .price-box .label { font-size: 1rem; color: #6c757d; }
+        .price-box .amount { font-size: 2rem; font-weight: bold; }
+        .price-box .strikethrough { text-decoration: line-through; }
+        .guarantee { margin-top: 1.5rem; padding: 1rem; background: #e2f0d9; border-left: 5px solid #548235; text-align: center; }
+        .qr-code { text-align: center; margin-top: 1.5rem; }
+        .qr-code img { max-width: 150px; }
+        .merchant-actions { text-align: center; margin-top: 2rem; }
+        .btn { padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: bold; }
+        .btn-accept { background-color: #28a745; color: white; }
+        .btn-reject { background-color: #dc3545; color: white; margin-left: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container certificate-container">
+        <h2>Offer Certificate: Ready to Share!</h2>
+        <p>This certificate is your key to unlocking the discount. Present it to the merchant to claim your deal.</p>
+
+        <div class="offer-card">
+            <div class="price-details">
+                <div class="price-box">
+                    <div class="label">Original Price</div>
+                    <div class="amount strikethrough">${{ "%.2f"|format(offer.original_price|float) }}</div>
+                </div>
+                <div class="price-box">
+                    <div class="label">Your Final Price</div>
+                    <div class="amount">${{ "%.2f"|format(offer.final_price|float) }}</div>
+                </div>
+            </div>
+
+            <div class="guarantee">
+                <strong>Our Guarantee:</strong> This is a risk-free offer. If the merchant accepts, the deal is locked in.
+            </div>
+
+            <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ request.url }}" alt="QR Code">
+                <div>Scan this QR code at the store</div>
+            </div>
+        </div>
+
+        <div class="merchant-actions">
+            <p><strong>For Merchants:</strong> Ready to accept this customer's offer?</p>
+            <a href="#" class="btn btn-accept">Accept Offer & Pay Fee</a>
+            <a href="#" class="btn btn-reject">Reject Offer</a>
+        </div>
+    </div>
+</body>
+</html>
