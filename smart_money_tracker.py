@@ -171,6 +171,7 @@ DEXSCREENER_TRENDING = "https://api.dexscreener.com/token-boosts/top/v1"
 DEXSCREENER_LATEST   = "https://api.dexscreener.com/token-boosts/latest/v1"
 DEXSCREENER_TOKENS   = "https://api.dexscreener.com/latest/dex/tokens"
 GECKO_TRENDING       = "https://api.geckoterminal.com/api/v2/networks/{}/trending_pools"
+GECKO_TRADES         = "https://api.geckoterminal.com/api/v2/networks/{}/pools/{}/trades"
 SOLSCAN_BASE         = "https://public-api.solscan.io"
 LLAMA_BASE           = "https://coins.llama.fi"
 
@@ -610,19 +611,45 @@ async def explorer_early_buyers(token_address: str, chain: str,
         return []
     cfg     = CHAINS[chain]
     api_key = os.getenv(cfg.api_key_env, "")
-    params  = {"module": "account", "action": "tokentx",
-               "contractaddress": token_address,
-               "sort": "asc", "offset": 200, "page": 1}
+
+    # We use both v1 and try to be compatible with newer explorer APIs
+    # tokentx with sort=asc gives us the very first transfers of this token
+    params  = {
+        "module": "account",
+        "action": "tokentx",
+        "contractaddress": token_address,
+        "sort": "asc",
+        "offset": 100,
+        "page": 1
+    }
     if api_key:
         params["apikey"] = api_key
+
     data = await _http_get(cfg.explorer_api, params=params)
-    if not data or data.get("status") != "1":
+
+    # Some explorers return "0" status but still have data in result for some reason,
+    # or the result is a list directly.
+    result = []
+    if isinstance(data, dict):
+        result = data.get("result", [])
+    elif isinstance(data, list):
+        result = data
+
+    if not isinstance(result, list):
         return []
+
     seen: set  = set()
     buyers: List[str] = []
-    for tx in data.get("result", []):
+
+    # Filter out common non-wallet addresses (null address, the token itself)
+    ignored = {"0x0000000000000000000000000000000000000000", token_address.lower()}
+
+    for tx in result:
         addr = tx.get("to", "").lower()
-        if addr and addr not in seen:
+        if addr and addr not in seen and addr not in ignored:
+            # Simple heuristic: if it's a contract, skip it?
+            # Hard to know without another API call.
+            # For now, just collect.
             seen.add(addr)
             buyers.append(addr)
             if len(buyers) >= top_n:
@@ -760,11 +787,43 @@ async def get_swap_history(address: str, chain: str,
     return normalized
 
 
+async def get_gecko_pool_trades(chain: str, pool_address: str) -> List[str]:
+    """Fetch recent trade makers from a GeckoTerminal pool."""
+    cfg = CHAINS.get(chain)
+    if not cfg: return []
+    url = GECKO_TRADES.format(cfg.gecko_id, pool_address)
+    data = await _http_get(url)
+    if not data or "data" not in data:
+        return []
+
+    makers = set()
+    for t in data["data"]:
+        attr = t.get("attributes", {})
+        maker = attr.get("tx_from_address")
+        if maker:
+            makers.add(maker.lower())
+    return list(makers)
+
+
 async def get_early_buyers(token_address: str, chain: str,
-                            top_n: int = 50) -> List[str]:
-    if chain == "solana":
-        return await solana_early_buyers(token_address, top_n)
-    return await explorer_early_buyers(token_address, chain, top_n)
+                            top_n: int = 50, pool_address: str = "") -> List[str]:
+    """Combine explorers and GeckoTerminal for discovery."""
+    buyers = []
+
+    # 1. Explorer (True early buyers)
+    if chain != "solana":
+        early = await explorer_early_buyers(token_address, chain, top_n=top_n)
+        buyers.extend(early)
+    else:
+        early = await solana_early_buyers(token_address, top_n=top_n)
+        buyers.extend(early)
+
+    # 2. Gecko (Currently active buyers/makers)
+    if pool_address:
+        active = await get_gecko_pool_trades(chain, pool_address)
+        buyers.extend(active)
+
+    return list(set(buyers))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -895,8 +954,11 @@ async def run_discovery(chains: Optional[List[str]] = None,
                     f"{pair['token_symbol']} ({pair['token_name']})"
                 )
 
-            buyers = await get_early_buyers(token_addr, chain, top_n=30)
-            log.info(f"[{chain}] {pair['token_symbol']}: {len(buyers)} early buyers")
+            buyers = await get_early_buyers(
+                token_addr, chain, top_n=30,
+                pool_address=pair.get("pair_address")
+            )
+            log.info(f"[{chain}] {pair['token_symbol']}: {len(buyers)} potential smart wallets found")
 
             for batch_start in range(0, len(buyers), 5):
                 batch   = buyers[batch_start:batch_start + 5]
