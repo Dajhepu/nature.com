@@ -394,24 +394,37 @@ DB = Database()
 #  HTTP HELPER
 # ═══════════════════════════════════════════════════════════════
 
+_HTTP_SESSION: Optional[aiohttp.ClientSession] = None
+
+async def _get_session() -> aiohttp.ClientSession:
+    global _HTTP_SESSION
+    if _HTTP_SESSION is None or _HTTP_SESSION.closed:
+        _HTTP_SESSION = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30),
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+    return _HTTP_SESSION
+
 async def _http_get(url: str, headers: Optional[Dict] = None,
-                    params: Optional[Dict] = None) -> Optional[Any]:
-    try:
-        async with aiohttp.ClientSession() as sess:
-            async with sess.get(
-                url, headers=headers, params=params,
-                timeout=aiohttp.ClientTimeout(total=20),
-            ) as resp:
+                    params: Optional[Dict] = None, retries: int = 3) -> Optional[Any]:
+    for attempt in range(retries):
+        try:
+            sess = await _get_session()
+            async with sess.get(url, headers=headers, params=params) as resp:
                 if resp.status == 200:
                     return await resp.json()
+                if resp.status in (429, 500, 502, 503, 504) and attempt < retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
                 log.warning(f"HTTP {resp.status}: {url}")
                 return None
-    except asyncio.TimeoutError:
-        log.warning(f"Timeout: {url}")
-        return None
-    except Exception as e:
-        log.error(f"HTTP error: {e}")
-        return None
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            if attempt < retries - 1:
+                await asyncio.sleep(2 ** attempt)
+                continue
+            log.error(f"HTTP error ({type(e).__name__}): {url} -> {e}")
+            return None
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1625,6 +1638,11 @@ async def main():
         await app.stop()
         await app.shutdown()
         await DB.close()
+
+        global _HTTP_SESSION
+        if _HTTP_SESSION and not _HTTP_SESSION.closed:
+            await _HTTP_SESSION.close()
+
         log.info("Xayr! 👋")
 
 
