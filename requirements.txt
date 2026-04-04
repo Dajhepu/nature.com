@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Cors
+python-dotenv
+requests
+beautifulsoup4
+textblob
+python-telegram-bot
+Flask-Migrate
+gunicorn
+gevent
