@@ -29,9 +29,19 @@ import aiohttp
 import aiosqlite
 import colorlog
 from dotenv import load_dotenv
-from telegram import BotCommand, Update
+from telegram import (
+    BotCommand,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+)
 
 load_dotenv()
 
@@ -77,54 +87,62 @@ class ChainConfig:
     chain_id: int
     native_symbol: str
     dexscreener_id: str
+    gecko_id: str
     explorer_url: str
     explorer_api: str
     api_key_env: str
-    moralis_chain: str
+    llama_slug: str
 
 
 CHAINS: Dict[str, ChainConfig] = {
     "ethereum": ChainConfig(
         name="Ethereum", chain_id=1, native_symbol="ETH",
-        dexscreener_id="ethereum", explorer_url="https://etherscan.io",
+        dexscreener_id="ethereum", gecko_id="eth",
+        explorer_url="https://etherscan.io",
         explorer_api="https://api.etherscan.io/api",
-        api_key_env="ETHERSCAN_API_KEY", moralis_chain="eth",
+        api_key_env="ETHERSCAN_API_KEY", llama_slug="ethereum",
     ),
     "bsc": ChainConfig(
         name="BSC", chain_id=56, native_symbol="BNB",
-        dexscreener_id="bsc", explorer_url="https://bscscan.com",
+        dexscreener_id="bsc", gecko_id="bsc",
+        explorer_url="https://bscscan.com",
         explorer_api="https://api.bscscan.com/api",
-        api_key_env="BSCSCAN_API_KEY", moralis_chain="bsc",
+        api_key_env="BSCSCAN_API_KEY", llama_slug="bsc",
     ),
     "base": ChainConfig(
         name="Base", chain_id=8453, native_symbol="ETH",
-        dexscreener_id="base", explorer_url="https://basescan.org",
+        dexscreener_id="base", gecko_id="base",
+        explorer_url="https://basescan.org",
         explorer_api="https://api.basescan.org/api",
-        api_key_env="BASESCAN_API_KEY", moralis_chain="base",
+        api_key_env="BASESCAN_API_KEY", llama_slug="base",
     ),
     "arbitrum": ChainConfig(
         name="Arbitrum", chain_id=42161, native_symbol="ETH",
-        dexscreener_id="arbitrum", explorer_url="https://arbiscan.io",
+        dexscreener_id="arbitrum", gecko_id="arbitrum",
+        explorer_url="https://arbiscan.io",
         explorer_api="https://api.arbiscan.io/api",
-        api_key_env="ARBISCAN_API_KEY", moralis_chain="arbitrum",
+        api_key_env="ARBISCAN_API_KEY", llama_slug="arbitrum",
     ),
     "polygon": ChainConfig(
         name="Polygon", chain_id=137, native_symbol="MATIC",
-        dexscreener_id="polygon", explorer_url="https://polygonscan.com",
+        dexscreener_id="polygon", gecko_id="polygon_pos",
+        explorer_url="https://polygonscan.com",
         explorer_api="https://api.polygonscan.com/api",
-        api_key_env="POLYGONSCAN_API_KEY", moralis_chain="polygon",
+        api_key_env="POLYGONSCAN_API_KEY", llama_slug="polygon",
     ),
     "avalanche": ChainConfig(
         name="Avalanche", chain_id=43114, native_symbol="AVAX",
-        dexscreener_id="avalanche", explorer_url="https://snowtrace.io",
+        dexscreener_id="avalanche", gecko_id="avalanche",
+        explorer_url="https://snowtrace.io",
         explorer_api="https://api.snowtrace.io/api",
-        api_key_env="SNOWTRACE_API_KEY", moralis_chain="avalanche",
+        api_key_env="SNOWTRACE_API_KEY", llama_slug="avalanche",
     ),
     "solana": ChainConfig(
         name="Solana", chain_id=0, native_symbol="SOL",
-        dexscreener_id="solana", explorer_url="https://solscan.io",
+        dexscreener_id="solana", gecko_id="solana",
+        explorer_url="https://solscan.io",
         explorer_api="https://public-api.solscan.io",
-        api_key_env="", moralis_chain="solana",
+        api_key_env="", llama_slug="solana",
     ),
 }
 
@@ -152,25 +170,30 @@ EMOJI = {
 DEXSCREENER_TRENDING = "https://api.dexscreener.com/token-boosts/top/v1"
 DEXSCREENER_LATEST   = "https://api.dexscreener.com/token-boosts/latest/v1"
 DEXSCREENER_TOKENS   = "https://api.dexscreener.com/latest/dex/tokens"
-MORALIS_BASE         = "https://deep-index.moralis.io/api/v2.2"
+GECKO_TRENDING       = "https://api.geckoterminal.com/api/v2/networks/{}/trending_pools"
+GECKO_TRADES         = "https://api.geckoterminal.com/api/v2/networks/{}/pools/{}/trades"
 SOLSCAN_BASE         = "https://public-api.solscan.io"
+LLAMA_BASE           = "https://coins.llama.fi"
 
 
 @dataclass
 class AppConfig:
-    bot_token:       str   = field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", ""))
+    bot_token:       str   = field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", "8489499074:AAEbc1ZNVEBprLhPhnoiY0orE4oRmno9UYM"))
     allowed_users:   List[int] = field(default_factory=lambda: [
-        int(x) for x in os.getenv("ALLOWED_USER_IDS", "").split(",") if x.strip()
+        int(x) for x in os.getenv("ALLOWED_USER_IDS", "798283148").split(",") if x.strip()
     ])
-    moralis_api_key: str   = field(default_factory=lambda: os.getenv("MORALIS_API_KEY", ""))
-    min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "70")))
-    min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "100000")))
-    min_trade_count: int   = field(default_factory=lambda: int(os.getenv("MIN_TRADE_COUNT", "20")))
+    min_win_rate:    float = field(default_factory=lambda: float(os.getenv("MIN_WIN_RATE", "50")))
+    min_pnl_usd:     float = field(default_factory=lambda: float(os.getenv("MIN_PNL_USD", "1000")))
+    min_trade_count: int   = field(default_factory=lambda: int(os.getenv("MIN_TRADE_COUNT", "5")))
     min_tx_history:  int   = field(default_factory=lambda: int(os.getenv("MIN_TX_HISTORY", "100")))
     monitor_interval:    int = field(default_factory=lambda: int(os.getenv("MONITOR_INTERVAL", "30")))
     discovery_interval:  int = field(default_factory=lambda: int(os.getenv("DISCOVERY_INTERVAL", "3600")))
     db_path:         str   = field(default_factory=lambda: os.getenv("DATABASE_PATH", "smart_money.db"))
     active_chains:   List[str] = field(default_factory=lambda: list(CHAINS.keys()))
+
+    async def reload(self, db):
+        self.min_win_rate = float(await db.get_setting("min_win_rate", self.min_win_rate))
+        self.min_pnl_usd  = float(await db.get_setting("min_pnl_usd", self.min_pnl_usd))
 
 
 CFG = AppConfig()
@@ -214,6 +237,10 @@ CREATE TABLE IF NOT EXISTS discovery_log (
     token_addr          TEXT NOT NULL,
     wallets_found       INTEGER DEFAULT 0,
     wallets_qualified   INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_tx_wallet   ON transactions (wallet, chain);
 CREATE INDEX IF NOT EXISTS idx_tx_notified ON transactions (notified);
@@ -353,6 +380,22 @@ class Database:
         )
         await self._conn.commit()
 
+    # ── Settings ──────────────────────────────────────────────
+
+    async def get_setting(self, key: str, default: Any = None) -> Any:
+        async with self._conn.execute(
+            "SELECT value FROM settings WHERE key=?", (key,)
+        ) as cur:
+            row = await cur.fetchone()
+            return row[0] if row else default
+
+    async def set_setting(self, key: str, value: Any):
+        await self._conn.execute(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+            (key, str(value)),
+        )
+        await self._conn.commit()
+
 
 DB = Database()
 
@@ -361,29 +404,103 @@ DB = Database()
 #  HTTP HELPER
 # ═══════════════════════════════════════════════════════════════
 
+_HTTP_SESSION: Optional[aiohttp.ClientSession] = None
+
+async def _get_session() -> aiohttp.ClientSession:
+    global _HTTP_SESSION
+    if _HTTP_SESSION is None or _HTTP_SESSION.closed:
+        import socket
+
+        # Try to use aiodns resolver for faster/more reliable resolution
+        resolver = None
+        try:
+            from aiohttp.resolver import AsyncResolver
+            resolver = AsyncResolver(nameservers=["1.1.1.1", "8.8.8.8"])
+        except Exception:
+            pass
+
+        # Use a connector to force IPv4 and enable DNS caching to combat flaky mobile DNS
+        connector = aiohttp.TCPConnector(
+            family=socket.AF_INET,
+            resolver=resolver,
+            use_dns_cache=True,
+            ttl_dns_cache=300,
+            limit=50
+        )
+        _HTTP_SESSION = aiohttp.ClientSession(
+            connector=connector,
+            timeout=aiohttp.ClientTimeout(total=45, connect=15),
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+            trust_env=True
+        )
+    return _HTTP_SESSION
+
 async def _http_get(url: str, headers: Optional[Dict] = None,
-                    params: Optional[Dict] = None) -> Optional[Any]:
-    try:
-        async with aiohttp.ClientSession() as sess:
-            async with sess.get(
-                url, headers=headers, params=params,
-                timeout=aiohttp.ClientTimeout(total=20),
-            ) as resp:
+                    params: Optional[Dict] = None, retries: int = 3) -> Optional[Any]:
+    for attempt in range(retries):
+        try:
+            sess = await _get_session()
+            async with sess.get(url, headers=headers, params=params) as resp:
                 if resp.status == 200:
                     return await resp.json()
+
+                if resp.status == 429 and attempt < retries - 1:
+                    # Specific wait for rate limits
+                    wait = 5 + (2 ** attempt)
+                    log.warning(f"🛑 Rate Limit (429): {url}. {wait}s kutilmoqda…")
+                    await asyncio.sleep(wait)
+                    continue
+
+                if resp.status in (500, 502, 503, 504) and attempt < retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+
                 log.warning(f"HTTP {resp.status}: {url}")
                 return None
-    except asyncio.TimeoutError:
-        log.warning(f"Timeout: {url}")
-        return None
-    except Exception as e:
-        log.error(f"HTTP error: {e}")
-        return None
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            ename = type(e).__name__
+            if "DNSError" in ename or "DNS" in str(e):
+                log.warning(f"🌐 DNS Xatoligi ({attempt+1}/{retries}): {url}. "
+                            "Yechim: Telefoningizda Private DNS -> 1.1.1.1 yoki VPN yoqing.")
+
+            if attempt < retries - 1:
+                await asyncio.sleep(2 ** attempt)
+                continue
+            log.error(f"HTTP error ({ename}): {url} -> {e}")
+            return None
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════
-#  DEXSCREENER  —  trending tokens
+#  TRENDING DISCOVERY (DexScreener & GeckoTerminal)
 # ═══════════════════════════════════════════════════════════════
+
+async def discovery_trending(chain: str) -> List[Dict]:
+    """Unified trending discovery with GeckoTerminal fallback."""
+    # 1. Try DexScreener
+    dex_tokens = await dex_trending(chain)
+    if dex_tokens:
+        return [_parse_dex_pair(t) for t in dex_tokens]
+
+    # 2. Fallback to GeckoTerminal
+    log.info(f"[{chain}] Falling back to GeckoTerminal for discovery")
+    gecko_data = await gecko_trending(chain)
+    if gecko_data:
+        return [_parse_gecko_pool(p, chain) for p in gecko_data]
+
+    return []
+
+
+async def dex_get_token_pair(token_address: str) -> Optional[Dict]:
+    """Fetch the best pair information for a specific token address."""
+    url = f"{DEXSCREENER_TOKENS}/{token_address}"
+    data = await _http_get(url)
+    if data and "pairs" in data and data["pairs"]:
+        # Return the pair with the highest liquidity
+        pairs = sorted(data["pairs"], key=lambda x: float(x.get("liquidity", {}).get("usd", 0)), reverse=True)
+        return pairs[0]
+    return None
+
 
 async def dex_trending(chain: Optional[str] = None) -> List[Dict]:
     data = await _http_get(DEXSCREENER_TRENDING)
@@ -391,23 +508,53 @@ async def dex_trending(chain: Optional[str] = None) -> List[Dict]:
         data = await _http_get(DEXSCREENER_LATEST)
     if not data:
         return []
-    tokens = data if isinstance(data, list) else data.get("pairs", [])
+
+    # DexScreener token-boosts API returns a list of objects with 'tokenAddress' and 'chainId'
+    raw_tokens = data if isinstance(data, list) else data.get("pairs", [])
     if chain:
         did = CHAINS[chain].dexscreener_id if chain in CHAINS else chain
-        tokens = [t for t in tokens
-                  if t.get("chainId", "").lower() == did.lower()]
-    return tokens[:50]
+        raw_tokens = [t for t in raw_tokens
+                      if t.get("chainId", "").lower() == did.lower()]
+
+    # We need to enrich these with pair addresses for trade discovery
+    enriched = []
+    for t in raw_tokens[:15]: # Process top 15
+        addr = t.get("tokenAddress")
+        if not addr: continue
+
+        pair_info = await dex_get_token_pair(addr)
+        if pair_info:
+            enriched.append(pair_info)
+        else:
+            # Fallback for old schema
+            enriched.append(t)
+
+    return enriched
 
 
-def _parse_pair(pair: Dict) -> Dict:
+async def gecko_trending(chain: str) -> List[Dict]:
+    cfg = CHAINS.get(chain)
+    if not cfg: return []
+    url = GECKO_TRENDING.format(cfg.gecko_id)
+    data = await _http_get(url)
+    if data and "data" in data:
+        return data["data"][:30]
+    return []
+
+
+def _parse_dex_pair(pair: Dict) -> Dict:
     base  = pair.get("baseToken", {})
     vol   = pair.get("volume", {})
     liq   = pair.get("liquidity", {})
     pchg  = pair.get("priceChange", {})
+
+    # Handle both boosted tokens and standard pairs
+    token_addr = base.get("address", pair.get("tokenAddress", ""))
+
     return {
         "pair_address":   pair.get("pairAddress", ""),
         "chain":          pair.get("chainId", ""),
-        "token_address":  base.get("address", ""),
+        "token_address":  token_addr,
         "token_name":     base.get("name", "Unknown"),
         "token_symbol":   base.get("symbol", "???"),
         "price_usd":      float(pair.get("priceUsd", 0) or 0),
@@ -419,44 +566,36 @@ def _parse_pair(pair: Dict) -> Dict:
     }
 
 
+def _parse_gecko_pool(pool: Dict, chain: str) -> Dict:
+    attr  = pool.get("attributes", {})
+    rel   = pool.get("relationships", {})
+    # GeckoTerminal pools have base and quote.
+    # Usually the first base_token is what we want.
+    base_toks = rel.get("base_token", {}).get("data", [])
+    token_addr = ""
+    if base_toks:
+        # data is usually a single object or list with 'id' like "network_addr"
+        tid = base_toks[0].get("id", "") if isinstance(base_toks, list) else base_toks.get("id", "")
+        token_addr = tid.split("_")[-1] if "_" in tid else tid
+
+    return {
+        "pair_address":   attr.get("address", ""),
+        "chain":          chain,
+        "token_address":  token_addr,
+        "token_name":     attr.get("name", "Unknown"),
+        "token_symbol":   attr.get("symbol", "???"),
+        "price_usd":      float(attr.get("price_usd", 0) or 0),
+        "volume_24h":     float(attr.get("volume_usd", {}).get("h24", 0) or 0),
+        "liquidity_usd":  float(attr.get("reserve_in_usd", 0) or 0),
+        "price_change_24h": float(attr.get("price_change_percentage", {}).get("h24", 0) or 0),
+        "pair_created_at": 0,
+        "url":            f"https://www.geckoterminal.com/{CHAINS[chain].gecko_id}/pools/{attr.get('address')}",
+    }
+
+
 # ═══════════════════════════════════════════════════════════════
 #  BLOCKCHAIN  —  transaction fetchers
 # ═══════════════════════════════════════════════════════════════
-
-# ── Moralis ───────────────────────────────────────────────────
-
-async def moralis_swaps(address: str, chain: str,
-                         limit: int = 100) -> List[Dict]:
-    if not CFG.moralis_api_key:
-        return []
-    mc  = CHAINS[chain].moralis_chain
-    url = f"{MORALIS_BASE}/wallets/{address}/defi/transactions"
-    hdr = {"Accept": "application/json",
-           "X-API-Key": CFG.moralis_api_key}
-    data = await _http_get(url, headers=hdr,
-                            params={"chain": mc, "limit": limit})
-    return data.get("result", []) if data else []
-
-
-def _normalize_moralis(raw: List[Dict]) -> List[Dict]:
-    out = []
-    for tx in raw:
-        try:
-            out.append({
-                "hash":         tx.get("transactionHash", ""),
-                "action":       "buy" if tx.get("transaction_type") == "buy" else "sell",
-                "token_addr":   tx.get("tokenAddress", ""),
-                "token_name":   tx.get("tokenName", ""),
-                "token_symbol": tx.get("tokenSymbol", ""),
-                "amount_usd":   float(tx.get("usdValue", 0) or 0),
-                "price_usd":    float(tx.get("priceUsd", 0) or 0),
-                "timestamp":    tx.get("blockTimestamp",
-                                       datetime.now(timezone.utc).isoformat()),
-            })
-        except Exception:
-            pass
-    return out
-
 
 # ── Explorer (Etherscan-compatible) ───────────────────────────
 
@@ -483,8 +622,9 @@ def _normalize_explorer(address: str, raw: List[Dict]) -> List[Dict]:
     for tx in raw:
         try:
             is_buy = tx.get("to", "").lower() == wal_low
+            ts_int = int(tx.get("timeStamp", "0"))
             ts = datetime.fromtimestamp(
-                int(tx.get("timeStamp", "0")), tz=timezone.utc
+                ts_int, tz=timezone.utc
             ).isoformat()
             out.append({
                 "hash":         tx.get("hash", ""),
@@ -495,6 +635,10 @@ def _normalize_explorer(address: str, raw: List[Dict]) -> List[Dict]:
                 "amount_usd":   0.0,
                 "price_usd":    0.0,
                 "timestamp":    ts,
+                # Store raw values for enrichment
+                "_ts_int":      ts_int,
+                "_raw_value":   tx.get("value", "0"),
+                "_raw_decimal": tx.get("tokenDecimal", "18"),
             })
         except Exception:
             pass
@@ -507,19 +651,45 @@ async def explorer_early_buyers(token_address: str, chain: str,
         return []
     cfg     = CHAINS[chain]
     api_key = os.getenv(cfg.api_key_env, "")
-    params  = {"module": "account", "action": "tokentx",
-               "contractaddress": token_address,
-               "sort": "asc", "offset": 200, "page": 1}
+
+    # We use both v1 and try to be compatible with newer explorer APIs
+    # tokentx with sort=asc gives us the very first transfers of this token
+    params  = {
+        "module": "account",
+        "action": "tokentx",
+        "contractaddress": token_address,
+        "sort": "asc",
+        "offset": 100,
+        "page": 1
+    }
     if api_key:
         params["apikey"] = api_key
+
     data = await _http_get(cfg.explorer_api, params=params)
-    if not data or data.get("status") != "1":
+
+    # Some explorers return "0" status but still have data in result for some reason,
+    # or the result is a list directly.
+    result = []
+    if isinstance(data, dict):
+        result = data.get("result", [])
+    elif isinstance(data, list):
+        result = data
+
+    if not isinstance(result, list):
         return []
+
     seen: set  = set()
     buyers: List[str] = []
-    for tx in data.get("result", []):
+
+    # Filter out common non-wallet addresses (null address, the token itself)
+    ignored = {"0x0000000000000000000000000000000000000000", token_address.lower()}
+
+    for tx in result:
         addr = tx.get("to", "").lower()
-        if addr and addr not in seen:
+        if addr and addr not in seen and addr not in ignored:
+            # Simple heuristic: if it's a contract, skip it?
+            # Hard to know without another API call.
+            # For now, just collect.
             seen.add(addr)
             buyers.append(addr)
             if len(buyers) >= top_n:
@@ -570,25 +740,166 @@ def _normalize_solana(raw: List[Dict]) -> List[Dict]:
     return out
 
 
+# ── Price Enrichment (DeFiLlama & DexScreener) ────────────────
+
+async def get_historical_price_llama(chain: str, token_addr: str,
+                                     timestamp: int) -> float:
+    """Fetch historical USD price from DeFiLlama."""
+    cfg = CHAINS.get(chain)
+    if not cfg or not cfg.llama_slug:
+        return 0.0
+
+    coin_id = f"{cfg.llama_slug}:{token_addr}"
+    url = f"{LLAMA_BASE}/prices/historical/{timestamp}/{coin_id}"
+    data = await _http_get(url)
+    if data and "coins" in data and coin_id in data["coins"]:
+        return float(data["coins"][coin_id].get("price", 0))
+    return 0.0
+
+
+async def get_token_prices_dex(token_addresses: List[str]) -> Dict[str, float]:
+    """Fetch current USD prices for a list of tokens from DexScreener."""
+    if not token_addresses:
+        return {}
+    # DexScreener API handles up to 30 tokens at once
+    out = {}
+    for i in range(0, len(token_addresses), 30):
+        batch = token_addresses[i:i+30]
+        url = f"{DEXSCREENER_TOKENS}/{','.join(batch)}"
+        data = await _http_get(url)
+        if data and "pairs" in data:
+            for pair in data["pairs"]:
+                addr = pair.get("baseToken", {}).get("address", "").lower()
+                price = float(pair.get("priceUsd", 0) or 0)
+                if addr and price > 0:
+                    out[addr] = price
+    return out
+
+
 # ── Unified Fetcher ───────────────────────────────────────────
+
+_PRICE_CACHE: Dict[str, float] = {}
 
 async def get_swap_history(address: str, chain: str,
                             limit: int = 100) -> List[Dict]:
     if chain == "solana":
         return _normalize_solana(await solana_defi(address, limit))
-    if CFG.moralis_api_key:
-        raw = await moralis_swaps(address, chain, limit)
-        if raw:
-            return _normalize_moralis(raw)
-    return _normalize_explorer(address,
-                                await explorer_tokentx(address, chain, limit))
+
+    raw_txs = await explorer_tokentx(address, chain, limit)
+    normalized = _normalize_explorer(address, raw_txs)
+    if not normalized:
+        return []
+
+    # Enrich with historical prices for PnL calculation
+    semaphore = asyncio.Semaphore(5) # Reduced concurrency for free APIs
+
+    async def enrich_tx(tx):
+        cache_key = f"{chain}:{tx['token_addr']}:{tx['_ts_int'] // 3600}" # Hourly cache
+        if cache_key in _PRICE_CACHE:
+            tx["price_usd"] = _PRICE_CACHE[cache_key]
+            try:
+                val = int(tx.get("_raw_value", 0))
+                dec = int(tx.get("_raw_decimal", 18))
+                tx["amount_usd"] = (val / (10**dec)) * tx["price_usd"]
+            except Exception: pass
+            return tx
+
+        async with semaphore:
+            # Add a small stagger to avoid bursts
+            await asyncio.sleep(0.1)
+            price = await get_historical_price_llama(chain, tx["token_addr"], tx["_ts_int"])
+            if price > 0:
+                _PRICE_CACHE[cache_key] = price
+                tx["price_usd"] = price
+                try:
+                    val = int(tx.get("_raw_value", 0))
+                    dec = int(tx.get("_raw_decimal", 18))
+                    tx["amount_usd"] = (val / (10**dec)) * price
+                except Exception:
+                    pass
+            return tx
+
+    # Enrich in parallel
+    tasks = [enrich_tx(tx) for tx in normalized]
+    await asyncio.gather(*tasks)
+
+    # Fallback to current DexScreener prices for any missing prices
+    missing_addrs = list(set(tx["token_addr"] for tx in normalized if tx["price_usd"] == 0))
+    if missing_addrs:
+        current_prices = await get_token_prices_dex(missing_addrs)
+        for tx in normalized:
+            if tx["price_usd"] == 0:
+                addr = tx["token_addr"].lower()
+                if addr in current_prices:
+                    tx["price_usd"] = current_prices[addr]
+                    try:
+                        val = int(tx.get("_raw_value", 0))
+                        dec = int(tx.get("_raw_decimal", 18))
+                        tx["amount_usd"] = (val / (10**dec)) * current_prices[addr]
+                    except Exception:
+                        pass
+
+    return normalized
+
+
+async def get_gecko_pool_trades(chain: str, pool_address: str) -> List[str]:
+    """Fetch recent trade makers from a GeckoTerminal pool."""
+    cfg = CHAINS.get(chain)
+    if not cfg or not pool_address: return []
+
+    url = GECKO_TRADES.format(cfg.gecko_id, pool_address)
+    data = await _http_get(url)
+    if not data or "data" not in data:
+        # Retry with just pool address if chain mapping is weird
+        return []
+
+    makers = set()
+    for t in data["data"]:
+        attr = t.get("attributes", {})
+        maker = attr.get("tx_from_address")
+        if maker:
+            makers.add(maker.lower())
+    return list(makers)
 
 
 async def get_early_buyers(token_address: str, chain: str,
-                            top_n: int = 50) -> List[str]:
-    if chain == "solana":
-        return await solana_early_buyers(token_address, top_n)
-    return await explorer_early_buyers(token_address, chain, top_n)
+                            top_n: int = 50, pool_address: str = "") -> List[str]:
+    """Combine explorers and GeckoTerminal for discovery."""
+    buyers = []
+
+    # 1. Explorer (True early buyers)
+    if chain != "solana":
+        early = await explorer_early_buyers(token_address, chain, top_n=top_n)
+        if early:
+            buyers.extend(early)
+            log.info(f"[{chain}] Explorer: Found {len(early)} early buyers")
+    else:
+        # Solscan API is often restricted, so we rely more on pool trades for Solana
+        early = await solana_early_buyers(token_address, top_n=top_n)
+        if early:
+            buyers.extend(early)
+            log.info(f"[{chain}] Solscan: Found {len(early)} holders")
+
+    # 2. Gecko (Currently active buyers/makers)
+    # This is a very reliable fallback for wallet data
+    if pool_address:
+        active = await get_gecko_pool_trades(chain, pool_address)
+        if active:
+            buyers.extend(active)
+            log.info(f"[{chain}] GeckoTrades: Found {len(active)} active makers")
+
+    # Remove duplicates
+    unique_buyers = list(set(buyers))
+
+    # If still no buyers found, try to find pool from token address for Gecko fallback
+    if not unique_buyers and not pool_address:
+        token_info = await dex_get_token_pair(token_address)
+        if token_info and token_info.get("pairAddress"):
+             active = await get_gecko_pool_trades(chain, token_info["pairAddress"])
+             unique_buyers = list(set(active))
+             log.info(f"[{chain}] GeckoTrades (Fallback): Found {len(active)} active makers")
+
+    return unique_buyers
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -702,26 +1013,33 @@ async def run_discovery(chains: Optional[List[str]] = None,
 
     for chain in chains:
         log.info(f"[{chain}] Discovery started")
-        trending = await dex_trending(chain)
+        # Stagger chain discovery
+        if chains.index(chain) > 0:
+            await asyncio.sleep(5)
+
+        trending = await discovery_trending(chain)
         if not trending:
             log.warning(f"[{chain}] No trending tokens")
             continue
         log.info(f"[{chain}] {len(trending)} trending tokens")
 
-        for i, raw_pair in enumerate(trending[:10]):
-            pair = _parse_pair(raw_pair)
+        for i, pair in enumerate(trending[:15]):
             token_addr = pair["token_address"]
             if not token_addr:
                 continue
 
             if progress_cb:
                 await _safe_cb(progress_cb,
-                    f"🔍 [{chain.upper()}] Token {i+1}/10: "
+                    f"🔍 [{chain.upper()}] Token {i+1}/15: "
                     f"{pair['token_symbol']} ({pair['token_name']})"
                 )
 
-            buyers = await get_early_buyers(token_addr, chain, top_n=30)
-            log.info(f"[{chain}] {pair['token_symbol']}: {len(buyers)} early buyers")
+            # Analyze more buyers per token to find better wallets
+            buyers = await get_early_buyers(
+                token_addr, chain, top_n=50,
+                pool_address=pair.get("pair_address")
+            )
+            log.info(f"[{chain}] {pair['token_symbol']}: {len(buyers)} potential smart wallets found")
 
             for batch_start in range(0, len(buyers), 5):
                 batch   = buyers[batch_start:batch_start + 5]
@@ -733,26 +1051,36 @@ async def run_discovery(chains: Optional[List[str]] = None,
                     if isinstance(stats, Exception):
                         log.error(f"Analysis error: {stats}")
                         continue
+
+                    if not stats or not stats.address:
+                        continue
+
                     key = (stats.address.lower(), stats.chain)
                     if key in seen:
                         continue
                     seen.add(key)
-                    if stats.qualifies:
+
+                    # No strict 'qualifies' filter for discovery - we take the best ones by score
+                    # but ensure at least some activity or profit to avoid junk
+                    if stats.score > 0 or stats.total_pnl > 0 or stats.trade_count > 2:
                         all_qualified.append(stats)
                         log.info(
                             f"✅ [{chain}] {stats.address[:10]}… "
-                            f"WR={stats.win_rate:.1f}% PnL=${stats.total_pnl:,.0f}"
+                            f"WR={stats.win_rate:.1f}% PnL=${stats.total_pnl:,.0f} Score={stats.score:.1f}"
                         )
-                        await DB.upsert_wallet(
-                            stats.address, chain,
-                            {"win_rate": stats.win_rate,
-                             "total_pnl": stats.total_pnl,
-                             "trade_count": stats.trade_count},
-                        )
+                        # Only auto-save to DB if it's actually good (meets the settings)
+                        if stats.qualifies:
+                             await DB.upsert_wallet(
+                                stats.address, chain,
+                                {"win_rate": stats.win_rate,
+                                 "total_pnl": stats.total_pnl,
+                                 "trade_count": stats.trade_count},
+                            )
+
                         await DB.log_discovery(
                             chain, token_addr, len(buyers), len(all_qualified)
                         )
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(2.0) # Increased delay to avoid rate limits
 
     all_qualified.sort(key=lambda w: w.score, reverse=True)
     return all_qualified
@@ -921,10 +1249,12 @@ def _auth(func):
     async def wrapper(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         uid = update.effective_user.id
         if CFG.allowed_users and uid not in CFG.allowed_users:
-            await update.message.reply_text(
-                f"{EMOJI['cross']} Ruxsat yo'q. Sizning ID: <code>{uid}</code>",
-                parse_mode=ParseMode.HTML,
-            )
+            target = update.message or (update.callback_query.message if update.callback_query else None)
+            if target:
+                await target.reply_text(
+                    f"{EMOJI['cross']} Ruxsat yo'q. Sizning ID: <code>{uid}</code>",
+                    parse_mode=ParseMode.HTML,
+                )
             return
         return await func(update, ctx)
     wrapper.__name__ = func.__name__
@@ -932,8 +1262,22 @@ def _auth(func):
 
 
 async def _reply(update: Update, text: str, **kw):
+    target = update.message
+    if not target and update.callback_query:
+        target = update.callback_query.message
+
+    if not target:
+        return
+
     for chunk in [text[i:i+4096] for i in range(0, len(text), 4096)]:
-        await update.message.reply_text(
+        if update.callback_query and not kw.get("reply_markup"):
+             # If it's a callback and no new markup, maybe we want to edit?
+             # But _reply is usually for new messages.
+             # Let's keep it simple: always send new message for now,
+             # or edit if it's the first chunk of a callback.
+             pass
+
+        await target.reply_text(
             chunk, parse_mode=ParseMode.HTML,
             disable_web_page_preview=True, **kw
         )
@@ -946,21 +1290,33 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     chains_txt = "".join(
         f"  {CHAIN_EMOJI[k]} {cfg.name}\n" for k, cfg in CHAINS.items()
     )
+    keyboard = [
+        [
+            InlineKeyboardButton(f"{EMOJI['search']} Qidirish", callback_data="cmd_find"),
+            InlineKeyboardButton(f"{EMOJI['list']} Ro'yxat", callback_data="cmd_list"),
+        ],
+        [
+            InlineKeyboardButton(f"{EMOJI['chart']} Statistika", callback_data="cmd_stats_main"),
+            InlineKeyboardButton(f"⚙️ Sozlamalar", callback_data="cmd_settings"),
+        ],
+        [
+            InlineKeyboardButton(f"🌐 DNS Muammo", callback_data="cmd_dns_fix"),
+            InlineKeyboardButton(f"{EMOJI['warning']} Yordam", callback_data="cmd_help")
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await _reply(update,
-        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b>\n"
+        f"{EMOJI['diamond']} <b>Smart Money Finder & Tracker</b> (Free v1.3)\n"
         f"{'═' * 32}\n\n"
         f"Blockchain tarmog'idagi aqlli treyderlarni\n"
-        f"avtomatik topish va real vaqtda kuzatish.\n\n"
+        f"avtomatik topish va real vaqtda kuzatish.\n"
+        f"<i>Barcha API'lar abadiy tekin va ochiq.</i>\n\n"
         f"<b>Tarmoqlar:</b>\n{chains_txt}\n"
         f"<b>Filtr:</b>  WinRate ≥ {CFG.min_win_rate}%  |  "
         f"PnL ≥ ${CFG.min_pnl_usd:,.0f}  |  Savdolar ≥ {CFG.min_trade_count}\n\n"
-        f"<b>Buyruqlar:</b>\n"
-        f"  /find   — Yangi aqlli hamyonlar qidirish\n"
-        f"  /list   — Kuzatuvdagi hamyonlar\n"
-        f"  /add    — Hamyon qo'shish\n"
-        f"  /remove — Hamyonni o'chirish\n"
-        f"  /stats  — Statistika\n"
-        f"  /help   — Yordam\n"
+        f"Quyidagi tugmalardan foydalaning:",
+        reply_markup=reply_markup
     )
 
 
@@ -968,6 +1324,8 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 @_auth
 async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = [[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     await _reply(update,
         f"{EMOJI['search']} <b>Buyruqlar</b>\n{'─' * 30}\n\n"
         f"<b>/find</b> [chain]\n"
@@ -982,7 +1340,8 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"<b>/stats</b> [address chain]\n"
         f"  Tizim yoki hamyon statistikasi.\n\n"
         f"<b>Qo'llab-quvvatlanadigan tarmoqlar:</b>\n"
-        f"  {', '.join(CHAINS.keys())}\n"
+        f"  {', '.join(CHAINS.keys())}\n",
+        reply_markup=reply_markup
     )
 
 
@@ -992,15 +1351,26 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def cmd_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     wallets = await DB.list_wallets(active_only=True)
     if not wallets:
+        keyboard = [[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]]
         await _reply(update,
             f"{EMOJI['warning']} Kuzatuvda hech qanday hamyon yo'q.\n"
-            f"/add yoki /find buyrug'ini ishlating.")
+            f"/add yoki /find buyrug'ini ishlating.",
+            reply_markup=InlineKeyboardMarkup(keyboard))
         return
+
     lines = [f"{EMOJI['list']} <b>Kuzatuvdagi hamyonlar</b> ({len(wallets)} ta)\n"
              f"{'═' * 30}\n\n"]
-    for i, w in enumerate(wallets, 1):
+
+    # We'll use a simplified list if there are many, or just provide buttons for the top ones
+    for i, w in enumerate(wallets[:20], 1):
         lines.append(fmt_wallet_row(w, i) + "\n")
-    await _reply(update, "".join(lines))
+
+    keyboard = [
+        [InlineKeyboardButton(f"{EMOJI['remove']} Hamyonni o'chirish", callback_data="list_remove_select")],
+        [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]
+    ]
+
+    await _reply(update, "".join(lines), reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 # ── /add ──────────────────────────────────────────────────────
@@ -1029,7 +1399,8 @@ async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"{EMOJI['cross']} EVM manzil <code>0x</code> bilan boshlanishi kerak.")
         return
 
-    msg = await update.message.reply_text(
+    target = update.message or update.callback_query.message
+    msg = await target.reply_text(
         f"{EMOJI['clock']} Hamyon qo'shilmoqda va tahlil qilinmoqda…")
 
     is_new = await DB.add_wallet(address, chain, label=label)
@@ -1084,14 +1455,18 @@ async def cmd_remove(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     address, chain = args[0].strip(), args[1].lower().strip()
     ok = await DB.remove_wallet(address, chain)
+
+    target = update.message or update.callback_query.message
     if ok:
-        await _reply(update,
+        await target.reply_text(
             f"{EMOJI['remove']} Hamyon olib tashlandi:\n"
-            f"<code>{address[:10]}…</code>  [{chain}]")
+            f"<code>{address[:10]}…</code>  [{chain}]",
+            parse_mode=ParseMode.HTML)
     else:
-        await _reply(update,
+        await target.reply_text(
             f"{EMOJI['cross']} Hamyon topilmadi:\n"
-            f"<code>{address[:10]}…</code>  [{chain}]")
+            f"<code>{address[:10]}…</code>  [{chain}]",
+            parse_mode=ParseMode.HTML)
 
 
 # ── /stats ────────────────────────────────────────────────────
@@ -1124,7 +1499,8 @@ async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await _reply(update, f"{EMOJI['cross']} Noma'lum tarmoq: {chain}")
         return
 
-    msg   = await update.message.reply_text(f"{EMOJI['clock']} Tahlil qilinmoqda…")
+    target = update.message or update.callback_query.message
+    msg   = await target.reply_text(f"{EMOJI['clock']} Tahlil qilinmoqda…")
     stats = await analyze_wallet(address, chain)
 
     chain_em = CHAIN_EMOJI.get(chain, "🌐")
@@ -1162,7 +1538,189 @@ async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# ── /settings ─────────────────────────────────────────────────
+
+@_auth
+async def cmd_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton(f"Win Rate ({CFG.min_win_rate}%)", callback_data="set_wr_menu"),
+            InlineKeyboardButton(f"PnL (${CFG.min_pnl_usd:,.0f})", callback_data="set_pnl_menu"),
+        ],
+        [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await _reply(update,
+        f"⚙️ <b>Sozlamalar</b>\n"
+        f"{'─' * 28}\n\n"
+        f"Bu yerda hamyonlarni saralash filtrlarini o'zgartirishingiz mumkin.\n\n"
+        f"✅ <b>Win Rate:</b> {CFG.min_win_rate}%\n"
+        f"💰 <b>Minimal PnL:</b> ${CFG.min_pnl_usd:,.0f}",
+        reply_markup=reply_markup
+    )
+
+
+# ── CALLBACK HANDLER ──────────────────────────────────────────
+
+async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    uid   = query.from_user.id
+    if CFG.allowed_users and uid not in CFG.allowed_users:
+        await query.answer("Ruxsat yo'q!", show_alert=True)
+        return
+
+    data = query.data
+    await query.answer()
+
+    # Simple routing
+    if data == "cmd_start":
+        await cmd_start(update, ctx)
+        try: await query.message.delete()
+        except: pass
+    elif data == "cmd_help":
+        await cmd_help(update, ctx)
+        try: await query.message.delete()
+        except: pass
+    elif data == "cmd_list":
+        await cmd_list(update, ctx)
+        try: await query.message.delete()
+        except: pass
+    elif data == "cmd_find":
+        await cmd_find_select_chain(update, ctx)
+        try: await query.message.delete()
+        except: pass
+    elif data.startswith("find_run_"):
+        chain = data.replace("find_run_", "")
+        if chain == "all":
+            ctx.args = []
+        else:
+            ctx.args = [chain]
+        await cmd_find(update, ctx)
+    elif data == "list_remove_select":
+        wallets = await DB.list_wallets(active_only=True)
+        if not wallets:
+            await query.edit_message_text("Hamyonlar yo'q.")
+            return
+        keyboard = []
+        for w in wallets[:15]: # Limit to avoid huge keyboard
+            short = f"{w['address'][:6]}…{w['address'][-4:]}"
+            keyboard.append([InlineKeyboardButton(
+                f"{EMOJI['remove']} {short} [{w['chain']}]",
+                callback_data=f"remove_confirm_{w['address']}_{w['chain']}"
+            )])
+        keyboard.append([InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_list")])
+        await query.edit_message_text(
+            "<b>O'chirish uchun hamyonni tanlang:</b>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    elif data.startswith("remove_confirm_"):
+        parts = data.replace("remove_confirm_", "").split("_")
+        if len(parts) >= 2:
+            address, chain = parts[0], parts[1]
+            ctx.args = [address, chain]
+            await cmd_remove(update, ctx)
+    elif data == "cmd_stats_main":
+        await cmd_stats(update, ctx)
+    elif data == "cmd_settings":
+        await cmd_settings(update, ctx)
+    elif data == "cmd_dns_fix":
+        # Check connection status
+        results = []
+        for host in ["google.com", "api.dexscreener.com", "api.geckoterminal.com"]:
+            try:
+                import socket
+                socket.gethostbyname(host)
+                results.append(f"✅ {host}")
+            except:
+                results.append(f"❌ {host}")
+
+        status_txt = "\n".join(results)
+
+        await _reply(update,
+            f"🌐 <b>DNS va Ulanish holati:</b>\n{status_txt}\n\n"
+            f"{'─' * 30}\n\n"
+            f"Agar botda 'DNS Xatoligi' ko'rinsa, quyidagi amallarni bajaring:\n\n"
+            f"1️⃣ <b>Private DNS o'rnatish (Tavsiya):</b>\n"
+            f"   - Android Sozlamalari -> Tarmoq (Network) -> Private DNS\n"
+            f"   - <code>1.1.1.1</code> yoki <code>dns.google</code> deb yozing.\n\n"
+            f"2️⃣ <b>VPN ishlatish:</b>\n"
+            f"   - 1.1.1.1, Cloudflare yoki biror VPN ilovasini yoqing.\n\n"
+            f"3️⃣ <b>Internetni yangilash:</b>\n"
+            f"   - Airplane mode yoqib-o'chiring.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")]])
+        )
+    elif data == "set_wr_menu" or data.startswith("set_wr_"):
+        if data.startswith("set_wr_"):
+            change = 0
+            if "up_1" in data: change = 1
+            elif "up_5" in data: change = 5
+            elif "down_1" in data: change = -1
+            elif "down_5" in data: change = -5
+            CFG.min_win_rate = max(0, min(100, CFG.min_win_rate + change))
+            await DB.set_setting("min_win_rate", CFG.min_win_rate)
+
+        keyboard = [
+            [
+                InlineKeyboardButton("-5%", callback_data="set_wr_down_5"),
+                InlineKeyboardButton("-1%", callback_data="set_wr_down_1"),
+                InlineKeyboardButton("+1%", callback_data="set_wr_up_1"),
+                InlineKeyboardButton("+5%", callback_data="set_wr_up_5"),
+            ],
+            [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_settings")]
+        ]
+        await query.edit_message_text(
+            f"<b>Win Rate sozlamalari</b>\n\nJoriy: {CFG.min_win_rate}%\n\nO'zgartirish:",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    elif data == "set_pnl_menu" or data.startswith("set_pnl_"):
+        if data.startswith("set_pnl_"):
+            change = 0
+            if "up_1000" in data: change = 1000
+            if "up_10000" in data: change = 10000
+            if "down_1000" in data: change = -1000
+            if "down_10000" in data: change = -10000
+            CFG.min_pnl_usd = max(0, CFG.min_pnl_usd + change)
+            await DB.set_setting("min_pnl_usd", CFG.min_pnl_usd)
+
+        keyboard = [
+            [
+                InlineKeyboardButton("-10k", callback_data="set_pnl_down_10000"),
+                InlineKeyboardButton("-1k", callback_data="set_pnl_down_1000"),
+                InlineKeyboardButton("+1k", callback_data="set_pnl_up_1000"),
+                InlineKeyboardButton("+10k", callback_data="set_pnl_up_10000"),
+            ],
+            [InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_settings")]
+        ]
+        await query.edit_message_text(
+            f"<b>Minimal PnL sozlamalari</b>\n\nJoriy: ${CFG.min_pnl_usd:,.0f}\n\nO'zgartirish:",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+
 # ── /find ─────────────────────────────────────────────────────
+
+@_auth
+async def cmd_find_select_chain(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    keyboard = []
+    # 2 chains per row
+    chain_list = list(CHAINS.keys())
+    for i in range(0, len(chain_list), 2):
+        row = []
+        for c in chain_list[i:i+2]:
+            row.append(InlineKeyboardButton(f"{CHAIN_EMOJI[c]} {c.upper()}", callback_data=f"find_run_{c}"))
+        keyboard.append(row)
+
+    keyboard.append([InlineKeyboardButton("🌐 BARCHA TARMOQLAR", callback_data="find_run_all")])
+    keyboard.append([InlineKeyboardButton("⬅️ Orqaga", callback_data="cmd_start")])
+
+    await _reply(update,
+        f"{EMOJI['search']} <b>Qaysi tarmoqdan qidiramiz?</b>\n"
+        f"Trending tokenlar orqali smart walletlar qidiriladi.",
+        reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 @_auth
 async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -1176,7 +1734,8 @@ async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     chains_label = chain_filter.upper() if chain_filter else "Barcha tarmoqlar"
-    msg = await update.message.reply_text(
+    target = update.message or update.callback_query.message
+    msg = await target.reply_text(
         f"{EMOJI['search']} <b>Qidiruv boshlandi…</b>\n"
         f"{'─' * 28}\n"
         f"🌐 {chains_label}\n\n"
@@ -1211,16 +1770,13 @@ async def cmd_find(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     if not results:
         await msg.edit_text(
-            f"{EMOJI['warning']} Aqlli hamyon topilmadi.\n\n"
-            f"Filtr: WR≥{CFG.min_win_rate}%  "
-            f"PnL≥${CFG.min_pnl_usd:,.0f}  "
-            f"Savdo≥{CFG.min_trade_count}",
+            f"{EMOJI['warning']} Tahlil qilingan hamyonlar ichidan mos keladigani topilmadi.",
             parse_mode=ParseMode.HTML,
         )
         return
 
     lines = [
-        f"{EMOJI['fire']} <b>Topilgan: {len(results)} ta aqlli hamyon</b>\n"
+        f"{EMOJI['fire']} <b>Eng yaxshi topilgan hamyonlar:</b>\n"
         f"{'═' * 30}\n\n"
     ]
     for i, s in enumerate(results[:15], 1):
@@ -1269,7 +1825,7 @@ class Broadcaster:
 def _banner():
     print("""
 ╔══════════════════════════════════════════════════════════╗
-║         💎  Smart Money Finder & Tracker  v1.0          ║
+║     💎  Smart Money Finder & Tracker (FREE) v1.3        ║
 ╠══════════════════════════════════════════════════════════╣""")
     for k, cfg in CHAINS.items():
         em = CHAIN_EMOJI.get(k, "🌐")
@@ -1286,8 +1842,6 @@ def _validate():
         errors.append("❌  TELEGRAM_BOT_TOKEN .env faylida belgilanmagan.")
     if not CFG.allowed_users:
         print("⚠️   ALLOWED_USER_IDS belgilanmagan — barcha foydalanuvchilar kirishi mumkin!")
-    if not CFG.moralis_api_key:
-        print("⚠️   MORALIS_API_KEY yo'q — block explorer API ishlatiladi (cheklangan).")
     for e in errors:
         print(e)
     if errors:
@@ -1301,6 +1855,7 @@ async def main():
 
     log.info("Ma'lumotlar bazasi ulanmoqda…")
     await DB.connect()
+    await CFG.reload(DB)
 
     log.info("Telegram bot yaratilmoqda…")
     app = Application.builder().token(CFG.bot_token).build()
@@ -1316,6 +1871,8 @@ async def main():
         ("find",   cmd_find),
     ]:
         app.add_handler(CommandHandler(cmd, handler))
+
+    app.add_handler(CallbackQueryHandler(on_callback))
 
     # Set bot command menu
     await app.initialize()
@@ -1350,6 +1907,11 @@ async def main():
         await app.stop()
         await app.shutdown()
         await DB.close()
+
+        global _HTTP_SESSION
+        if _HTTP_SESSION and not _HTTP_SESSION.closed:
+            await _HTTP_SESSION.close()
+
         log.info("Xayr! 👋")
 
 
