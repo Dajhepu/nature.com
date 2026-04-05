@@ -37,11 +37,12 @@ from typing import Optional, Any
 import aiohttp
 from colorama import Fore, Style, init
 
-# python-dotenv ixtiyoriy (mavjud bo'lsa yuklaydi)
+# python-dotenv yuklash
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
+    # Agar pip install qilinmagan bo'lsa (masalan Pydroid 3 da)
     pass
 
 try:
@@ -72,14 +73,14 @@ except ImportError:
 init(autoreset=True)
 
 # ══════════════════════════════════════════════════════════════
-#  ⚙️  SOZLAMALAR — Hardcoded credentials
+#  ⚙️  SOZLAMALAR — Credentials from .env
 # ══════════════════════════════════════════════════════════════
 
-TELEGRAM_BOT_TOKEN = "7256069971:AAHNTBZZipJI9mF1K1lRyNiQb2n7qEEDEDY"
-TELEGRAM_CHAT_ID   = "798283148"
-MORALIS_API_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImM5ZTFhYjE4LTRiNDktNGI5Ni04ZjBkLWRmNTE1MmI3NmQ4MCIsIm9yZ0lkIjoiNTA3NzI2IiwidXNlcklkIjoiNTIyNDE3IiwidHlwZUlkIjoiYjQwZTBiZDAtMDcxMi00ZGI1LWI3OTQtZjU1OGZiYjI2YzZjIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NzQ5NTU2NzAsImV4cCI6NDkzMDcxNTY3MH0.ydI7mToaxqNG2qT5gvPymI4sb-MbjEWW37Ik6IoKpnk"
-GEMINI_API_KEY    = "AIzaSyA0xdnhbJ_n4Tr5TF_GGPM3OqEciQqPcgU"  # Google AI Studio orqali oling: https://aistudio.google.com/
-HELIUS_API_KEY     = "f240c386-6489-4e71-8f68-e0a9fa153185"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
+MORALIS_API_KEY    = os.getenv("MORALIS_API_KEY", "")
+GEMINI_API_KEY     = os.getenv("GEMINI_API_KEY", "")
+HELIUS_API_KEY     = os.getenv("HELIUS_API_KEY", "")
 
 # ── Token yoshi chegaralari (YANGI TOKENLAR ONLY) ─────────
 NEW_TOKEN_MIN_HOURS  = 0.25    # Minimal yosh: 15 daqiqa (juda yangi = rug xavfi)

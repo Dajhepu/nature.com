@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+wtp_v5.db
+wtp_v4.log
+polled_hashes.json
