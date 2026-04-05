@@ -75,10 +75,10 @@ init(autoreset=True)
 #  ⚙️  SOZLAMALAR — Hardcoded credentials
 # ══════════════════════════════════════════════════════════════
 
-TELEGRAM_BOT_TOKEN = "7256069971:AAHNTBZZipJI9mF1K1lRyNiQb2n7qEEDEDY"
+TELEGRAM_BOT_TOKEN = "8489499074:AAEbc1ZNVEBprLhPhnoiY0orE4oRmno9UYM"
 TELEGRAM_CHAT_ID   = "798283148"
 MORALIS_API_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImM5ZTFhYjE4LTRiNDktNGI5Ni04ZjBkLWRmNTE1MmI3NmQ4MCIsIm9yZ0lkIjoiNTA3NzI2IiwidXNlcklkIjoiNTIyNDE3IiwidHlwZUlkIjoiYjQwZTBiZDAtMDcxMi00ZGI1LWI3OTQtZjU1OGZiYjI2YzZjIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NzQ5NTU2NzAsImV4cCI6NDkzMDcxNTY3MH0.ydI7mToaxqNG2qT5gvPymI4sb-MbjEWW37Ik6IoKpnk"
-GEMINI_API_KEY    = "AIzaSyA0xdnhbJ_n4Tr5TF_GGPM3OqEciQqPcgU"  # Google AI Studio orqali oling: https://aistudio.google.com/
+GEMINI_API_KEY    = "AIzaSyCgzS5Ny_TPnkhbtRhahRlJ11W7VCH7NPU"  # Google AI Studio orqali oling: https://aistudio.google.com/
 HELIUS_API_KEY     = "f240c386-6489-4e71-8f68-e0a9fa153185"
 
 # ── Token yoshi chegaralari (YANGI TOKENLAR ONLY) ─────────
@@ -111,12 +111,18 @@ STOP_LOSS_PCT = 5.0    # Yangi tokenlar uchun kengrok stop (volatillik yuqori)
 MIN_RR_RATIO  = 1.5    # Minimal R:R
 
 # ── Xavfsizlik filtrlari (yangi tokenlar uchun moslantirilgan) ─
-MAX_SECURITY_RISK   = 40       # Yangi tokenlarda biroz yumshoqroq (hali audit yo'q)
-MAX_TOP_HOLDER_PCT  = 50.0     # Yangi tokenlarda ko'proq ruxsat
-MIN_HOLDER_COUNT    = 10       # Yangi token — holder soni kam bo'ladi
-MAX_SELL_TAX        = 10.0     # Yangi tokenlarda biroz yuqoriroq tax bo'lishi mumkin
-MAX_BUY_TAX         = 10.0
+MAX_SECURITY_RISK   = 55       # Yangi tokenlarda biroz yumshoqroq (hali audit yo'q)
+MAX_TOP_HOLDER_PCT  = 65.0     # Yangi tokenlarda ko'proq ruxsat
+MIN_HOLDER_COUNT    = 5        # Yangi token — holder soni juda kam bo'lishi mumkin
+MAX_SELL_TAX        = 5.0      # Professional: 5% dan yuqori soliq qabul qilinmaydi
+MAX_BUY_TAX         = 5.0
 MIN_TOKEN_AGE_HOURS = NEW_TOKEN_MIN_HOURS
+
+# ── PRO v5.5 RISK MANAGEMENT ───────────────────────────────
+DAILY_LOSS_LIMIT    = -10.0    # Kunlik maksimal zarar (foizda)
+MAX_POSITION_SIZE   = 0.5      # Har bir savdo uchun max SOL (Virtual)
+JITO_TIP            = 0.001    # Jito bundle uchun tip miqdori
+EXECUTION_ENABLED   = False    # LIVE savdoni yoqish flagi
 
 # ── Retry sozlamalari ──────────────────────────────────────
 HTTP_RETRY_COUNT    = 3
@@ -255,6 +261,8 @@ class GlobalState:
             "regime": "SIDEWAYS",
             "regime_emoji": "⬜",
             "total_pnl": float(self.db.get_stat("total_pnl", 0.0)),
+            "daily_pnl": 0.0,  # Yangi: Kunlik sessiya P&L
+            "stop_all": False, # Zarar limiti urilganda True bo'ladi
             "wins_list": self.db.load_trades("WIN"),
             "losses_list": self.db.load_trades("LOSS")
         }
@@ -293,7 +301,17 @@ class GlobalState:
             "rec_color": sig.rec_color,
             "confluence": sig.confluence,
             "ai_report": getattr(sig, 'ai_report', {"score": 0, "text": "N/A"}),
-            "expert_wallets": getattr(sig, 'expert_wallets', [])
+            "expert_wallets": getattr(sig, 'expert_wallets', []),
+            "insider_report": sig.insider_report,
+            "sec": {
+                "is_hp": sig.security.is_honeypot if sig.security else False,
+                "has_mint": sig.security.has_mint if sig.security else False,
+                "is_mint_lck": sig.security.is_mint_renounced if sig.security else False,
+                "is_lp_b": sig.security.is_lp_burnt if sig.security else False,
+                "top_pct": sig.security.top_holder_pct if sig.security else 0.0,
+                "stax": sig.security.sell_tax if sig.security else 0.0,
+                "btax": sig.security.buy_tax if sig.security else 0.0,
+            }
         }
         self.signals.appendleft(sig_data)
         self.stats["total_signals"] += 1
@@ -301,12 +319,25 @@ class GlobalState:
         self.db.save_signal(sig_data["id"], sig_data["symbol"], json.dumps(sig_data))
 
     def set_positions(self, pos_list):
-        self.positions = pos_list
+        # UI uchun serializatsiya
+        serialized = []
+        for p in pos_list:
+            serialized.append({
+                "addr": p.snap.pair_address,
+                "symbol": p.snap.token_symbol,
+                "entry": p.entry_price,
+                "peak": p.peak_price,
+                "sold_50": p.sold_50pct,
+                "sold_30": p.sold_30pct,
+                "age_min": (datetime.now() - p.opened_at).total_seconds() / 60
+            })
+        self.positions = serialized
         self.stats["active_positions_count"] = len(pos_list)
 
     def add_win(self, symbol, pnl, entry=0, exit=0, addr="", chain=""):
         self.stats["wins"] += 1
         self.stats["total_pnl"] += pnl
+        self.stats["daily_pnl"] += pnl
         self.db.set_stat("wins", self.stats["wins"])
         self.db.set_stat("total_pnl", self.stats["total_pnl"])
         self.db.save_pnl_snapshot(self.stats["total_pnl"])
@@ -321,9 +352,16 @@ class GlobalState:
     def add_loss(self, symbol, pnl, entry=0, exit=0, addr="", chain=""):
         self.stats["losses"] += 1
         self.stats["total_pnl"] += pnl
+        self.stats["daily_pnl"] += pnl
         self.db.set_stat("losses", self.stats["losses"])
         self.db.set_stat("total_pnl", self.stats["total_pnl"])
         self.db.save_pnl_snapshot(self.stats["total_pnl"])
+
+        # Kunlik zarar limiti tekshiruvi
+        if self.stats["daily_pnl"] <= DAILY_LOSS_LIMIT:
+            self.stats["stop_all"] = True
+            log.warning(f"🚨 KUNLIK ZARAR LIMITI URILDI: {self.stats['daily_pnl']:.1f}%. Bot yangi savdolarni to'xtatdi!")
+
         loss_data = {
             "symbol": symbol, "pnl": pnl, "time": datetime.now().strftime("%H:%M"),
             "entry": entry, "exit": exit, "addr": addr, "chain": chain
@@ -637,9 +675,12 @@ DASHBOARD_HTML = r"""
         <header>
             <div class="logo-group">
                 <div class="logo-icon">🐋</div>
-                <div class="logo-text"><h1>WHALE TRACKER <span>Pro v4.5</span></h1></div>
+                <div class="logo-text"><h1>WHALE TRACKER <span>Pro v5.5 Professional</span></h1></div>
             </div>
             <div class="header-actions" style="display: flex; align-items: center; gap: 1rem;">
+                <div id="system-status" class="status-badge" style="background: rgba(34, 211, 238, 0.1); color: var(--accent); border-color: var(--accent);">
+                    <span>⚡</span> <span id="status-text">Ready</span>
+                </div>
                 <a href="/api/export/trades" target="_blank" class="status-badge" style="cursor: pointer; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); text-decoration: none; transition: background 0.2s;">
                     <span>📥</span> <span>Export CSV</span>
                 </a>
@@ -662,10 +703,10 @@ DASHBOARD_HTML = r"""
         <div class="stats-grid">
             <div class="stat-card"><p class="stat-label">Total Scanned</p><div id="stat-scans" class="stat-value">0</div></div>
             <div class="stat-card"><p class="stat-label">Signals (24h)</p><div id="stat-signals" class="stat-value accent">0</div></div>
+            <div class="stat-card"><p class="stat-label">Daily Session P&L</p><div id="stat-daily-pnl" class="stat-value" style="color: var(--accent)">0.00%</div></div>
             <div class="stat-card" onclick="showHistory('wins')" style="cursor: pointer;"><p class="stat-label">Wins ✅ (Click)</p><div id="stat-wins" class="stat-value success">0</div></div>
             <div class="stat-card" onclick="showHistory('losses')" style="cursor: pointer;"><p class="stat-label">Losses ❌ (Click)</p><div id="stat-losses" class="stat-value" style="color: var(--danger)">0</div></div>
             <div class="stat-card"><p class="stat-label">Active Snipes</p><div id="stat-active" class="stat-value accent">0</div></div>
-            <div class="stat-card"><p class="stat-label">Blocked</p><div id="stat-rugs" class="stat-value" style="color: var(--danger)">0</div></div>
         </div>
 
         <div class="dashboard-layout">
@@ -1093,10 +1134,27 @@ DASHBOARD_HTML = r"""
 
                 document.getElementById('stat-scans').innerText = currentData.stats.total_scans.toLocaleString();
                 document.getElementById('stat-signals').innerText = currentData.stats.total_signals;
+                
+                const dPnl = currentData.stats.daily_pnl || 0;
+                const dPnlEl = document.getElementById('stat-daily-pnl');
+                dPnlEl.innerText = (dPnl >= 0 ? '+' : '') + dPnl.toFixed(2) + '%';
+                dPnlEl.style.color = dPnl >= 0 ? 'var(--success)' : 'var(--danger)';
+
+                const stopAll = currentData.stats.stop_all || false;
+                const statusText = document.getElementById('status-text');
+                const statusBadge = document.getElementById('system-status');
+                if (stopAll) {
+                    statusText.innerText = 'Daily Limit Halted';
+                    statusBadge.style.color = 'var(--danger)';
+                    statusBadge.style.borderColor = 'var(--danger)';
+                    statusBadge.style.background = 'rgba(239, 68, 68, 0.1)';
+                } else {
+                    statusText.innerText = 'Engine: Ready';
+                }
+
                 document.getElementById('stat-wins').innerText = currentData.stats.wins;
                 document.getElementById('stat-losses').innerText = currentData.stats.losses;
                 document.getElementById('stat-active').innerText = currentData.stats.active_positions_count;
-                document.getElementById('stat-rugs').innerText = currentData.stats.rug_alerts;
                 document.getElementById('regime-text').innerText = 'Market: ' + currentData.stats.regime;
                 document.getElementById('regime-emoji').innerText = currentData.stats.regime_emoji;
                 
@@ -1115,6 +1173,11 @@ DASHBOARD_HTML = r"""
                                 <p>${s.name} • $${s.price} • ${s.age}</p>
                                 <div style="font-size: 0.75rem; color: #a1a1aa; margin-top: 5px; line-height: 1.2;">
                                     📝 ${s.primary_reason || 'Tahlil yakunlangan'}
+                                </div>
+                                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                                    ${s.sec.is_lp_b ? '<span style="background:rgba(16,185,129,0.1); color:var(--success); font-size:0.6rem; padding:2px 5px; border-radius:4px; font-weight:700; border:1px solid rgba(16,185,129,0.3);">🛡️ LP 95%</span>' : ''}
+                                    ${s.sec.is_mint_lck ? '<span style="background:rgba(16,185,129,0.1); color:var(--success); font-size:0.6rem; padding:2px 5px; border-radius:4px; font-weight:700; border:1px solid rgba(16,185,129,0.3);">MINT LCK</span>' : ''}
+                                    <span style="background:rgba(34,211,238,0.1); color:var(--accent); font-size:0.6rem; padding:2px 5px; border-radius:4px; font-weight:700; border:1px solid rgba(34,211,238,0.3);">V5.0 PRO</span>
                                 </div>
                             </div>
                             <div class="confidence-circle">
@@ -1300,7 +1363,7 @@ class MarketSnapshot:
     def is_organic_volume(self) -> bool:
         """Wash trading tekshiruvi: 24h Volume / Liquidity > 15x bo'lsa shubhali."""
         if self.liquidity < 5000: return True # Juda kam likvidlikda nisbat noto'g'ri bo'lishi mumkin
-        return (self.volume_24h / self.liquidity) < 15.0
+        return (self.volume_24h / self.liquidity) < 40.0
 
     @property
     def buy_ratio_5m(self) -> float:
@@ -1344,9 +1407,12 @@ class WalletExpertise:
 class SecurityReport:
     is_honeypot:     bool  = False
     has_mint:        bool  = False
+    is_mint_renounced: bool = False # Yangi
     has_blacklist:   bool  = False
     has_proxy:       bool  = False
     owner_renounced: bool  = True
+    is_lp_burnt:     bool  = False # Yangi
+    lp_burnt_pct:    float = 0.0   # Yangi
     top_holder_pct:  float = 0.0
     holder_count:    int   = 0
     sell_tax:        float = 0.0
@@ -1355,7 +1421,7 @@ class SecurityReport:
     risk_score:      int   = 0
     flags:           list  = field(default_factory=list)
     expert_holders:  list  = field(default_factory=list)
-    scanned:         bool  = False   # GoPlus muvaffaqiyatli skan qildimi
+    scanned:         bool  = False
 
 
 @dataclass
@@ -1386,6 +1452,7 @@ class SignalResult:
     rec_color:        str   = "#fbbf24"                  # Yangi: Tavsiya rangi
     ai_report:        dict  = field(default_factory=dict) # Yangi: AI tahlili natijasi
     expert_wallets:   list  = field(default_factory=list) # Yangi: Smart Money ro'yxati
+    recommendation:   str   = ""                         # Yangi: Tavsiya matni
 
     @property
     def bar(self) -> str:
@@ -1578,7 +1645,7 @@ def parse_snap(pair: dict) -> Optional[MarketSnapshot]:
 
 
 # ══════════════════════════════════════════════════════════════
-#  🛡️  GOPLUS SECURITY SCANNER — Kuchaytirilgan
+#  🛡️  GOPLUS SECURITY SCANNER — Professional Edition
 # ══════════════════════════════════════════════════════════════
 
 CHAIN_TO_GOPLUS = {
@@ -1617,32 +1684,52 @@ class GoPlusScanner:
         self._cache[key] = (rep, time.time())
         return rep
 
+    def passes_strict_filter(self, rep: SecurityReport, snap: "MarketSnapshot") -> tuple[bool, str]:
+        if rep.lp_burnt_pct < 95.0:          # <--- V5.0 talabi
+            return False, f"LP burned {rep.lp_burnt_pct:.1f}% < 95%"
+        
+        if not rep.is_mint_renounced:        # <--- V5.0 talabi
+            return False, "Mint renounced emas"
+        
+        if snap.liquidity < 50000:           # <--- V5.0 talabi
+            return False, f"Liquidity ${snap.liquidity:,.0f} < $50k"
+        
+        if not snap.has_socials:
+            return False, "Website yoki Twitter yo‘q"
+        
+        if rep.is_honeypot or rep.sell_tax > 5 or rep.top_holder_pct > 40:
+            return False, "Boshqa xavf"
+        
+        return True, "V5.0 STRICT FILTER PASSED"
+
     def _parse(self, data: Optional[dict], token_addr: str, chain: str) -> SecurityReport:
         rep = SecurityReport()
         if not data:
             return rep
 
         result = data.get("result") or {}
-        info   = (result.get(token_addr.lower()) or
-                  result.get(token_addr) or
+        info   = (result.get(token_addr.lower()) or 
+                  result.get(token_addr) or 
                   (list(result.values())[0] if result else {}))
         if not info:
             return rep
 
         rep.scanned = True
-
         def b(k): return str(info.get(k, "0")) == "1"
         def f(k): return float(info.get(k) or 0)
         def i(k): return int(info.get(k) or 0)
 
-        rep.is_honeypot     = b("is_honeypot")
-        rep.has_mint        = b("is_mintable")
-        rep.has_blacklist   = b("is_blacklisted")
-        rep.has_proxy       = b("is_proxy")
-        rep.sell_tax        = f("sell_tax")
-        rep.buy_tax         = f("buy_tax")
-        rep.is_open_source  = b("is_open_source")
-        rep.holder_count    = i("holder_count")
+        rep.is_honeypot      = b("is_honeypot")
+        rep.has_mint         = b("is_mintable")
+        rep.is_mint_renounced = not rep.has_mint
+        rep.has_blacklist    = b("is_blacklisted")
+        rep.has_proxy        = b("is_proxy")
+        rep.sell_tax         = f("sell_tax")
+        rep.buy_tax          = f("buy_tax")
+        rep.is_open_source   = b("is_open_source")
+        rep.holder_count     = i("holder_count")
+        rep.lp_burnt_pct     = f("lp_burnt_percent")
+        rep.is_lp_burnt      = rep.lp_burnt_pct > 95.0 # Professional chegara
 
         owner_addr = info.get("owner_address", "")
         rep.owner_renounced = owner_addr in ("", "0x0000000000000000000000000000000000000000")
@@ -1651,29 +1738,21 @@ class GoPlusScanner:
         if holders:
             rep.top_holder_pct = float(holders[0].get("percent", 0)) * 100
 
-        # Xavf bali
+        # Xavf bali (O'ta qat'iy - PRO Strategiya)
         score = 0
         if rep.is_honeypot:
-            score += 60; rep.flags.append("☠️ HONEYPOT aniqlandi!")
+            score += 100; rep.flags.append("☠️ HONEYPOT aniqlandi!")
         if rep.has_mint:
-            score += 25; rep.flags.append("🖨️ Cheksiz token chiqarish (Mintable)")
-        if rep.has_blacklist:
-            score += 20; rep.flags.append("🚫 Blacklist funksiyasi mavjud")
-        if rep.has_proxy:
-            score += 15; rep.flags.append("🔄 Proxy contract (o'zgartirilishi mumkin)")
+            score += 40;  rep.flags.append("🖨️ Mintable (Cheksiz token chiqarish)")
+        if not rep.is_lp_burnt:
+            score += 50;  rep.flags.append("💧 Likvidlik yongan (Burned) emas!")
         if not rep.owner_renounced:
-            score += 10; rep.flags.append("👤 Owner huquqini topshirmagan")
-        if rep.sell_tax > MAX_SELL_TAX:
-            score += 20; rep.flags.append(f"💸 Sotish solig'i {rep.sell_tax:.0f}% — yuqori!")
-        if rep.buy_tax > MAX_BUY_TAX:
-            score += 15; rep.flags.append(f"💸 Xarid solig'i {rep.buy_tax:.0f}% — yuqori!")
-        if rep.top_holder_pct > MAX_TOP_HOLDER_PCT:
-            score += 20; rep.flags.append(f"🐳 Top holder {rep.top_holder_pct:.0f}% ushlab turibdi")
-        elif rep.top_holder_pct > 30:
-            score += 10; rep.flags.append(f"⚠️ Top holder {rep.top_holder_pct:.0f}%")
-        if 0 < rep.holder_count < MIN_HOLDER_COUNT:
-            score += 15; rep.flags.append(f"👥 Faqat {rep.holder_count} ta holder — xavfli")
-
+            score += 20;  rep.flags.append("👤 Owner huquqini topshirmagan")
+        if rep.top_holder_pct > 40:
+            score += 30;  rep.flags.append(f"🐳 Top holder {rep.top_holder_pct:.0f}% ushlab turibdi")
+        if rep.sell_tax > 5:
+            score += 25;  rep.flags.append(f"💸 Sotish solig'i {rep.sell_tax:.0f}% — yuqori!")
+        
         rep.risk_score = min(100, score)
         return rep
 
@@ -1908,18 +1987,13 @@ class RegimeDetector:
 
 @dataclass
 class OpenPosition:
-    snap:        MarketSnapshot
-    signal_type: str
+    snap: MarketSnapshot
     entry_price: float
-    target_1:    float
-    target_2:    float
-    stop_loss:   float
-    opened_at:   datetime
-    t1_hit:      bool = False
-    t2_hit:      bool = False
-    sl_hit:      bool = False
-    peak_price:  float = 0.0   # Yangi: eng yuqori narx (trailing stop uchun)
-    last_milestone: float = 0.0 # Oxirgi xabar yuborilgan o'sish foizi
+    opened_at: datetime
+    peak_price: float = 0.0
+    sold_50pct: bool = False   # 2x da 50%
+    sold_30pct: bool = False   # 5x da yana 30%
+    is_closed: bool = False
 
 
 class PositionTracker:
@@ -1931,96 +2005,58 @@ class PositionTracker:
 
     def open(self, sig: SignalResult):
         self.positions[sig.snapshot.pair_address] = OpenPosition(
-            snap=sig.snapshot, signal_type=sig.signal_type,
-            entry_price=sig.entry, target_1=sig.target_1,
-            target_2=sig.target_2, stop_loss=sig.stop_loss,
+            snap=sig.snapshot, entry_price=sig.entry,
             opened_at=datetime.now(), peak_price=sig.entry,
         )
 
-    async def check_all(self, snaps: list, dex_api: 'DexScreenerAPI' = None):
+    async def check_all(self, snaps: list, dex_api=None):
         snap_map = {s.pair_address: s for s in snaps}
         to_close = []
 
-        for addr, pos in self.positions.items():
+        for addr, pos in list(self.positions.items()):
+            if pos.is_closed: continue
             cur = snap_map.get(addr)
-            if not cur:
-                # Agar snap ichida bo'lmasa, API dan to'g'ridan-to'g'ri so'raymiz
-                if dex_api:
-                    try:
-                        pair_data = await dex_api.get_pair(pos.snap.chain, addr)
-                        if pair_data:
-                            cur = parse_snap(pair_data)
-                    except Exception as e:
-                        log.debug(f"Position tracker API error ({addr}): {e}")
+            if not cur and dex_api:
+                try:
+                    pair_data = await dex_api.get_pair(pos.snap.chain, addr)
+                    if pair_data: cur = parse_snap(pair_data)
+                except: continue
+            if not cur: continue
 
-            if not cur:
-                continue
+            p = cur.price_usd
+            mult = p / pos.entry_price
+            time_held = (datetime.now() - pos.opened_at).total_seconds() / 60
 
-            p   = cur.price_usd
-            sym = pos.snap.token_symbol
-
-            # Peak price yangilash (trailing stop logic uchun)
             if p > pos.peak_price:
                 pos.peak_price = p
 
-            pnl_pct = (p / pos.entry_price - 1) * 100
+            # 1. Tiered TP - 2x -> 50%
+            if not pos.sold_50pct and mult >= 2.0:
+                pos.sold_50pct = True
+                await self.send(f"🎯 <b>{pos.snap.token_symbol} — 2X HIT!</b>\n50% sotildi (Capital back). Qolgani House Money!")
+            
+            # 2. Tiered TP - 5x -> yana 30%
+            if pos.sold_50pct and not pos.sold_30pct and mult >= 5.0:
+                pos.sold_30pct = True
+                await self.send(f"🚀 <b>{pos.snap.token_symbol} — 5X!</b>\nYana 30% sotildi. Qolgan 20% moonbag!")
 
-            # O'sish milestones (har 50% o'sishda xabar yuborish)
-            current_milestone = math.floor(pnl_pct / 50) * 50
-            if current_milestone > pos.last_milestone and current_milestone >= 50:
-                pos.last_milestone = current_milestone
-                await self.send(
-                    f"📈 <b>{html.escape(sym)} — KUCHLI O'SISH!</b>\n"
-                    f"Signal berilgandan beri: <b>+{pnl_pct:.1f}%</b> o'sdi! 🔥\n"
-                    f"Kirish: <code>${pos.entry_price:.8f}</code> → Hozir: <code>${p:.8f}</code>\n"
-                    f"🚀 Moonshot davom etmoqda!"
-                )
-
-            # Maqsad 1
-            if not pos.t1_hit and p >= pos.target_1:
-                pos.t1_hit = True
-                await self.send(
-                    f"🎯 <b>{html.escape(sym)} — MAQSAD 1 HIT!</b>\n"
-                    f"Kirish: <code>${pos.entry_price:.8f}</code> → "
-                    f"Hozir: <code>${p:.8f}</code> "
-                    f"(<b>+{pnl_pct:.1f}%</b>)\n"
-                    f"💡 50% foyda oling, qolganini ushlab turing!"
-                )
-
-            # Maqsad 2
-            elif pos.t1_hit and not pos.t2_hit and p >= pos.target_2:
-                pos.t2_hit = True
-                self.closed_pl.append(pnl_pct)
-                self.history.insert(0, {"symbol": sym, "pnl": pnl_pct, "type": "WIN"})
-                G_STATE.add_win(sym, pnl_pct, pos.entry_price, p, addr, pos.snap.chain)
-                await self.send(
-                    f"🚀 <b>{html.escape(sym)} — MAQSAD 2 HIT!</b>\n"
-                    f"Kirish: <code>${pos.entry_price:.8f}</code> → "
-                    f"Hozir: <code>${p:.8f}</code> "
-                    f"(<b>+{pnl_pct:.1f}%</b>)\n"
-                    f"✅ To'liq foyda oling!"
-                )
+            # 3. Trailing Stop - peakdan 20% pasayganda
+            if mult >= 1.5 and (pos.peak_price - p) / pos.peak_price >= 0.20:
+                await self.send(f"📉 <b>{pos.snap.token_symbol} — TRAILING STOP 20% HIT</b>")
                 to_close.append(addr)
+                G_STATE.add_win(pos.snap.token_symbol, (mult-1)*100, pos.entry_price, p, addr, pos.snap.chain)
+                continue
 
-            # Stop-loss
-            elif not pos.sl_hit and p <= pos.stop_loss:
-                pos.sl_hit = True
-                self.closed_pl.append(pnl_pct)
-                self.history.insert(0, {"symbol": sym, "pnl": pnl_pct, "type": "LOSS"})
-                G_STATE.add_loss(sym, pnl_pct, pos.entry_price, p, addr, pos.snap.chain)
-                await self.send(
-                    f"🛑 <b>{html.escape(sym)} — STOP-LOSS!</b>\n"
-                    f"Kirish: <code>${pos.entry_price:.8f}</code> → "
-                    f"Hozir: <code>${p:.8f}</code> "
-                    f"(<b>{pnl_pct:.1f}%</b>)\n"
-                    f"❌ Pozitsiyani yoping. Bozor shundaydir."
-                )
+            # 4. 30 daqiqa time limit (1.5x dan kam bo'lsa)
+            if time_held >= 30 and mult < 1.5:
+                # Stop loss mantiqi (-40% bo'lsa ham yopish uchun foydalanamiz)
+                if mult <= 0.6: 
+                   await self.send(f"🛑 <b>{pos.snap.token_symbol} — STOP LOSS HIT (-40%)</b>")
+                else:
+                   await self.send(f"⏱ <b>{pos.snap.token_symbol} — 30 MIN LIMIT</b>\n1.5x ga yetmadi. Pozitsiya yopildi.")
                 to_close.append(addr)
-
-            # 48 soat limit
-            elif (datetime.now() - pos.opened_at).total_seconds() > 172800:
-                self.closed_pl.append(pnl_pct)
-                to_close.append(addr)
+                G_STATE.add_loss(pos.snap.token_symbol, (mult-1)*100, pos.entry_price, p, addr, pos.snap.chain)
+                continue
 
         for addr in to_close:
             self.positions.pop(addr, None)
@@ -2261,7 +2297,7 @@ class SmartMoneyManager:
 class AINarrativeAnalyzer:
     def __init__(self, http: HttpClient):
         self.http = http
-        self.url  = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+        self.url  = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
     async def analyze(self, snap: MarketSnapshot) -> dict:
         if not GEMINI_API_KEY:
@@ -2284,6 +2320,8 @@ class AINarrativeAnalyzer:
         )
 
         try:
+            # Rate limit (429) oldini olish uchun delay
+            await asyncio.sleep(1.0)
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             async with self.http._get_session() as sess:
                 async with sess.post(self.url, json=payload, timeout=10) as r:
@@ -2295,10 +2333,11 @@ class AINarrativeAnalyzer:
                         res = json.loads(clean_json)
                         return {"score": res.get("score", 5), "text": res.get("summary", "Tahlil yakunlandi.")}
                     else:
-                        log.debug(f"Gemini API xatosi: {r.status}")
-                        return {"score": 5, "text": "AI ga ulanib bo'lmadi."}
+                        resp_text = await r.text()
+                        log.debug(f"Gemini API xatosi [{r.status}]: {resp_text}")
+                        return {"score": 5, "text": f"AI xatosi (Status: {r.status})"}
         except Exception as e:
-            log.error(f"AI tahlilida xato: {e}")
+            log.error(f"AI tahlilida xato: {type(e).__name__}: {e}")
             return {"score": 5, "text": "AI tahlili vaqtinchalik ishlamayapti."}
 
 
@@ -2589,6 +2628,10 @@ class SignalEngine:
         return True
 
     async def analyze(self, snap: MarketSnapshot) -> Optional[SignalResult]:
+        # 0. Kunlik zarar limiti tekshiruvi (PRO v5.5)
+        if G_STATE.stats.get("stop_all", False):
+            return None
+
         # LP monitoring
         self.lp.update(snap)
         lp_score, lp_flags = self.lp.analyze(snap)
@@ -2603,7 +2646,7 @@ class SignalEngine:
         if snap.age_hours < NEW_TOKEN_MIN_HOURS:
             return None  # 15 daqiqadan kichik — juda xavfli
 
-        # 3. Asosiy likvidlik/hajm filtri
+        # 3. Asosiy likvidlik/hajm filtri (Professional: > $50k)
         is_moonshot = (
             MOONSHOT_MIN_MCAP < snap.market_cap < MOONSHOT_MAX_MCAP and
             snap.buy_ratio_5m > MOONSHOT_MIN_BUY_RATIO and
@@ -2611,21 +2654,21 @@ class SignalEngine:
             snap.age_hours >= MOONSHOT_MIN_AGE_HOURS
         )
 
-        # EXPERT FILTR 1: Social Proof (Website yoki Socials majburiy)
+        # PROFESSIONAL FILTR 1: Social Proof (Majburiy)
         if not snap.has_socials:
-            log.debug(f"Expert filter: {snap.token_symbol} — Social links yo'q. Skip.")
-            return None
+            log.debug(f"Pro filter: {snap.token_symbol} — Social links yo'q. Skip.")
+            return None 
 
-        # EXPERT FILTR 2: Organic Volume (Wash tradingga qarshi)
+        # PROFESSIONAL FILTR 2: Organic Volume (Strict)
         if not snap.is_organic_volume:
-            log.debug(f"Expert filter: {snap.token_symbol} — Wash trading shubha. Skip.")
+            log.debug(f"Pro filter: {snap.token_symbol} — Wash trading aniqlandi. Skip.")
             return None
 
         # Yosh tokenlar uchun dinamik minimal hajm
         vol_factor = min(1.0, max(0.2, snap.age_hours))
         dynamic_vol_1h = MIN_VOLUME_1H * vol_factor
 
-        liq_min = MIN_LIQUIDITY * 0.5 if is_moonshot else MIN_LIQUIDITY
+        liq_min = 50_000 # Professional threshold
         vol_ok = snap.volume_1h >= dynamic_vol_1h or snap.volume_24h >= MIN_VOLUME_24H
 
         if snap.liquidity < liq_min or not vol_ok:
@@ -2698,6 +2741,12 @@ class SignalEngine:
         confidence, factors = self.neural.score(
             snap, sec, is_trending, arb_detected, self.regime.current, lp_score
         )
+
+        # PRO v5.5: Volume Power Boost
+        is_power_boost = snap.age_hours < 0.25 and snap.volume_5m > 25000
+        if is_power_boost:
+            confidence += 15
+            log.info(f"🔥 POWER BOOST: {snap.token_symbol} — Birinchi 5 daqiqada volume: ${snap.volume_5m:,.0f}!")
 
         # Bonuslar
         if is_moonshot:
@@ -2773,7 +2822,7 @@ class SignalEngine:
         try: sol_h_val = float(sol_h)
         except: sol_h_val = 0
         
-        is_insider = (top_h > 18 or sol_h_val > 18 or insider_data.get("risk", "").startswith("⚠️ VERY HIGH"))
+        is_insider = (top_h > 25 or sol_h_val > 25 or insider_data.get("risk", "").startswith("🚫 CRITICAL"))
         snipers_found = insider_data.get("snipers_found", 0)
 
         # BUY NOW (Sotib ol) - Faqat Ideal shartlar!
@@ -2974,8 +3023,10 @@ def fmt(sig: SignalResult) -> str:
         )
 
     h_emoji = "🚀🌕" if sig.signal_type == "MOONSHOT_ALPHA" else ""
+    status_label = "KUZATUV KODINI BOSHLASH (Wait/Study)" if "WATCH" in sig.recommendation else f"TAVSIYA: {sig.recommendation}"
+    
     return (
-        f"<b>🚀 TAVSIYA: {sig.recommendation}</b>\n\n"
+        f"<b>📡 {status_label}</b>\n\n"
         f"{sig.emoji} <b>{h_emoji}{sig.signal_type.replace('_',' ')} — "
         f"{html.escape(s.token_symbol)}</b>{extras}\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -3214,19 +3265,29 @@ class WhaleTrackerV4:
             self.total_signals += 1
             if sig.signal_type == "RUG_ALERT":
                 self.rug_alerts += 1
-            elif sig.security_passed:
-                self.tracker.open(sig)
+                continue # Rug alertlar savdoga olinmaydi va alert berilmaydi (shovqinni kamaytirish)
 
-            # FAQAT 'BUY NOW' yoki 'MOONSHOT' signallarni Telegram'ga yuboramiz. 
-            # 'WATCH' va 'STAY OUT' larni Telegram'dan filtrlaymiz (Shovqinni kamaytirish uchun).
-            if "BUY NOW" in sig.recommendation or "MOONSHOT" in sig.recommendation:
+            # FAQAT Telegram'ga yuborilishi kerak bo'lgan signallarnigina ko'rib chiqamiz.
+            # 'STAY OUT' ni Telegram'dan filtrlaymiz (Shovqin). 
+            # 'BUY NOW', 'MOONSHOT' va 'WATCH' signallarni endi yuboramiz.
+            if any(rec in sig.recommendation for rec in ["BUY NOW", "MOONSHOT", "WATCH"]):
+                # 1. Telegram xabarini yuborish
                 await self.send(fmt(sig))
-            log.info(
-                f"{Fore.GREEN if 'BUY' in sig.signal_type or 'MOON' in sig.signal_type else Fore.RED}"
-                f"{'✅' if sig.security_passed else '☠️'} {sig.emoji} "
-                f"{sig.snapshot.token_symbol} [{sig.signal_type}] "
-                f"{sig.confidence}/100{Style.RESET_ALL}"
-            )
+                
+                # 2. Savdoni boshlash (Tracker-ga qo'shish) — FAZAT alertdan so'ng!
+                if sig.security_passed:
+                    self.tracker.open(sig)
+                    
+                log.info(
+                    f"{Fore.GREEN if 'BUY' in sig.signal_type or 'MOON' in sig.signal_type else Fore.YELLOW}"
+                    f"✅ {sig.emoji} {sig.snapshot.token_symbol} [{sig.signal_type}] "
+                    f"{sig.confidence}/100 — ALERT YUBORILDI"
+                    f"{Style.RESET_ALL}"
+                )
+            else:
+                # 'STAY OUT' yoki juda past ishonchli koinlar
+                log.info(f"{Fore.RED}☠️ {sig.snapshot.token_symbol} — Filtrlandi (STAY OUT){Style.RESET_ALL}")
+
             await asyncio.sleep(1.5)
 
         log.info(
