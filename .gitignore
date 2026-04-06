@@ -1,8 +1,21 @@
+# Muhim: Private key va konfiguratsiyani HECH QACHON git ga push qilmang!
 .env
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-wtp_v5.db
-wtp_v4.log
-polled_hashes.json
+*.key
+*.json
+
+# Rust
+target/
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

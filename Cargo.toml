@@ -1,0 +1,62 @@
+[package]
+name = "solana-sniper-bot"
+version = "0.1.0"
+edition = "2021"
+authors = ["Solana Sniper Bot"]
+description = "High-performance Solana token sniper bot for Pump.fun and Raydium"
+
+[[bin]]
+name = "sniper"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "=1.35.1", features = ["full"] }
+tokio-tungstenite = { version = "=0.20.1", features = ["native-tls"] }
+futures-util = "0.3"
+
+# Solana - Rust 1.82+ talab qilinadi (solana-sdk 1.18+)
+# Eski muhitda: solana-sdk = "=1.16.27" va time = "=0.3.20"
+solana-client = "=1.16.27"
+solana-sdk = "=1.16.27"
+solana-program = "=1.16.27"
+spl-token = { version = "=4.0.0", features = ["no-entrypoint"] }
+spl-associated-token-account = { version = "=2.2.0", features = ["no-entrypoint"] }
+
+# Serialization
+borsh = "=0.10.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# HTTP
+reqwest = { version = "=0.11.27", features = ["json", "rustls-tls"] }
+
+# Configuration
+dotenv = "0.15"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Utilities
+anyhow = "1.0"
+thiserror = "1.0"
+chrono = { version = "=0.4.31", features = ["serde"] }
+bs58 = "=0.5.0"
+hex = "0.4"
+rand = "0.8"
+dashmap = "=5.5.3"
+parking_lot = "=0.12.1"
+time = "=0.3.20"
+
+
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 1
