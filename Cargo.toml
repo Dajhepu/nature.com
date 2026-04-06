@@ -9,6 +9,10 @@ description = "High-performance Solana token sniper bot for Pump.fun and Raydium
 name = "sniper"
 path = "src/main.rs"
 
+[[bin]]
+name = "sniper_one"
+path = "sniper_all_in_one.rs"
+
 [dependencies]
 # Async runtime
 tokio = { version = "=1.35.1", features = ["full"] }
