@@ -29,13 +29,16 @@ impl Monitor {
         let raydium_config = self.config.clone();
 
         // Pump.fun va Raydium monitoringini parallel ishlatish
+        let pump_handle = pump_fun::PumpFunMonitor::new(pump_config);
+        let raydium_handle = raydium::RaydiumMonitor::new(raydium_config);
+
         tokio::select! {
-            result = pump_fun::PumpFunMonitor::new(pump_config).run(pump_tx) => {
+            result = pump_handle.run(pump_tx) => {
                 if let Err(e) = result {
                     error!("❌ Pump.fun monitor xatosi: {e}");
                 }
             }
-            result = raydium::RaydiumMonitor::new(raydium_config).run(raydium_tx) => {
+            result = raydium_handle.run(raydium_tx) => {
                 if let Err(e) = result {
                     error!("❌ Raydium monitor xatosi: {e}");
                 }

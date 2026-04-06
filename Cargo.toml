@@ -48,7 +48,7 @@ hex = "0.4"
 rand = "0.8"
 dashmap = "=5.5.3"
 parking_lot = "=0.12.1"
-time = "=0.3.20"
+time = "=0.3.36"
 
 
 
