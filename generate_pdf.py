@@ -3,12 +3,19 @@ import re
 from fpdf import FPDF
 
 class PDF(FPDF):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_unicode = False
+
     def header(self):
         pass
 
     def footer(self):
         self.set_y(-15)
-        self.set_font('DejaVu', '', 10)
+        if self.use_unicode:
+            self.set_font('DejaVu', '', 10)
+        else:
+            self.set_font('helvetica', '', 10)
         self.cell(0, 10, f'{self.page_no()}', 0, 0, 'C')
 
 def find_font(font_name):
@@ -26,37 +33,32 @@ def find_font(font_name):
     return None
 
 def generate_pdf():
-    # Read transcription
     with open('full_transcription.txt', 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Split into pages
     pages = re.split(r'--- PAGE \d+ ---', content)
     pages = [p.strip() for p in pages if p.strip()]
 
-    # PDF instantiation with academic margins
     pdf = PDF(orientation='P', unit='mm', format='A4')
     pdf.set_margins(left=30, top=20, right=15)
     pdf.set_auto_page_break(auto=True, margin=20)
 
-    # Font Discovery
     font_path = find_font('DejaVuSans')
     font_bold_path = find_font('DejaVuSans-Bold')
 
-    if not font_path:
-        print("Warning: DejaVuSans.ttf not found.")
-        pdf.set_font('helvetica', '', 12)
-    else:
+    if font_path:
         pdf.add_font('DejaVu', '', font_path)
         if font_bold_path:
             pdf.add_font('DejaVu', 'B', font_bold_path)
         else:
             pdf.add_font('DejaVu', 'B', font_path)
-        pdf.set_font('DejaVu', '', 12)
+        pdf.use_unicode = True
+        body_font = 'DejaVu'
+    else:
+        print("Warning: DejaVuSans.ttf not found. Using Helvetica fallback.")
+        body_font = 'helvetica'
 
-    # Use a fixed width to avoid 'Not enough horizontal space' issues with multi_cell(0, ...)
-    # Page width is 210mm. Margins are 30mm (L) + 15mm (R) = 45mm.
-    # Effective width = 210 - 45 = 165mm.
+    # Width: 210 - 30 - 15 = 165
     eff_width = 165
 
     for i, page_content in enumerate(pages):
@@ -67,20 +69,27 @@ def generate_pdf():
         for line in lines:
             line = line.strip()
             if not line:
-                pdf.ln(6)
+                pdf.ln(9) # Spacing
                 continue
 
             if i == 0:
-                pdf.set_font('DejaVu', 'B', 14 if "HISOBOTI" in line or "UNIVERSITETI" in line else 12)
+                # Cover
+                pdf.set_font(body_font, 'B', 14 if any(x in line for x in ["HISOBOTI", "UNIVERSITETI", "OLIY"]) else 12)
                 pdf.multi_cell(eff_width, 8, line, align='C')
-            elif line.isupper() and len(line) < 60:
-                pdf.set_font('DejaVu', 'B', 14)
+            elif line.isupper() and len(line) < 70:
+                # Headers
+                pdf.set_font(body_font, 'B', 14)
                 pdf.ln(5)
                 pdf.multi_cell(eff_width, 10, line, align='C')
                 pdf.ln(3)
+            elif "---" in line or "|" in line:
+                # Tables or markers - use standard alignment
+                pdf.set_font(body_font, '', 11)
+                pdf.multi_cell(eff_width, 8, line, align='L')
             else:
-                pdf.set_font('DejaVu', '', 12)
-                pdf.multi_cell(eff_width, 8, line, align='J')
+                # Body
+                pdf.set_font(body_font, '', 12)
+                pdf.multi_cell(eff_width, 9, line, align='J') # 9mm height to fill page
 
     pdf.output("output.pdf")
     print("30-page PDF generated: output.pdf")
