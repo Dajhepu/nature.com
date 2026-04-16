@@ -1,100 +1,114 @@
-NAMANGAN TEXNIKA UNIVERSITETI
+--- PAGE 1 ---
+NAMANGAN MUHANDISLIK-QURILISH INSTITUTI
 IQTISODIYOT FAKULTETI
 "IQTISODIYOT" KAFEDRASI
 "IQTISODIYOT (TARMOQLAR VA SOHALAR BO'YICHA)" TA'LIM YO'NALISHI
 TALABASI
-Ataboyev Islombekning
-
+Rustamov Javohir Rustam o'g'lining
 MALAKAVIY AMALIYOT HISOBOTI
+Amaliyot o'tagan korxona nomi: "JAVOXIR OMAD-FAYZ" MCHJ
+Amaliyot rahbari:
+Institutdan: f.f.d. dots. N. Jiyanov
+Korxonadan: A. Rustamov
+NAMANGAN - 2024
 
-Amaliyot o'tagan korxona nomi: "Seyshel Consalt" MCHJ
-
+--- PAGE 2 ---
 MUNDARIJA
-
 KIRISH ....................................................................................................... 3
 AMALIYOT O'TALGAN JOY HAQIDA ............................................... 5
 AMALIYOT DAVRIDA BAJARILGAN ISHLAR .............................. 7
 XULOSA VA TAKLIFLAR ................................................................... 9
 FOYDALANILGAN ADABIYOTLAR RO'YXATI ............................. 11
 ILOVALAR .............................................................................................. 12
+2
 
+--- PAGE 3 ---
 KIRISH
-
 Bugungi kunda mamlakatimizda iqtisodiy islohotlarning chuqurlashuvi, tadbirkorlik va xususiy sektor faoliyatining rivojlanishi iqtisodiyot yo'nalishida tahsil olayotgan talabalar uchun keng imkoniyatlar yaratmoqda. Xususan, oliy ta'lim muassasalarida o'qitilayotgan nazariy bilimlarni amaliyotda qo'llash, ularni real biznes muhiti bilan uyg'unlashtirish talabaning kasbiy shakllanishida muhim bosqich hisoblanadi.
+Malakaviy amaliyot — bu o'qitilayotgan fanlar va yo'nalishlar bo'yicha o'zlashtirilgan nazariy bilimlarni mustahkamlash, amaliy ko'nikmalarni shakllantirish, shuningdek, zamonaviy ishlab chiqarish va xizmat ko'rsatish korxonalarining ichki ish jarayonlarini chuqur o'rganish imkonini beruvchi muhim bosqichdir. Ayniqsa, iqtisodiyot yo'nalishidagi talabalar uchun bu jarayon moliyaviy tahlil, buxgalteriya hisobi, menejment, marketing kabi sohalarda aniq tajriba orttirish imkonini beradi.
+Mazkur hisobotda men, Mardiyev Azamat Rustamo'g'li, "JAVOXIR OMAD-FAYZ" MCHJda o'tkazgan malakaviy amaliyotim natijalari, korxonaning iqtisodiy faoliyati va uning tashkiliy tuzilmasi bo'yicha olib borgan kuzatuvlarim, tahlillarim hamda takliflarim bayon etilgan. Ushbu korxonada o'tkazilgan amaliyot davomida iqtisodiyot fanlariga doir nazariy bilimlarimni amaliyotda qo'llash, real ishlab chiqarish muhitidagi iqtisodiy jarayonlarni chuqur anglash, moliyaviy hisobotlar bilan ishlash va tahlil qilish ko'nikmalarini shakllantirishga erishdim.
+Bundan tashqari, iqtisodiyotning turli sohalarida, xususan, xususiy sektor va xizmat ko'rsatish tarmoqlarida yuzaga kelayotgan o'zgarishlar, talab va taklif nisbatlari, raqobat muhiti, bozor mexanizmlarining amalda qanday ishlashini o'rganish imkoniyati amaliyot davomida aniq ko'zga tashlandi. Ayniqsa, aholiga gaz bo'yicha xizmat ko'rsatish kabi ijtimoiy jihatdan muhim bo'lgan sohalarda xizmat sifati, narx shakllanishi, mijozlar bilan ishlash tartibi va texnik xavfsizlik talablariga amal qilish kabi jihatlar iqtisodiy tahlil nuqtayi nazaridan katta ahamiyatga ega bo'ldi.
+3
 
-Malakaviy amaliyot — bu o'qitilayotgan fanlar va yo'nalishlar bo'yicha o'zlashtirilgan nazariy bilimlarni mustahkamlash, amaliy ko'nikmalarni shakllantirish, shuningdek, korxonalarning moliyaviy va buxgalteriya faoliyatini chuqur o'rganish imkonini beruvchi muhim bosqichdir. Ayniqsa, iqtisodiyot yo'nalishidagi talabalar uchun bu jarayon buxgalteriya hisobi, moliyaviy tahlil, soliq hisoboti, menejment va marketing kabi sohalarda aniq tajriba orttirish imkonini beradi.
-
-Mazkur hisobotda men, Ataboyev Islombek, "Seyshel Consalt" MCHJda o'tkazgan malakaviy amaliyotim natijalari, korxonaning buxgalteriya faoliyati, moliyaviy hisoboti hamda tashkiliy tuzilmasi bo'yicha olib borgan kuzatuvlarim, tahlillarim va takliflarim bayon etilgan. Ushbu korxonada o'tkazilgan amaliyot davomida iqtisodiyot fanlariga doir nazariy bilimlarimni amaliyotda qo'llash, buxgalteriya hujjatlari bilan ishlash, moliyaviy hisobotlarni tahlil qilish va soliq hisob-kitoblarini yuritish bo'yicha ko'nikmalarimni rivojlantirishga erishdim.
-
-Bundan tashqari, buxgalteriya xizmatlari ko'rsatish sohasida mijozlar bilan ishlash, moliyaviy hujjatlarni rasmiylashtirish, soliq hisobotlarini tayyorlash va elektron platformalar orqali hisobot topshirish jarayonlarini o'rganish imkoniyatiga ega bo'ldim. Bu esa amaliyot davomida kasbiy bilimlarimni mustahkamlashga yordam berdi.
-
+--- PAGE 4 ---
 O'quv rejasida belgilangan malakaviy amaliyotning maqsadi talabani kelajakdagi professional faoliyatiga tayyorlash, nazariy bilimlarni amaliy ko'nikmalar bilan boyitish va mustaqil ishlash qobiliyatini rivojlantirishdan iborat. Amaliyot davomida erishilgan natijalar va to'plangan ma'lumotlar kelgusida bitiruv malakaviy ishimni yozishda hamda kasbiy faoliyatimni samarali tashkil etishda mustahkam poydevor bo'lib xizmat qiladi.
+4
 
+--- PAGE 5 ---
 AMALIYOT O'TALGAN JOY HAQIDA
+"JAVOXIR OMAD-FAYZ" mas'uliyati cheklangan jamiyati (MCHJ) Namangan viloyatida o'z faoliyatini yuritib kelayotgan, asosan aholiga va korxonalarga xizmat ko'rsatishga ixtisoslashgan korxonalardan biri hisoblanadi. Korxonaning asosiy faoliyat yo'nalishi gaz uskunalariga xizmat ko'rsatish, ularni o'rnatish, ta'mirlash hamda aholining gaz ta'minoti bilan bog'liq xavfsizlik va texnik talablarini ta'minlashdan iborat.
+Korxona o'z faoliyatini O'zbekiston Respublikasining "Mas'uliyati cheklangan va qo'shimcha mas'uliyatli jamiyatlar to'g'risida"gi Qonuni va boshqa me'yoriy-huquqiy hujjatlar asosida olib boradi. Tashkiliy tuzilmasi jihatidan korxona sodda va samarali boshqaruv tizimiga ega bo'lib, u direktor, bosh buxgalter, muhandis-texnik xodimlar va xizmat ko'rsatish mutaxassislaridan tashkil topgan.
+"JAVOXIR OMAD-FAYZ" MCHJning asosiy maqsadlari quyidagilardan iborat:
+1. Aholiga yuqori sifatli gaz xizmatlarini ko'rsatish;
+2. Gaz uskunalarining xavfsiz va barqaror ishlashini ta'minlash;
+3. Bozor iqtisodiyoti sharoitida raqobatbardoshlikni oshirish va daromad olish;
+4. Yangi texnologiyalarni joriy etish orqali xizmat ko'rsatish sifatini yaxshilash.
+Korxonaning iqtisodiy ko'rsatkichlari yillar davomida barqaror o'sib bormoqda. Bu, birinchi navbatda, xizmat ko'rsatish sohasidagi talabning yuqoriligi va korxona tomonidan taklif etilayotgan xizmatlarning sifati bilan bog'liqdir. Korxona o'zining moddiy-texnika bazasini muntazam ravishda yangilab boradi, bu esa ish samaradorligini oshirish va mijozlarga tezkor xizmat ko'rsatish imkonini beradi.
+Bundan tashqari, korxona mahalliy hokimiyat organlari va gaz ta'minoti korxonalari bilan yaqin hamkorlikda ishlaydi. Bu hamkorlik aholining xavfsizligini ta'minlashda va gazdan foydalanish madaniyatini oshirishda muhim rol o'ynaydi. Korxonada faoliyat yuritayotgan mutaxassislar muntazam ravishda malaka oshirish kurslarida qatnashib, sohadagi yangiliklar va xavfsizlik qoidalarini o'rganib boradilar.
+Amaliyot davomida korxonaning ichki tartib-qoidalari, hujjatlar aylanishi va moliyaviy-xo'jalik faoliyati bilan yaqindan tanishish imkoniga ega bo'ldim. Korxonaning buxgalteriya hisobi va moliyaviy hisoboti zamonaviy talablar asosida yuritilishi, iqtisodiy tahlillarni o'tkazish uchun boy ma'lumotlar bazasini taqdim etadi.
+5
 
-"Seyshel Consalt" mas'uliyati cheklangan jamiyati (MCHJ) buxgalteriya xizmatlari ko'rsatishga ixtisoslashgan korxonalardan biri hisoblanadi. Korxona kichik biznes subyektlari va yakka tartibdagi tadbirkorlarga buxgalteriya hisobini yuritish, soliq hisobotlarini tayyorlash va moliyaviy maslahat xizmatlarini ko'rsatadi.
-
-Korxona o'z faoliyatini O'zbekiston Respublikasining amaldagi qonunchiligi asosida olib boradi. Tashkiliy tuzilmasi jihatidan korxona direktor, bosh buxgalter va buxgalter mutaxassislardan tashkil topgan.
-
-Korxonaning asosiy faoliyat yo'nalishlari quyidagilardan iborat:
-
-Korxonalar uchun buxgalteriya hisobini yuritish
-Soliq hisobotlarini tayyorlash va topshirish
-Moliyaviy tahlil xizmatlarini ko'rsatish
-Konsalting xizmatlari
-Ish haqi hisob-kitoblarini yuritish
-
-Korxona mijozlarga zamonaviy dasturiy vositalar yordamida xizmat ko'rsatadi. Jumladan, 1C buxgalteriya dasturi, elektron soliq tizimlari va bank xizmatlaridan foydalaniladi.
-
+--- PAGE 6 ---
 Korxonaning tashkiliy tuzilmasi:
-
-• Direktor – umumiy boshqaruv
-• Bosh buxgalter – moliyaviy nazorat
-• Buxgalter – hisob-kitob ishlari
-• Konsalting mutaxassisi – mijozlar bilan ishlash
-
+* Direktor: Umumiy rahbarlik va strategik qarorlar qabul qilish.
+* Bosh buxgalter: Moliyaviy nazorat, hisobotlarni yuritish va soliq masalalari.
+* Muhandis-texnik xodimlar: Xizmat ko'rsatish jarayonini nazorat qilish va texnik xavfsizlikni ta'minlash.
+* Xizmat ko'rsatish mutaxassislari (ustalar): Bevosita joylarda gaz uskunalariga xizmat ko'rsatish va ta'mirlash.
 Korxonaning asosiy vazifalari:
+* Mijozlarning buyurtmalarini o'z vaqtida va sifatli bajarish.
+* Gaz uskunalarining texnik holatini muntazam tekshirib borish.
+* Aholi o'rtasida gazdan xavfsiz foydalanish bo'yicha tushuntirish ishlarini olib borish.
+* Korxonaning iqtisodiy barqarorligini ta'minlash va daromadni optimallashtirish.
+Shunday qilib, "JAVOXIR OMAD-FAYZ" MCHJ Namangan viloyatida gaz xizmati sohasida o'z o'rniga ega bo'lgan, barqaror rivojlanayotgan korxonalardan biridir. Korxonaning faoliyati bevosita aholi turmush darajasini yaxshilash va xavfsizligini ta'minlashga qaratilganligi bilan ahamiyatlidir.
+6
 
-• Mijozlarga sifatli buxgalteriya xizmatlarini ko'rsatish
-• Moliyaviy hujjatlarni to'g'ri yuritish
-• Soliq qonunchiligiga rioya qilish
-• Korxonalarga moliyaviy maslahat berish
-
+--- PAGE 7 ---
 AMALIYOT DAVRIDA BAJARILGAN ISHLAR
+Malakaviy amaliyot davomida "JAVOXIR OMAD-FAYZ" MCHJning iqtisodiy va tashkiliy faoliyati bilan bog'liq qator ishlar amalga oshirildi. Amaliyotнинг har bir bosqichi korxonaning ish jarayonini chuqur o'rganish va nazariy bilimlarni amaliyotda sinab ko'rishga qaratildi.
+1. Korxonaning tashkiliy-huquqiy hujjatlari bilan tanishish:
+Dastlabki kunlarda korxonaning ustavi, guvohnomasi va ichki tartib-qoidalari bilan tanishib chiqdim. "Mas'uliyati cheklangan jamiyat" sifatida korxonaning huquqiy maqomi, ta'sischilarning huquq va majburiyatlari hamda boshqaruv organlarining vakolatlari haqida ma'lumotlarga ega bo'ldim. Bu bosqich korxonaning umumiy faoliyat tamoyillarini tushunishga yordam berdi.
+2. Iqtisodiy ko'rsatkichlarni tahlil qilish:
+Korxonaning so'nggi yillardagi moliyaviy hisobotlari (Balans, Moliyaviy natijalar to'g'risidagi hisobot) asosida iqtisodiy tahlillar o'tkazildi. Unda daromadlar tarkibi, xarajatlar tahlili va sof foydaning shakllanish jarayonlari o'rganildi. Xususan, xizmat ko'rsatish hajmining oshishi korxonaning umumiy daromadiga qanday ta'sir qilayotgani raqamlar misolida ko'rib chiqildi.
+3. Buxgalteriya hisobi jarayonida ishtirok etish:
+Bosh buxgalter rahbarligida korxonaning birlamchi hujjatlari — hisob-fakturalar, to'lov topshiriqnomalari, kirim va chiqim orderlari bilan ishlash tartibi o'rganildi. Shuningdek, xodimlarning ish haqini hisoblash, ijtimoiy to'lovlar va soliq ajratmalarining shakllanishi bo'yicha amaliy ko'nikmalar orttirildi. Korxonada buxgalteriya hisobining avtomatlashtirilgan tizimlari (masalan, 1C)dan foydalanish darajasi ko'rib chiqildi.
+4. Xarajatlarni optimallashtirish bo'yicha o'rganishlar:
+Korxonaning operatsion xarajatlari, jumladan, transport xarajatlari, ehtiyot qismlar sotib olish va xodimlarni rag'batlantirish xarajatlari tahlil qilindi. Xarajatlarni kamaytirish va xizmat ko'rsatish tannarxini pasaytirish bo'yicha mavjud imkoniyatlar o'rganildi. Bu jarayonda korxonaning iqtisodiy samaradorligini oshirish bo'yicha takliflar tayyorlashga harakat qilindi.
+7
 
-Malakaviy amaliyot davomida "Seyshel Consalt" MCHJda quyidagi ishlar bajarildi:
+--- PAGE 8 ---
+5. Marketing va mijozlar bilan ishlash:
+Korxona tomonidan ko'rsatilayotgan xizmatlarga bo'lgan talabni o'rganish maqsadida mijozlar bilan muloqot qilish jarayonlarida qatnashdim. Xizmat ko'rsatish sifatini baholash uchun o'tkazilgan so'rovnomalar va mijozlar fikrlarini tahlil qilishda yordam berdim. Bozor kon'yunkturasi va raqobatchilarning faoliyati bilan tanishish korxonaning marketing strategiyasini tushunishga imkon berdi.
+6. Texnik xavfsizlik va hujjatlashtirish:
+Gaz uskunalariga xizmat ko'rsatishda texnik xavfsizlik qoidalariga rioya qilinishi bo'yicha olib boriladigan nazorat ishlarida ishtirok etdim. Har bir bajarilgan ish uchun rasmiylashtiriladigan dalolatnomalar va texnik xulosalarni tayyorlash tartibi bilan tanishdim.
+7. Bitiruv malakaviy ishi uchun ma'lumotlar to'plash:
+Amaliyot davomida kelajakda yoziladigan bitiruv malakaviy ishi mavzusi bo'yicha kerakli statik va tahliliy ma'lumotlar to'plandi. Korxonaning iqtisodiy o'sish dinamikasi, mavjud muammolar va ularni hal etish yo'llari bo'yicha tahliliy eslatmalar tayyorlandi.
+Umuman olganda, amaliyot davomida bajarilgan ishlar nazariy bilimlarimni amaliy ko'nikmalar bilan mustahkamlashga xizmat qildi. Korxona jamoasi bilan yaqindan ishlash professional muloqot va jamoada ishlash qobiliyatimni oshirdi. Har bir vazifani bajarishda mas'uliyat va aniqlik muhimligini anglab yetdim.
+8
 
-Korxona hujjatlari bilan tanishish
-Korxonaning ustavi, guvohnomasi va boshqa hujjatlari bilan tanishdim.
-Buxgalteriya hujjatlari bilan ishlash
-Hisob-fakturalar, kirim-chiqim orderlari va shartnomalar bilan ishlashni o'rgandim.
-Soliq hisobotlarini tayyorlash
-Soliq hisobotlarini tayyorlash jarayonida ishtirok etdim.
-Ish haqi hisoblash
-Xodimlarning ish haqi va soliq ajratmalarini hisoblashni o'rgandim.
-1C dasturi bilan ishlash
-Buxgalteriya dasturi orqali ma'lumotlar kiritish va hisobotlarni shakllantirishni o'rgandim.
-Bank operatsiyalari
-Bank to'lov topshiriqnomalarini tayyorlash jarayonida qatnashdim.
-Moliyaviy tahlil
-Korxona daromad va xarajatlarini tahlil qilishda ishtirok etdim.
+--- PAGE 9 ---
 XULOSA VA TAKLIFLAR
+"JAVOXIR OMAD-FAYZ" MCHJda o'tkazilgan malakaviy amaliyot davomida korxonaning iqtisodiy-moliyaviy faoliyati, tashkiliy tuzilmasi va ish jarayonlarini chuqur o'rganish natijasida quyidagi xulosalarga kelindi:
+1. Korxona barqaror faoliyat yuritmoqda: Gaz xizmati sohasida faoliyat yurituvchi ushbu korxona aholi va tadbirkorlik sub'ektlari o'rtasida o'z mijozlariga ega. Ko'rsatilayotgan xizmatlarning sifati va xavfsizlik talablariga javob berishi korxonaning bozordagi mavqeini ta'minlamoqda.
+2. Moliyaviy natijalar ijobiy: Korxonaning iqtisodiy ko'rsatkichlari tahlili shuni ko'rsatdiki, daromadlar yildan-yilga o'sib bormoqda, xarajatlar esa nazorat qilinadi. Sof foydaning barqarorligi korxonani yanada rivojlantirish uchun imkoniyat yaratadi.
+3. Boshqaruv tizimi samarali: Korxonaning tashkiliy tuzilmasi ixcham va moslashuvchan bo'lib, qarorlar qabul qilish jarayoni tezkor amalga oshiriladi. Xodimlarning o'z vazifalariga mas'uliyat bilan yondashishi ish samaradorligini oshmoqda.
+4. Nazariya va amaliyot uyg'unligi: Amaliyot davomida oliy ta'limda o'rganilgan iqtisodiy tushunchalar, moliyaviy tahlil usullari va buxgalteriya hisobi qoidalari bevosita amaliyotda qo'llanildi, bu esa kasbiy ko'nikmalarni rivojlantirishga xizmat qildi.
+Shu bilan birga, korxona faoliyatini yanada takomillashtirish maqsadida quyidagi takliflar ishlab chiqildi:
+1. Raqamlashtirishni kengaytirish: Buxgalteriya va mijozlar bilan ishlash tizimini yanada zamonaviylashtirish, xizmat ko'rsatish jarayonini monitoring qiluvchi maxsus dasturiy ta'minotlarni joriy etish ish unumdorligini yanada oshiradi.
+2. Marketing strategiyasini kuchaytirish: Korxona xizmatlarini yanada kengroq targ'ib qilish uchun ijtimoiy tarmoqlar va onlayn platformalardan samarali foydalanish, mijozlar uchun chegirmali paketlar joriy etish maqsadga muvofiq.
+3. Xodimlarning malakasini doimiy oshirish: Texnologiyalar rivojlanib borayotganini hisobga olib, texnik xodimlarni yangi turdagi gaz uskunalariga xizmat ko'rsatish bo'yicha xorijiy tajribalar asosida o'qitish lozim.
+4. Xarajatlarni yanada optimallashtirish: Energiya tejamkor texnologiyalardan foydalanish va logistika marshrutlarini optimallashtirish orqali operatsion xarajatlarni yanada kamaytirish mumkin.
+Ushbu takliflarning amalga oshirilishi "JAVOXIR OMAD-FAYZ" MCHJning kelgusi faoliyatida raqobatbardoshligini oshirishga va iqtisodiy barqarorligini yanada mustahkamlashga xizmat qiladi.
+9
 
-Amaliyot davomida quyidagi xulosalarga kelindi:
-
-Korxona barqaror faoliyat yuritmoqda
-Buxgalteriya hisobi zamonaviy asosda yuritilmoqda
-Mijozlar bilan ishlash samarali yo'lga qo'yilgan
-
-Takliflar:
-
-Raqamlashtirishni kuchaytirish
-Yangi mijozlarni jalb qilish
-Xodimlar malakasini oshirish
-FOYDALANILGAN ADABIYOTLAR
-O'zbekiston Respublikasi Konstitutsiyasi
-Buxgalteriya hisobi to'g'risidagi qonun
-Iqtisodiyot nazariyasi darsligi
-Moliyaviy tahlil qo'llanmasi
-www.lex.uz
-www.soliq.uz
+--- PAGE 10 ---
+FOYDALANILGAN ADABIYOTLAR RO'YXATI
+1. O'zbekiston Respublikasi Konstitutsiyasi. - T.: "O'zbekiston", 2023.
+2. O'zbekiston Respublikasining "Mas'uliyati cheklangan va qo'shimcha mas'uliyatli jamiyatlar to'g'risida"gi Qonuni.
+3. Sh.M.Mirziyoyev. "Yangi O'zbekiston taraqqiyot strategiyasi". - T.: "O'zbekiston", 2022.
+4. Iqtisodiyot nazariyasi (darslik). Sh.Shodmonov, R.Alimov. - T., 2021.
+5. Korxona iqtisodiyoti (o'quv qo'llanma). A.O'lmasov. - T., 2020.
+6. Moliyaviy tahlil usullari. S.Abdukarimov. - T., 2019.
+7. "JAVOXIR OMAD-FAYZ" MCHJning 2022-2023 yillardagi moliyaviy hisobotlari.
+8. www.stat.uz - O'zbekiston Respublikasi Statistika agentligi rasmiy sayti.
+9. www.lex.uz - O'zbekiston Respublikasi Qonunchilik ma'lumotlari milliy bazasi.
+11
