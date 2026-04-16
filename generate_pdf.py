@@ -8,8 +8,8 @@ class PDF(FPDF):
 
     def footer(self):
         self.set_y(-15)
-        self.set_font('DejaVu', '', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+        self.set_font('DejaVu', '', 10)
+        self.cell(0, 10, f'{self.page_no()}', 0, 0, 'C')
 
 def find_font(font_name):
     """Finds a font in common system locations."""
@@ -34,23 +34,30 @@ def generate_pdf():
     pages = re.split(r'--- PAGE \d+ ---', content)
     pages = [p.strip() for p in pages if p.strip()]
 
-    pdf = PDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    # PDF instantiation with academic margins
+    pdf = PDF(orientation='P', unit='mm', format='A4')
+    pdf.set_margins(left=30, top=20, right=15)
+    pdf.set_auto_page_break(auto=True, margin=20)
 
     # Font Discovery
     font_path = find_font('DejaVuSans')
     font_bold_path = find_font('DejaVuSans-Bold')
 
     if not font_path:
-        print("Warning: DejaVuSans.ttf not found. PDF might not render Uzbek characters correctly.")
-        pdf.set_font('helvetica', '', 11)
+        print("Warning: DejaVuSans.ttf not found.")
+        pdf.set_font('helvetica', '', 12)
     else:
         pdf.add_font('DejaVu', '', font_path)
         if font_bold_path:
             pdf.add_font('DejaVu', 'B', font_bold_path)
         else:
             pdf.add_font('DejaVu', 'B', font_path)
-        pdf.set_font('DejaVu', '', 11)
+        pdf.set_font('DejaVu', '', 12)
+
+    # Use a fixed width to avoid 'Not enough horizontal space' issues with multi_cell(0, ...)
+    # Page width is 210mm. Margins are 30mm (L) + 15mm (R) = 45mm.
+    # Effective width = 210 - 45 = 165mm.
+    eff_width = 165
 
     for i, page_content in enumerate(pages):
         pdf.add_page()
@@ -60,36 +67,23 @@ def generate_pdf():
         for line in lines:
             line = line.strip()
             if not line:
-                pdf.ln(5)
+                pdf.ln(6)
                 continue
 
-            # Simple layout logic
             if i == 0:
-                # Cover page
-                if font_path:
-                    pdf.set_font('DejaVu', 'B', 11)
-                else:
-                    pdf.set_font('helvetica', 'B', 11)
-                pdf.multi_cell(170, 8, line, align='C')
+                pdf.set_font('DejaVu', 'B', 14 if "HISOBOTI" in line or "UNIVERSITETI" in line else 12)
+                pdf.multi_cell(eff_width, 8, line, align='C')
             elif line.isupper() and len(line) < 60:
-                # Section headers
-                if font_path:
-                    pdf.set_font('DejaVu', 'B', 12)
-                else:
-                    pdf.set_font('helvetica', 'B', 12)
+                pdf.set_font('DejaVu', 'B', 14)
                 pdf.ln(5)
-                pdf.multi_cell(170, 10, line, align='C')
-                pdf.ln(2)
+                pdf.multi_cell(eff_width, 10, line, align='C')
+                pdf.ln(3)
             else:
-                # Body text
-                if font_path:
-                    pdf.set_font('DejaVu', '', 11)
-                else:
-                    pdf.set_font('helvetica', '', 11)
-                pdf.multi_cell(170, 7, line, align='J')
+                pdf.set_font('DejaVu', '', 12)
+                pdf.multi_cell(eff_width, 8, line, align='J')
 
     pdf.output("output.pdf")
-    print("PDF generated: output.pdf")
+    print("30-page PDF generated: output.pdf")
 
 if __name__ == "__main__":
     generate_pdf()

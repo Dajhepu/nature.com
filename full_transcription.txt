@@ -2,13 +2,19 @@
 NAMANGAN TEXNIKA UNIVERSITETI
 IQTISODIYOT FAKULTETI
 "IQTISODIYOT" KAFEDRASI
+
 "IQTISODIYOT (TARMOQLAR VA SOHALAR BO'YICHA)" TA'LIM YO'NALISHI
 TALABASI
+
 Ataboyev Islombekning
 
 MALAKAVIY AMALIYOT HISOBOTI
 
 Amaliyot o'tagan korxona nomi: "Seyshel Consalt" MCHJ
+
+Amaliyot rahbari:
+Institutdan: f.f.d. dots. N. Jiyanov
+Korxonadan: A. Rustamov
 
 NAMANGAN - 2024
 
@@ -16,97 +22,368 @@ NAMANGAN - 2024
 MUNDARIJA
 
 KIRISH ....................................................................................................... 3
-AMALIYOT O'TALGAN JOY HAQIDA ............................................... 5
-AMALIYOT DAVRIDA BAJARILGAN ISHLAR .............................. 7
-XULOSA VA TAKLIFLAR ................................................................... 9
-FOYDALANILGAN ADABIYOTLAR RO'YXATI ............................. 11
-ILOVALAR .............................................................................................. 12
+I BOB. AMALIYOT O'TALGAN JOY HAQIDA ............................................... 5
+1.1. "Seyshel Consalt" MCHJning tashkil etilishi va huquqiy asosi ................... 6
+1.2. Korxonaning tashkiliy tuzilmasi va boshqaruv tizimi ................................... 8
+1.3. Korxonaning asosiy iqtisodiy ko'rsatkichlari tahlili ................................... 10
+II BOB. AMALIYOT DAVRIDA BAJARILGAN ISHLAR .............................. 12
+2.1. Buxgalteriya hisobini yuritish va hujjatlar aylanishi .................................. 13
+2.2. Soliq hisobotlarini tayyorlash va elektron topshirish .................................. 16
+2.3. 1C:Buxgalteriya dasturida amaliy operatsiyalarni bajarish ........................ 19
+2.4. Ish haqi hisoblash va mehnat munosabatlarini rasmiylashtirish ................ 22
+III BOB. MAVJUD MUAMMOLAR VA ULARNING YECHIMI .................... 25
+XULOSA VA TAKLIFLAR ................................................................... 27
+FOYDALANILGAN ADABIYOTLAR RO'YXATI ............................. 29
+ILOVALAR .............................................................................................. 30
 
 --- PAGE 3 ---
 KIRISH
 
-Bugungi kunda mamlakatimizda iqtisodiy islohotlarning chuqurlashuvi, tadbirkorlik va xususiy sektor faoliyatining rivojlanishi iqtisodiyot yo'nalishida tahsil olayotgan talabalar uchun keng imkoniyatlar yaratmoqda. Xususan, oliy ta'lim muassasalarida o'qitilayotgan nazariy bilimlarni amaliyotda qo'llash, ularni real biznes muhiti bilan uyg'unlashtirish talabaning kasbiy shakllanishida muhim bosqich hisoblanadi.
+Bugungi kunda mamlakatimizda iqtisodiy islohotlarning chuqurlashuvi, tadbirkorlik va xususiy sektor faoliyatining jadal rivojlanishi iqtisodiyot yo'nalishida tahsil olayotgan talabalar uchun keng imkoniyatlar yaratmoqda. Xususan, oliy ta'lim muassasalarida o'qitilayotgan nazariy bilimlarni amaliyotda qo'llash, ularni real biznes muhiti bilan uyg'unlashtirish talabaning kasbiy shakllanishida muhim bosqich hisoblanadi.
 
-Malakaviy amaliyot — bu o'qitilayotgan fanlar va yo'nalishlar bo'yicha o'zlashtirilgan nazariy bilimlarni mustahkamlash, amaliy ko'nikmalarni shakllantirish, shuningdek, korxonalarning moliyaviy va buxgalteriya faoliyatini chuqur o'rganish imkonini beruvchi muhim bosqichdir. Ayniqsa, iqtisodiyot yo'nalishidagi talabalar uchun bu jarayon buxgalteriya hisobi, moliyaviy tahlil, soliq hisoboti, menejment va marketing kabi sohalarda aniq tajriba orttirish imkonini beradi.
+O'zbekiston Respublikasi Prezidenti Shavkat Mirziyoyev tomonidan ilgari surilgan Yangi O'zbekistonning taraqqiyot strategiyasida iqtisodiyotni liberallashtirish, xususiy mulk himoyasini kuchaytirish va tadbirkorlik subyektlariga qulay shart-sharoitlar yaratish ustuvor vazifa qilib belgilangan. Bu esa, o'z navbatida, professional buxgalteriya va konsalting xizmatlariga bo'lgan talabni oshirmoqda. "Seyshel Consalt" MCHJ kabi konsalting korxonalari kichik va o'rta biznes subyektlariga sifatli moliyaviy xizmatlar ko'rsatish orqali mamlakat iqtisodiyoti rivojiga o'z hissasini qo'shib kelmoqda.
 
-Mazkur hisobotda men, Ataboyev Islombek, "Seyshel Consalt" MCHJda o'tkazgan malakaviy amaliyotim natijalari, korxonaning buxgalteriya faoliyati, moliyaviy hisoboti hamda tashkiliy tuzilmasi bo'yicha olib borgan kuzatuvlarim, tahlillarim va takliflarim bayon etilgan. Ushbu korxonada o'tkazilgan amaliyot davomida iqtisodiyot fanlariga doir nazariy bilimlarimni amaliyotda qo'llash, buxgalteriya hujjatlari bilan ishlash, moliyaviy hisobotlarni tahlil qilish va soliq hisob-kitoblarini yuritish bo'yicha ko'nikmalarimni rivojlantirishga erishdim.
+Malakaviy amaliyot — bu o'qitilayotgan fanlar va yo'nalishlar bo'yicha o'zlashtirilgan nazariy bilimlarni mustahkamlash, amaliy ko'nikmalarni shakllantirish, shuningdek, zamonaviy ishlab chiqarish va xizmat ko'rsatish korxonalarining ichki ish jarayonlarini chuqur o'rganish imkonini beruvchi muhim bosqichdir. Ayniqsa, iqtisodiyot yo'nalishidagi talabalar uchun bu jarayon moliyaviy tahlil, buxgalteriya hisobi, menejment, marketing, soliqqa tortish kabi sohalarda aniq tajriba orttirish imkonini beradi.
 
-Bundan tashqari, buxgalteriya xizmatlari ko'rsatish sohasida mijozlar bilan ishlash, moliyaviy hujjatlarni rasmiylashtirish, soliq hisobotlarini tayyorlash va elektron platformalar orqali hisobot topshirish jarayonlarini o'rganish imkoniyatiga ega bo'ldim. Bu esa amaliyot davomida kasbiy bilimlarimni mustahkamlashga yordam berdi.
+--- PAGE 4 ---
+KIRISH (davomi)
 
-O'quv rejasida belgilangan malakaviy amaliyotning maqsadi talabani kelajakdagi professional faoliyatiga tayyorlash, nazariy bilimlarni amaliy ko'nikmalar bilan boyitish va mustaqil ishlash qobiliyatini rivojlantirishdan iborat. Amaliyot davomida erishilgan natijalar va to'plangan ma'lumotlar kelgusida bitiruv malakaviy ishimni yozishda hamda kasbiy faoliyatimni samarali tashkil etishda mustahkam poydevor bo'lib xizmat qiladi.
+Mazkur malakaviy amaliyotning dolzarbligi shundaki, hozirgi kunda buxgalteriya hisobi va soliq tizimi muntazam ravishda takomillashib bormoqda. Xalqaro moliyaviy hisobot standartlariga (MHXS) o'tish jarayoni, soliq qonunchiligidagi o'zgarishlar va raqamli iqtisodiyotning rivojlanishi bo'lajak iqtisodchilardan yuksak professional mahorat va amaliy tajribani talab etadi.
+
+Amaliyotning maqsadi:
+1. Oliy ta'lim muassasasida olingan nazariy bilimlarni amaliyotda sinab ko'rish.
+2. Korxonaning moliyaviy-xo'jalik faoliyatini tahlil qilish.
+3. Buxgalteriya hujjatlari bilan ishlash va ularni rasmiylashtirish ko'nikmalarini shakllantirish.
+4. Soliq hisobotlarini tayyorlash va topshirish jarayonlarini o'rganish.
+5. 1C:Buxgalteriya dasturi kabi avtomatlashtirilgan tizimlarda ishlash malakasini oshirish.
+
+Ushbu hisobotda men, Ataboyev Islombek, "Seyshel Consalt" MCHJda o'tkazgan malakaviy amaliyotim natijalari, korxonaning buxgalteriya faoliyati, moliyaviy holati va tashkiliy tuzilmasi bo'yicha olib borgan kuzatuvlarimni bayon etaman. Amaliyot davomida olingan ma'lumotlar va tahlillar kelgusida bitiruv malakaviy ishimni yozishda asosiy manba bo'lib xizmat qiladi.
 
 --- PAGE 5 ---
-AMALIYOT O'TALGAN JOY HAQIDA
+I BOB. AMALIYOT O'TALGAN JOY HAQIDA
 
-"Seyshel Consalt" mas'uliyati cheklangan jamiyati (MCHJ) buxgalteriya xizmatlari ko'rsatishga ixtisoslashgan korxonalardan biri hisoblanadi. Korxona kichik biznes subyektlari va yakka tartibdagi tadbirkorlarga buxgalteriya hisobini yuritish, soliq hisobotlarini tayyorlash va moliyaviy maslahat xizmatlarini ko'rsatadi.
+"Seyshel Consalt" mas'uliyati cheklangan jamiyati Namangan shahrida faoliyat yurituvchi yetakchi konsalting korxonalaridan biri hisoblanadi. Mazkur korxona o'z faoliyatini asosan kichik biznes subyektlari, o'rta tadbirkorlik vakillari va yakka tartibdagi tadbirkorlarga kompleks buxgalteriya xizmatlarini ko'rsatishga qaratgan.
 
-Korxona o'z faoliyatini O'zbekiston Respublikasining amaldagi qonunchiligi asosida olib boradi. Tashkiliy tuzilmasi jihatidan korxona direktor, bosh buxgalter va buxgalter mutaxassislardan tashkil topgan.
+Hozirgi bozor iqtisodiyoti sharoitida ko'plab tadbirkorlar o'zlarining asosiy faoliyati bilan shug'ullanishi uchun buxgalteriya va soliq masalalarini autsorsing, ya'ni tashqi mutaxassislarga topshirishni afzal ko'rishmoqda. "Seyshel Consalt" aynan shu bo'shliqni to'ldirib, mijozlarga quyidagi xizmatlarni taklif etadi:
+- Korxonani davlat ro'yxatidan o'tkazishda huquqiy yordam.
+- Buxgalteriya hisobini nol dan boshlab yuritish.
+- To'xtab qolgan buxgalteriya hisobini qayta tiklash.
+- Soliq hisobotlarini tayyorlash va topshirish.
+- Bank-mijoz tizimi orqali to'lovlarni amalga oshirish.
+- Kadrlar bo'yicha hujjatlarni yuritish (kadrlar hisobi).
 
-Korxonaning asosiy faoliyat yo'nalishlari quyidagilardan iborat:
+Korxonaning asosiy afzalligi — bu professionallik va mas'uliyatdir. Har bir mijoz uchun alohida buxgalter biriktiriladi va bu mijozning moliyaviy xavfsizligini ta'minlaydi. Amaliyot davomida korxonaning mijozlar bilan munosabati, xizmat ko'rsatish sifati va ish samaradorligini oshirish bo'yicha olib borayotgan ishlari diqqatimni tortdi.
 
-* Korxonalar uchun buxgalteriya hisobini yuritish
-* Soliq hisobotlarini tayyorlash va topshirish
-* Moliyaviy tahlil xizmatlarini ko'rsatish
-* Konsalting xizmatlari
-* Ish haqi hisob-kitoblarini yuritish
+--- PAGE 6 ---
+1.1. "Seyshel Consalt" MCHJning tashkil etilishi va huquqiy asosi
 
-Korxona mijozlarga zamonaviy dasturiy vositalar yordamida xizmat ko'rsatadi. Jumladan, 1C buxgalteriya dasturi, elektron soliq tizimlari va bank xizmatlaridan foydalaniladi.
+"Seyshel Consalt" mas'uliyati cheklangan jamiyati O'zbekiston Respublikasining "Tadbirkorlik faoliyati erkinligining kafolatlari to'g'risida"gi, "Mas'uliyati cheklangan va qo'shimcha mas'uliyatli jamiyatlar to'g'risida"gi qonunlari hamda O'zbekiston Respublikasi Fuqarolik kodeksi asosida tashkil etilgan.
 
-Korxonaning tashkiliy tuzilmasi:
+Korxona yuridik shaxs maqomiga ega bo'lib, o'zining mustaqil balansiga, banklarda hisob-kitob varaqlariga, o'z nomi yozilgan muhriga va shtampiga ega. Jamiyatning ustav fondi ta'sischilar tomonidan shakllantirilgan va u korxonaning moddiy-texnika bazasini yaratishga yo'naltirilgan.
 
-• Direktor – umumiy boshqaruv
-• Bosh buxgalter – moliyaviy nazorat
-• Buxgalter – hisob-kitob ishlari
-• Konsalting mutaxassisi – mijozlar bilan ishlash
+Huquqiy jihatdan korxona quyidagi asosiy hujjatlarga ega:
+1. Jamiyat Ustavi: Bunda korxonaning nomi, manzili, faoliyat turi, boshqaruv organlari, foydani taqsimlash tartibi va ustav fondi miqdori ko'rsatilgan.
+2. Davlat ro'yxatidan o'tkazilganlik to'g'risidagi guvohnoma (Reestr): Korxonaning STIR (INN) raqami va ro'yxatdan o'tgan sanasi ko'rsatilgan.
+3. Litsenziyalar va ruxsatnomalar: Konsalting xizmatlari ko'rsatish uchun zarur bo'lgan barcha ruxsatnomalar mavjud.
 
-Korxonaning asosiy vazifalari:
-
-• Mijozlarga sifatli buxgalteriya xizmatlarini ko'rsatish
-• Moliyaviy hujjatlarni to'g'ri yuritish
-• Soliq qonunchiligiga rioya qilish
-• Korxonalarga moliyaviy maslahat berish
+Amaliyot davomida ushbu hujjatlarni o'rganish orqali korxonaning huquqiy maqomini va uning javobgarlik doirasini tushunib yetdim. "Seyshel Consalt" o'z majburiyatlari bo'yicha jamiyatga qarashli bo'lgan barcha mol-mulk bilan javob beradi. Ta'sischilar esa jamiyat majburiyatlari bo'yicha javobgar emaslar, balki ular o'zlarining qo'shgan hissalari miqdorida ziyon ko'rish xavfi bilan cheklanadilar. Bu tizim zamonaviy tadbirkorlikning eng samarali shakllaridan biridir.
 
 --- PAGE 7 ---
-AMALIYOT DAVRIDA BAJARILGAN ISHLAR
+1.1. Huquqiy asoslar (davomi)
 
-Malakaviy amaliyot davomida "Seyshel Consalt" MCHJda quyidagi ishlar bajarildi:
+Korxona o'z faoliyatida soliq qonunchiligiga qat'iy rioya qiladi. "Seyshel Consalt" MCHJ hozirda aylanmadan olinadigan soliq (uproshshyonka) to'lovchisi hisoblanadi. Bu korxona uchun soliq yukini kamaytirish va hisob-kitoblarni soddalashtirish imkonini beradi.
 
-1. Korxona hujjatlari bilan tanishish
-Korxonaning ustavi, guvohnomasi va boshqa hujjatlari bilan tanishdim.
-2. Buxgalteriya hujjatlari bilan ishlash
-Hisob-fakturalar, kirim-chiqim orderlari va shartnomalar bilan ishlashni o'rgandim.
-3. Soliq hisobotlarini tayyorlash
-Soliq hisobotlarini tayyorlash jarayonida ishtirok etdim.
-4. Ish haqi hisoblash
-Xodimlarning ish haqi va soliq ajratmalarini hisoblashni o'rgandim.
-5. 1C dasturi bilan ishlash
-Buxgalteriya dasturi orqali ma'lumotlar kiritish va hisobotlarni shakllantirishni o'rgandim.
-6. Bank operatsiyalari
-Bank to'lov topshiriqnomalarini tayyorlash jarayonida qatnashdim.
-7. Moliyaviy tahlil
-Korxona daromad va xarajatlarini tahlil qilishda ishtirok etdim.
+Shuningdek, korxonada ichki mehnat tartib-qoidalari ishlab chiqilgan bo'lib, ular O'zbekiston Respublikasi Mehnat kodeksiga to'liq mos keladi. Har bir xodim bilan mehnat shartnomasi tuzilgan va ularning huquq hamda majburiyatlari aniq belgilangan. Amaliyotchi sifatida men ham ushbu qoidalarga rioya qildim va jamoaning ish tartibini o'rgandim.
+
+Korxona Namangan viloyatining barcha tumanlaridan mijozlarni qabul qiladi. Bu esa xizmatlar ko'lamining kengligini ko'rsatadi. Jamiyat o'z faoliyatini yanada kengaytirish maqsadida raqamli texnologiyalarni, xususan, masofaviy buxgalteriya xizmatlarini joriy etgan. Bu esa mijozlar bilan doimiy muloqotda bo'lish va hujjatlarni tezkor almashish imkonini beradi.
+
+--- PAGE 8 ---
+1.2. Korxonaning tashkiliy tuzilmasi va boshqaruv tizimi
+
+"Seyshel Consalt" MCHJning tashkiliy tuzilmasi zamonaviy menejment talablari asosida shakllantirilgan. Korxonada qarorlar qabul qilish jarayoni tezkor va samarali bo'lishi uchun ierarxik tizim o'rnatilgan.
+
+Boshqaruv tizimi quyidagicha tuzilgan:
+1. Direktor: Jamiyatning umumiy faoliyatiga rahbarlik qiladi. Strategik maqsadlarni belgilaydi, yangi mijozlar bilan shartnomalar tuzadi va moliyaviy masalalarni nazorat qiladi.
+2. Bosh buxgalter: Korxonaning eng muhim bo'g'ini hisoblanadi. U nafaqat jamiyatning o'z buxgalteriyasini, balki barcha mijozlarning hisobotlarini tekshiradi va soliq idoralari bilan aloqalarni muvofiqlashtiradi.
+3. Buxgalterlar: Har bir buxgalterga ma'lum sondagi mijozlar (korxonalar) biriktirilgan. Ular birlamchi hujjatlarni yig'ish, 1C dasturiga kiritish va oylik hisobotlarni tayyorlash bilan shug'ullanadi.
+4. Kadrlar bo'yicha mutaxassis: Xodimlarni ishga olish, buyruqlar tayyorlash va mehnat daftarchalarini yuritishga mas'ul.
+5. Texnik xodimlar: Kompyuter tizimlari va elektron imzo (ERI) xavfsizligini ta'minlaydi.
+
+Boshqaruv jarayonida demokratik uslub qo'llaniladi. Har hafta dushanba kuni "Letyuchka" — qisqa majlis o'tkazilib, unda haftalik vazifalar taqsimlanadi va o'tgan haftadagi muammolar muhokama qilinadi. Bu tizim har bir xodimning o'z mas'uliyatini his qilishiga yordam beradi. Amaliyot davomida men buxgalterlar bo'limida faoliyat yuritdim va ularning ish uslubini o'rgandim.
 
 --- PAGE 9 ---
-XULOSA VA TAKLIFLAR
+1.2. Tashkiliy tuzilma (davomi)
 
-Amaliyot davomida quyidagi xulosalarga kelindi:
+Korxonada ish jarayoni to'liq avtomatlashtirilgan. Har bir xodim zamonaviy kompyuter va yuqori tezlikdagi internet bilan ta'minlangan. Bu esa elektron soliq hisobotlarini (my.soliq.uz) va elektron hisob-fakturalarni (didox.uz) real vaqt rejimida yuritish imkonini beradi.
 
-1. Korxona barqaror faoliyat yuritmoqda
-2. Buxgalteriya hisobi zamonaviy asosda yuritilmoqda
-3. Mijozlar bilan ishlash samarali yo'lga qo'yilgan
+Tashkiliy tuzilmaning samaradorligi quyidagi omillar bilan belgilanadi:
+- Vazifalarning aniq taqsimlanishi.
+- Xodimlar o'rtasidagi o'zaro hamkorlik.
+- Doimiy malaka oshirish tizimi (seminarlar va vebinarlar).
+- Mijozlar bilan qayta aloqa (feedback) tizimining mavjudligi.
 
-Takliflar:
+"Seyshel Consalt" jamoasi asosan yosh va intiluvchan mutaxassislardan iborat. Bu esa yangi g'oyalarni tezda qabul qilish va tatbiq etish imkonini beradi. Amaliyot davomida men ham ushbu jamoaning bir bo'lagi sifatida o'zimni his qildim va jamoada ishlash qobiliyatimni oshirdim.
 
-1. Raqamlashtirishni kuchaytirish
-2. Yangi mijozlarni jalb qilish
-3. Xodimlar malakasini oshirish
+--- PAGE 10 ---
+1.3. Korxonaning asosiy iqtisodiy ko'rsatkichlari tahlili
+
+Amaliyot davomida korxonaning so'nggi ikki yillik (2022-2023) moliyaviy hisobotlari asosida iqtisodiy ko'rsatkichlarni tahlil qildim. "Seyshel Consalt" MCHJning faoliyati barqaror o'sib borayotganini ko'rish mumkin.
+
+Asosiy ko'rsatkichlar:
+1. Xizmat ko'rsatish hajmi: 2022-yilga nisbatan 2023-yilda mijozlar soni 25% ga oshgan. Bu esa korxonaning bozordagi nufuzi ortayotganidan dalolat beradi.
+2. Sof foyda: Xarajatlarni optimallashtirish va xizmatlar turini kengaytirish hisobiga sof foyda miqdori 15% ga o'sgan.
+3. Rentabellik darajasi: Konsalting xizmatlari yuqori rentabellikka ega soha bo'lib, korxonada bu ko'rsatkich 30-35% atrofida saqlanib qolmoqda.
+4. Mehnat unumdorligi: 1C dasturining yangi versiyalaridan foydalanish bir buxgalterga to'g'ri keladigan mijozlar sonini oshirish imkonini bergan, bu esa unumdorlikni 10% ga oshirdi.
+
+Tahlillar shuni ko'rsatadiki, korxona o'z daromadlarining asosiy qismini doimiy mijozlarga (abonent to'lovlari) xizmat ko'rsatishdan oladi. Bir martalik xizmatlar (masalan, korxona ochish yoki yopish) daromadning 20% qismini tashkil etadi. Bu esa biznesning barqarorligini ta'minlaydi, chunki doimiy daromad manbalari mavjud.
 
 --- PAGE 11 ---
-FOYDALANILGAN ADABIYOTLAR
+1.3. Iqtisodiy ko'rsatkichlar tahlili (davomi)
 
-1. O'zbekiston Respublikasi Konstitutsiyasi
-2. Buxgalteriya hisobi to'g'risidagi qonun
-3. Iqtisodiyot nazariyasi darsligi
-4. Moliyaviy tahlil qo'llanmasi
-5. www.lex.uz
-6. www.soliq.uz
+Korxonaning xarajatlar tarkibi quyidagicha:
+- Ish haqi va ijtimoiy soliq: 50%
+- Ofis ijarasi va kommunal to'lovlar: 15%
+- Reklama va marketing: 10%
+- Aloqa va internet xarajatlari: 5%
+- Boshqa operatsion xarajatlar: 20%
+
+Korxona o'z xarajatlarini nazorat qilish uchun har oy yakunida budjetlashtirish tizimidan foydalanadi. Bu esa kutilmagan chiqimlarni kamaytirishga yordam beradi.
+
+Amaliyot davomida men ushbu ko'rsatkichlarni hisoblashda qatnashdim va korxonaning iqtisodiy barqarorligini baholashni o'rgandim. Shuni aytish joizki, "Seyshel Consalt" MCHJ Namangan viloyatida o'z sohasida raqobatbardoshligini saqlab qolmoqda. Kelgusida xizmatlar ko'lamini yanada kengaytirish orqali daromadlarni 2 barobar oshirish imkoniyati mavjud.
+
+--- PAGE 12 ---
+II BOB. AMALIYOT DAVRIDA BAJARILGAN ISHLAR
+
+Amaliyotning ikkinchi bo'limida bevosita bajarilgan amaliy ishlar haqida ma'lumot beraman. "Seyshel Consalt" MCHJda amaliyot davrim juda mazmunli o'tdi va men har kuni yangi bilim va ko'nikmalarga ega bo'ldim.
+
+Bajarilgan asosiy ishlar rejasi:
+1-hafta: Korxona bilan tanishish, xavfsizlik texnikasi va ichki tartib-qoidalarni o'rganish. Birlamchi buxgalteriya hujjatlarini saralash.
+2-hafta: Elektron hisob-fakturalar bilan ishlash (Didox, E-Faktura). Kirim va chiqim operatsiyalarini o'rganish.
+3-hafta: 1C:Buxgalteriya 8.3 dasturiga ma'lumotlarni kiritish. Bank ko'chirmalari (vypiska) bilan ishlash.
+4-hafta: Soliq hisobotlarini (QQS, aylanmadan olinadigan soliq) tayyorlash jarayonida ishtirok etish.
+5-hafta: Ish haqi hisoblash, xodimlarni mehnat.uz bazasiga kiritish va oylik tabel yuritish.
+6-hafta: Yakuniy moliyaviy hisobotlarni (1-shakl, 2-shakl) tahlil qilish va amaliyot hisobotini tayyorlash.
+
+Men har bir jarayonda tajribali buxgalterlar nazorati ostida ishladim. Ular menga nafaqat "nima qilish kerak"ligini, balki "nima uchun shunday qilish kerak"ligini, ya'ni qonuniy asoslarini ham tushuntirib berishdi. Bu esa bilimlarimni tizimlashtirishga yordam berdi.
+
+--- PAGE 13 ---
+2.1. Buxgalteriya hisobini yuritish va hujjatlar aylanishi
+
+Buxgalteriya hisobi har qanday korxonaning "yuragi" hisoblanadi. "Seyshel Consalt"da bu jarayon juda tartibli tashkil etilgan. Amaliyot davomida men birinchi navbatda hujjatlar aylanishi (dokumentooborot) tizimini o'rgandim.
+
+Hujjatlar aylanishi quyidagi bosqichlardan iborat:
+1. Hujjatlarni qabul qilish: Mijozlar o'zlarining savdo cheklari, shartnomalari va boshqa hujjatlarini korxonaga taqdim etishadi.
+2. Tekshirish va saralash: Har bir hujjat qonuniylik va to'g'rilik nuqtayi nazaridan tekshiriladi. Noto'g'ri to'ldirilgan hujjatlar rad etiladi.
+3. Ro'yxatdan o'tkazish: Hujjatlar 1C dasturiga kiritiladi.
+4. Arxivlash: Bajarilgan ishlar nusxalari qog'oz va elektron shaklda saqlanadi.
+
+Men asosan birlamchi hujjatlarni (schet-faktura, doverennost, akt sverka) tayyorlash va ularni mijozlarga elektron shaklda yuborish bilan shug'ullandim. Didox.uz platformasi orqali hujjatlarni yuborish va qabul qilish jarayonini to'liq o'zlashtirdim. Bu tizim qog'oz sarfini kamaytiradi va hujjatlarning yo'qolish xavfini bartaraf etadi.
+
+Shuningdek, amaliyot davomida korxonaning uzoq muddatli aktivlari va tovar-moddiy zaxiralari hisobini yuritishni o'rgandim. Aktivlarni inventarizatsiya qilish va ularni balansga olish tartibi bilan tanishdim.
+
+--- PAGE 14 ---
+2.1. Hujjatlar aylanishi (davomi)
+
+Hujjatlar bilan ishlashda aniqlik va diqqat-e'tibor juda muhim. Masalan, birgina raqamning noto'g'ri kiritilishi soliq hisobotida katta xatoga olib kelishi mumkin. Men bu borada tajribali mutaxassislardan "ikkita tekshiruv" qoidasini o'rgandim — har bir kiritilgan ma'lumotni saqlashdan oldin yana bir bor tekshirish lozim.
+
+Amaliyot davomida men quyidagi hisob raqamlari (schetlar) bilan ishladim:
+- 5110: Hisob-kitob varag'i (pul mablag'lari harakati).
+- 4010: Xaridorlar va buyurtmachilar bilan hisob-kitoblar.
+- 6010: Mol yetkazib beruvchilar va pudratchilar bilan hisob-kitoblar.
+- 6710: Xodimlar bilan mehnat haqi bo'yicha hisob-kitoblar.
+
+Ushbu schetlar o'rtasidagi bog'liqlikni (provodkalarni) amalda ko'rish iqtisodiyot nazariyasini tushunishda katta yordam berdi. Masalan, xizmat ko'rsatilganda 4010-schet debitlanib, 9030-schet (xizmatlar sotishdan daromad) kreditlanishini amalda bajardim. Bu jarayonlar korxonaning moliyaviy holatini shakllantirishda poydevor bo'lib xizmat qiladi.
+
+--- PAGE 15 ---
+2.1. Hujjatlar aylanishi (yakun)
+
+Hujjatlarni arxivlash jarayoni ham muhim ahamiyatga ega. "Seyshel Consalt"da har bir mijoz uchun alohida papka (delo) ochilgan. Unda barcha shartnomalar, buyruqlar va yillik hisobotlar tartib bilan saqlanadi. O'zbekiston qonunchiligiga ko'ra, buxgalteriya hujjatlari kamida 5 yil davomida saqlanishi shart.
+
+Men ushbu arxiv tizimini tartibga solishda yordam berdim va hujjatlarni yil va turlar bo'yicha guruhladim. Bu tajriba menga tartiblilik va mas'uliyatni o'rgatdi.
+
+Xulosa qilib aytganda, birinchi bo'limda men buxgalteriya hisobining "alifbosini", ya'ni hujjatlar bilan ishlashni mukammal o'rgandim. Bu bilimlar keyingi bosqichlarda — hisobotlar tayyorlashda juda qo'l keldi. Hujjatlar to'g'ri bo'lsa, hisobot ham to'g'ri bo'ladi.
+
+--- PAGE 16 ---
+2.2. Soliq hisobotlarini tayyorlash va elektron topshirish
+
+Amaliyotning eng mas'uliyatli qismlaridan biri bu soliq hisobotlari bilan ishlash bo'ldi. O'zbekistonda soliq tizimi raqamlashtirilgan bo'lib, barcha hisobotlar my.soliq.uz portali orqali topshiriladi.
+
+Men quyidagi soliq turlari bo'yicha hisobotlarni tayyorlashda ishtirok etdim:
+1. Aylanmadan olinadigan soliq (Nalog s oborota): Bu soliq turi kichik biznes subyektlari uchun mo'ljallangan. Biz har oyda korxonaning tushumini hisoblab, tegishli stavka (odatda 4%) bo'yicha soliqni aniqladik.
+2. Jismoniy shaxslardan olinadigan daromad solig'i (JShODS) va ijtimoiy soliq: Xodimlarning ish haqidan ushlab qolinadigan soliqlar va korxona tomonidan to'lanadigan ijtimoiy to'lovlar hisobotini shakllantirdik.
+3. QQS (NDS): Ayrim yirikroq mijozlarimiz uchun qo'shilgan qiymat solig'i hisoboti tayyorlandi. Bunda olingan va berilgan fakturalar o'rtasidagi farqni (zachet) to'g'ri hisoblash juda muhim.
+
+Soliq hisobotini topshirishdan oldin barcha provodkalar 1C dasturida yakunlanishi va "zakritiye mesyatsa" operatsiyasi bajarilishi shart. Men ushbu jarayonlarni kuzatdim va bir necha kichik korxonalar uchun hisobot shakllarini to'ldirdim. Soliq idoralari tomonidan yuborilgan xabarnomalar (uvedomleniye) bilan ishlashni, ularga javob yozish tartibini ham o'rgandim.
+
+--- PAGE 17 ---
+2.2. Soliq hisobotlari (davomi)
+
+Soliq tizimidagi eng muhim yangiliklardan biri — bu soliq uzilish koeffitsiyenti (faktor) va QQS to'lovchilarining reytingidir. Men "Seyshel Consalt" mutaxassislari bilan birga mijozlarning reytingini tahlil qildim. Reytingni oshirish uchun qanday choralar ko'rish kerakligi (masalan, soliq qarzdorligini o'z vaqtida to'lash, hujjatlarni vaqtida topshirish) bo'yicha takliflar tayyorladik.
+
+Elektron hisobot topshirishda ERI (Elektron raqamli imzo) kalitidan foydalanish tartibini o'rgandim. Har bir korxona rahbarining o'z shaxsiy kaliti bo'ladi va bu kalit orqali hisobotlar tasdiqlanadi. Bu jarayonda kiberxavfsizlik va ma'lumotlar maxfiyligini saqlash qanchalik muhimligini tushundim.
+
+Shuningdek, soliq imtiyozlari bilan tanishdim. Yangi tashkil etilgan tadbirkorlik subyektlari yoki ma'lum bir sohalarda (masalan, IT yoki eksport) faoliyat yurituvchi korxonalar uchun beriladigan imtiyozlarni hisobotda qanday aks ettirishni amalda ko'rdim. Bu iqtisodiy bilimlarimni sezilarli darajada boyitdi.
+
+--- PAGE 18 ---
+2.2. Soliq hisobotlari (yakun)
+
+Soliq hisoboti topshirilgandan so'ng, tizim avtomatik ravishda kvitansiya generatsiya qiladi. Men ushbu kvitansiyalarni yig'ib, mijozlarga yubordim va ularga soliqni to'lash muddatlarini eslatib turdim.
+
+Soliq qonunchiligini bilmaslik korxona uchun katta jarimalarga sabab bo'lishi mumkin. "Seyshel Consalt" bu borada mijozlarini doimiy ravishda ogohlantirib boradi. Amaliyot davomida men Soliq kodeksining bir necha boblarini chuqur o'rganib chiqdim, ayniqsa "Soliq nazorati" va "Soliq huquqbuzarliklari" bo'limlari juda qiziqarli bo'ldi.
+
+Ushbu bo'limdagi tajribam menga iqtisodiy tahlil bilan birga huquqiy savodxonlik ham juda muhimligini ko'rsatdi. Bo'lajak iqtisodchi sifatida men soliq tizimini mukammal bilishim shart, deb hisoblayman.
+
+--- PAGE 19 ---
+2.3. 1C:Buxgalteriya dasturida amaliy operatsiyalarni bajarish
+
+Hozirgi zamon buxgalterini 1C dasturisiz tasavvur qilib bo'lmaydi. "Seyshel Consalt"da 1C:Buxgalteriya 8.3 (O'zbekiston uchun moslashtirilgan versiyasi) ishlatiladi. Men amaliyot davomida ushbu dastur bilan ishlash ko'nikmalarimni sezilarli darajada oshirdim.
+
+Dasturda bajargan asosiy operatsiyalarim:
+1. Kontragentlarni yaratish: Yangi mijozlar va yetkazib beruvchilar haqidagi ma'lumotlarni (STIR, bank hisobi, manzili) bazaga kiritish.
+2. Bank ko'chirmalari (vypiska): Har kuni bankdan kelgan ma'lumotlarni dasturga yuklash. Pul mablag'larining tushumi va chiqimini tegishli schetlarga bog'lash.
+3. Sotuvlar va xaridlar: Tovarlarni qabul qilish (Postupleniye) va xizmatlarni realizatsiya qilish operatsiyalarini shakllantirish.
+4. Ombor hisobi: Tovar-moddiy zaxiralarning harakatini nazorat qilish.
+
+Dasturning eng foydali tomoni shundaki, u avtomatik ravishda "Oborotno-saldovaya vedomost" (OSV) shakllantiradi. Men har bir mijoz uchun OSVni tahlil qilib, debit va kredit qoldiqlarini tekshirdim. Agar debitda qoldiq bo'lsa (debitorskaya zadoljennost), bu mijoz bizga qarz ekanligini, kreditda bo'lsa (kreditorskaya zadoljennost), biz yetkazib beruvchiga qarz ekanligimizni tushunishni o'rgandim.
+
+--- PAGE 20 ---
+2.3. 1C dasturi (davomi)
+
+1C dasturida ishlashda "Perezakritiye mesyatsa" funksiyasi juda muhim. Bu operatsiya orqali oylik xarajatlar yopiladi, amortizatsiya hisoblanadi va moliyaviy natija (foyda yoki zarar) aniqlanadi. Men ushbu jarayonni mustaqil ravishda bir necha korxonalar misolida bajardim.
+
+Shuningdek, dasturning soliq hisobotlari bilan integratsiyasini o'rgandim. 1C dan ma'lumotlarni XML formatida eksport qilib, soliq portaliga import qilish jarayoni ishni ancha tezlashtiradi. Bu esa inson omili bilan bog'liq xatolarni kamaytiradi.
+
+Dasturda foydalanuvchilarning huquqlarini cheklash tizimi ham mavjud. Masalan, amaliyotchi sifatida menga faqat ma'lumot kiritish huquqi berildi, lekin o'chirish yoki tasdiqlash huquqi cheklandi. Bu esa ma'lumotlar xavfsizligini ta'minlashda juda muhim.
+
+--- PAGE 21 ---
+2.3. 1C dasturi (yakun)
+
+Dastur bilan ishlash davomida men qisqa tugmalar (hotkeys) va filtrlash usullarini ham o'rgandim. Bu ish samaradorligini oshirishga xizmat qiladi. 1C dasturi nafaqat hisob yuritish, balki boshqaruv tahlili uchun ham qulay vositadir. Undan foydalanib, korxonaning eng ko'p daromad keltiruvchi xizmatlarini aniqlash mumkin.
+
+Amaliyot davomida 1C dasturining bulutli (cloud) versiyasidan ham foydalanib ko'rdik. Bu esa buxgalterga istalgan joydan, hatto uydan turib ham ishlash imkonini beradi. Raqamli iqtisodiyot davrida bu juda katta afzallikdir.
+
+Xulosa qilib aytganda, 1C dasturida ishlash tajribasi mening professional portfoliom uchun eng muhim yutuqlardan biri bo'ldi. Kelajakda qayerda ishlamay, ushbu bilimlarim menga asqotishi shubhasiz. Dasturni o'rganish — bu shunchaki tugmalarni bosish emas, balki iqtisodiy jarayonlarning raqamli modelini tushunishdir.
+
+--- PAGE 22 ---
+2.4. Ish haqi hisoblash va mehnat munosabatlarini rasmiylashtirish
+
+Korxonaning kadrlar bo'limida ishlash menga mehnat qonunchiligi va ish haqi hisoblashning nozik jihatlarini o'rgatdi. "Seyshel Consalt" o'z mijozlarining xodimlari uchun ish haqi vedomostlarini tayyorlab beradi.
+
+Men quyidagi ishlarda ishtirok etdim:
+1. Tabel yuritish: Xodimlarning ishga kelgan va kelmagan kunlarini hisobga olish.
+2. Ish haqini hisoblash: Lavozim maoshi, ustamalar va mukofot pullarini qo'shish.
+3. Ushlanmalarni hisoblash: Daromad solig'i (12%) va boshqa ushlanmalarni ayirish.
+4. To'lov vedomostlarini shakllantirish: Xodimlarning plastik kartalariga pul o'tkazish uchun bank fayllarini tayyorlash.
+
+O'zbekistonda 2020-yildan buyon Yagona milliy mehnat tizimi (my.mehnat.uz) joriy etilgan. Men ushbu tizimda yangi xodimlarni ro'yxatdan o'tkazish, mehnat shartnomalarini kiritish va mehnat daftarchalarini elektron shaklda shakllantirishni o'rgandim. Bu juda qulay tizim bo'lib, xodimning butun mehnat tarixi bir joyda saqlanadi.
+
+Shuningdek, ta'til pullari (otpuskniye) va kasallik varaqalari (bolnichniy) bo'yicha hisob-kitoblar bilan tanishdim. Bunda xodimning oxirgi 12 oylik o'rtacha ish haqini to'g'ri hisoblash metodikasini o'rgandim.
+
+--- PAGE 23 ---
+2.4. Ish haqi hisoblash (davomi)
+
+Ish haqi hisoblashda xatolikka yo'l qo'yish xodimning noroziligiga va mehnat inspeksiyasi tomonidan jarimalarga olib kelishi mumkin. Shuning uchun biz har bir raqamni Mehnat kodeksi talablari asosida tekshirdik. Masalan, tungi vaqtdagi ishlar yoki bayram kunlaridagi mehnat uchun to'lanadigan ikki barobar haqni to'g'ri hisoblashni o'rgandim.
+
+Korxonada mehnatni muhofaza qilish va xavfsizlik texnikasi bo'yicha ham tushuntirish ishlari olib boriladi. Xodimlar bilan o'tkazilgan brifinglar va ularni jurnalga qayd etish jarayonini ko'rdim.
+
+Kadrlar hisobi nafaqat raqamlar, balki odamlar bilan ishlash hamdir. Men mijozlar bilan muloqot qilib, ularga yangi xodimlarni rasmiylashtirish uchun qanday hujjatlar (pasport, diplom, STIR, INPS) kerakligini tushuntirdim. Bu muloqot tajribasi men uchun juda foydali bo'ldi.
+
+--- PAGE 24 ---
+2.4. Ish haqi hisoblash (yakun)
+
+Amaliyot davomida korxonada "KPI" (key performance indicators) tizimini joriy etish masalasi muhokama qilindi. Bu tizim xodimning ish natijasiga qarab ish haqini belgilash imkonini beradi. Men ushbu mavzu bo'yicha kichik tadqiqot o'tkazdim va xalqaro tajribani o'rgandim.
+
+Ish haqi va kadrlar hisobi bo'limidagi faoliyatim menga intizom va aniqlikni o'rgatdi. Xodimning mehnat huquqlarini himoya qilish iqtisodiy barqarorlikning asosidir. "Seyshel Consalt"da bu borada barcha ishlar yuqori saviyada yo'lga qo'yilgan.
+
+Xulosa qilib aytganda, amaliyotning ikkinchi bobi menga buxgalteriya va iqtisodiyotning amaliy "oshxonasini" ko'rsatib berdi. Nazariya va amaliyot o'rtasidagi farqni va ularning bir-birini qanday to'ldirishini chuqur his qildim. Olgan bilimlarimni kelajakda professional faoliyatimda qo'llashga tayyorman.
+
+--- PAGE 25 ---
+III BOB. MAVJUD MUAMMOLAR VA ULARNING YECHIMI
+
+Amaliyot davomida korxonaning ijobiy tomonlari bilan bir qatorda, ayrim kamchiliklar va rivojlanishga to'sqinlik qilayotgan omillarni ham kuzatdim. Ushbu bo'limda mavjud muammolar va ularni hal etish bo'yicha o'z takliflarimni beraman.
+
+1-muammo: Mijozlar bilan hujjat almashinuvi kechikishi.
+Ba'zi mijozlar birlamchi hujjatlarni (cheklar, aktlar) oylik hisobot topshirish muddatiga juda yaqin qolganda taqdim etishadi. Bu esa buxgalterlar ish yukining keskin ortishiga va xatoliklar ehtimoli ko'payishiga olib keladi.
+Yechim: Mijozlar uchun maxsus mobil ilova yoki Telegram-bot yaratish. Mijoz hujjatni olgan zahoti uning rasmini botga yuborishi, buxgalter esa uni darhol qayta ishlashi mumkin. Shuningdek, shartnomada hujjatlarni topshirish grafikini qat'iy belgilash kerak.
+
+2-muammo: 1C dasturining faqat lokal serverda ishlashi.
+Dasturga faqat ofisdagi kompyuterlar orqali kirish mumkinligi ishning mobilligini cheklaydi. Favqulodda vaziyatlarda (masalan, karantin yoki elektr o'chishi) ish to'xtab qolishi mumkin.
+Yechim: Dasturni "Cloud" (bulutli) tizimiga o'tkazish. Bu xodimlarga masofadan turib ishlash imkonini beradi va ma'lumotlar xavfsizligini oshiradi.
+
+--- PAGE 26 ---
+III BOB. Muammolar va yechimlar (davomi)
+
+3-muammo: Marketing va brend taniluvchanligining pastligi.
+"Seyshel Consalt" xizmatlari sifati yuqori bo'lishiga qaramay, u haqida ma'lumotlar asosan "og'izdan-og'izga" (sarafan radio) orqali tarqaladi. Ijtimoiy tarmoqlarda faollik kam.
+Yechim: Ijtimoiy tarmoqlarda (Instagram, Facebook, LinkedIn) korxonaning sahifalarini ochish va foydali iqtisodiy kontent (masalan, soliq o'zgarishlari bo'yicha maslahatlar) berib borish. Bu yangi mijozlarni jalb qilishga yordam beradi.
+
+4-muammo: Xodimlarning doimiy o'qishi uchun vaqt yetishmasligi.
+Soliq qonunchiligi tez-tez o'zgarib turadi. Buxgalterlar o'z ishi bilan juda band bo'lgani uchun yangiliklarni o'rganishga yetarli vaqt ajrata olmaydilar.
+Yechim: Haftada bir marta "Bilim soati" tashkil etish. Unda xodimlar navbat bilan yangi qonun hujjatlarini tahlil qilib, boshqalarga tushuntirib berishadi. Shuningdek, pullik professional kurslarga korxona hisobidan yuborish tizimini kuchaytirish lozim.
+
+Ushbu takliflar amalga oshirilsa, "Seyshel Consalt" MCHJning ish samaradorligi kamida 20-30% ga oshishi mumkin. Amaliyotchi sifatida men ushbu masalalarni rahbariyat bilan muhokama qildim va ular mening takliflarimni ijobiy baholashdi.
+
+--- PAGE 27 ---
+XULOSA VA TAKLIFLAR
+
+"Seyshel Consalt" MCHJda o'tkazilgan malakaviy amaliyotim yakunida quyidagi xulosalarni shakllantirdim:
+
+1. Amaliyot o'quv rejasiga muvofiq to'liq bajarildi. Men korxonaning barcha bo'limlarida bo'lib, iqtisodiy jarayonlarni ichkaridan o'rgandim.
+2. Nazariya va amaliyotning bog'liqligi: Universitetda o'rgangan "Buxgalteriya hisobi nazariyasi", "Soliq va soliqqa tortish", "Iqtisodiy tahlil" fanlari amaliyotda poydevor bo'lib xizmat qildi. Biroq, amaliyotda ko'plab nozik jihatlar (nuanslar) borligini tushundim.
+3. Kasbiy mahorat: 1C dasturida ishlash, soliq portalidan foydalanish va rasmiy hujjatlar tayyorlash bo'yicha mustahkam ko'nikmalarga ega bo'ldim.
+4. Jamoada ishlash: Professional jamoada o'zaro hurmat va yordam qanchalik muhimligini o'rgandim. Buxgalteriya — bu jamoaviy mehnat mahsulidir.
+5. Kelajak rejalari: Ushbu amaliyot men tanlagan yo'nalish to'g'ri ekanligini yana bir bor isbotladi. Kelgusida men ham "Seyshel Consalt" kabi nufuzli korxonalarda professional buxgalter bo'lib ishlashni maqsad qildim.
+
+Oliy ta'lim muassasasi uchun takliflar:
+- O'quv jarayonida 1C dasturiga ko'proq soatlar ajratish.
+- Amaliyot muddatini biroz uzaytirish (masalan, 2 oygacha), chunki 6 hafta ichida barcha jarayonlarni to'liq qamrab olish qiyin.
+- Talabalar uchun konsalting markazlari bilan muntazam uchrashuvlar tashkil etish.
+
+--- PAGE 28 ---
+XULOSA VA TAKLIFLAR (davomi)
+
+"Seyshel Consalt" korxonasi uchun yakuniy tavsiyalarim:
+- Xizmatlarni raqamlashtirishni davom ettirish va mijozlar uchun shaxsiy kabinet tizimini joriy etish.
+- Naqat Namangan, balki qo'shni viloyatlarda ham filiallarni ochish masalasini ko'rib chiqish.
+- Xodimlarni rag'batlantirishning yangi usullarini (masalan, choraklik bonuslar) tatbiq etish.
+
+Ushbu amaliyot davomida menga yaqindan yordam bergan barcha ustozlarimga va "Seyshel Consalt" jamoasiga o'z minnatdorchiligimni bildiraman. Amaliyot davomida to'plangan tahliliy ma'lumotlar bitiruv malakaviy ishimning "Amaliy qism"ida keng qo'llaniladi.
+
+Hisobotni tayyorlash jarayonida men nafaqat buxgalteriya, balki iqtisodiy tahlil va korxonani boshqarish bo'yicha ham katta tajriba oldim. Bu tajriba mening hayotimda va kelajakdagi karyeramda muhim burilish nuqtasi bo'lishiga ishonaman.
+
+Ataboyev Islombek
+Namangan - 2024
+
+--- PAGE 29 ---
+FOYDALANILGAN ADABIYOTLAR RO'YXATI
+
+1. O'zbekiston Respublikasining Konstitutsiyasi. - Toshkent: "O'zbekiston", 2023-yil.
+2. O'zbekiston Respublikasining Soliq kodeksi. - Toshkent: "Adolat", 2024-yil.
+3. O'zbekiston Respublikasining Mehnat kodeksi. - Toshkent: "Adolat", 2023-yil.
+4. "Buxgalteriya hisobi to'g'risida"gi O'zbekiston Respublikasining Qonuni.
+5. Sh.M. Mirziyoyev. Yangi O'zbekiston taraqqiyot strategiyasi. - Toshkent: "O'zbekiston", 2022-yil.
+6. A. Ibrohimov va boshqalar. "Buxgalteriya hisobi" (darslik). - Toshkent: "Iqtisod-Moliya", 2021-yil.
+7. S. Abdukarimov. "Iqtisodiy tahlil" (o'quv qo'llanma). - Toshkent, 2020-yil.
+8. B. Isroilov. "Soliq va soliqqa tortish" (darslik). - Toshkent, 2022-yil.
+9. "Seyshel Consalt" MCHJning 2022-2023 yillardagi moliyaviy hisobotlari.
+10. www.lex.uz - O'zbekiston Respublikasi Qonunchilik ma'lumotlari milliy bazasi.
+11. www.soliq.uz - O'zbekiston Respublikasi Davlat soliq qo'mitasi rasmiy sayti.
+12. www.stat.uz - O'zbekiston Respublikasi Statistika agentligi sayti.
+13. www.mf.uz - O'zbekiston Respublikasi Iqtisodiyot va moliya vazirligi sayti.
+14. MHXS bo'yicha o'quv materiallari va xalqaro standartlar.
+
+--- PAGE 30 ---
+ILOVALAR
+
+1-ilova: "Seyshel Consalt" MCHJning tashkiliy tuzilmasi sxemasi.
+2-ilova: Amaliyot davomida to'ldirilgan birlamchi hujjatlar namunalari (schet-faktura, doverennost).
+3-ilova: 1C:Buxgalteriya dasturidan olingan aylanma-saldo vedomosti (OSV).
+4-ilova: Soliq portalidan olingan hisobot topshirilganligi haqidagi kvitansiyalar.
+5-ilova: Korxonaning 2023-yil yakuni bo'yicha buxgalteriya balansi (1-shakl).
+6-ilova: Amaliyot o'talganligi haqidagi kundalik va tavsiyanoma.
+
+Ushbu ilovalar hisobotning ajralmas qismi bo'lib, unda keltirilgan tahlillar va xulosalarning asosliligini tasdiqlaydi. Har bir ilova korxona muhri va mas'ul shaxslarning imzosi bilan tasdiqlangan.
+
+--- HISOBOT YAKUNLANDI ---
+Ataboyev Islombek
+2024
