@@ -13,7 +13,6 @@ class PDF(FPDF):
 
 def find_font(font_name):
     """Finds a font in common system locations."""
-    # Priority paths: local, linux common, debian/ubuntu
     paths = [
         f"{font_name}.ttf",
         f"/usr/share/fonts/truetype/dejavu/{font_name}.ttf",
@@ -31,20 +30,8 @@ def generate_pdf():
     with open('full_transcription.txt', 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Define replacements
-    replacements = {
-        "NAMANGAN MUHANDISLIK-QURILISH INSTITUTI": "Namangan texnika universiteti",
-        "Rustamov Javohir Rustam o'g'lining": "Ataboyev Islombekning",
-        "Rustamov Javohir Rustam o'g'li": "Ataboyev Islombek",
-        "Mardiyev Azamat Rustamo'g'li": "Ataboyev Islombek",
-        "JAVOXIR OMAD-FAYZ": "seyshel consalt"
-    }
-
-    modified_text = content
-    for old, new in replacements.items():
-        modified_text = modified_text.replace(old, new)
-
-    pages = re.split(r'--- PAGE \d+ ---', modified_text)
+    # Split into pages
+    pages = re.split(r'--- PAGE \d+ ---', content)
     pages = [p.strip() for p in pages if p.strip()]
 
     pdf = PDF()
@@ -56,13 +43,13 @@ def generate_pdf():
 
     if not font_path:
         print("Warning: DejaVuSans.ttf not found. PDF might not render Uzbek characters correctly.")
-        pdf.set_font('helvetica', '', 11) # Fallback
+        pdf.set_font('helvetica', '', 11)
     else:
         pdf.add_font('DejaVu', '', font_path)
         if font_bold_path:
             pdf.add_font('DejaVu', 'B', font_bold_path)
         else:
-            pdf.add_font('DejaVu', 'B', font_path) # Fallback to normal if bold missing
+            pdf.add_font('DejaVu', 'B', font_path)
         pdf.set_font('DejaVu', '', 11)
 
     for i, page_content in enumerate(pages):
@@ -76,11 +63,9 @@ def generate_pdf():
                 pdf.ln(5)
                 continue
 
-            if re.match(r'^\d+$', line):
-                continue
-
+            # Simple layout logic
             if i == 0:
-                # Cover page logic
+                # Cover page
                 if font_path:
                     pdf.set_font('DejaVu', 'B', 11)
                 else:

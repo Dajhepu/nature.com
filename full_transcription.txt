@@ -1,3 +1,4 @@
+--- PAGE 1 ---
 NAMANGAN TEXNIKA UNIVERSITETI
 IQTISODIYOT FAKULTETI
 "IQTISODIYOT" KAFEDRASI
@@ -9,6 +10,9 @@ MALAKAVIY AMALIYOT HISOBOTI
 
 Amaliyot o'tagan korxona nomi: "Seyshel Consalt" MCHJ
 
+NAMANGAN - 2024
+
+--- PAGE 2 ---
 MUNDARIJA
 
 KIRISH ....................................................................................................... 3
@@ -18,6 +22,7 @@ XULOSA VA TAKLIFLAR ............................................................
 FOYDALANILGAN ADABIYOTLAR RO'YXATI ............................. 11
 ILOVALAR .............................................................................................. 12
 
+--- PAGE 3 ---
 KIRISH
 
 Bugungi kunda mamlakatimizda iqtisodiy islohotlarning chuqurlashuvi, tadbirkorlik va xususiy sektor faoliyatining rivojlanishi iqtisodiyot yo'nalishida tahsil olayotgan talabalar uchun keng imkoniyatlar yaratmoqda. Xususan, oliy ta'lim muassasalarida o'qitilayotgan nazariy bilimlarni amaliyotda qo'llash, ularni real biznes muhiti bilan uyg'unlashtirish talabaning kasbiy shakllanishida muhim bosqich hisoblanadi.
@@ -30,6 +35,7 @@ Bundan tashqari, buxgalteriya xizmatlari ko'rsatish sohasida mijozlar bilan ishl
 
 O'quv rejasida belgilangan malakaviy amaliyotning maqsadi talabani kelajakdagi professional faoliyatiga tayyorlash, nazariy bilimlarni amaliy ko'nikmalar bilan boyitish va mustaqil ishlash qobiliyatini rivojlantirishdan iborat. Amaliyot davomida erishilgan natijalar va to'plangan ma'lumotlar kelgusida bitiruv malakaviy ishimni yozishda hamda kasbiy faoliyatimni samarali tashkil etishda mustahkam poydevor bo'lib xizmat qiladi.
 
+--- PAGE 5 ---
 AMALIYOT O'TALGAN JOY HAQIDA
 
 "Seyshel Consalt" mas'uliyati cheklangan jamiyati (MCHJ) buxgalteriya xizmatlari ko'rsatishga ixtisoslashgan korxonalardan biri hisoblanadi. Korxona kichik biznes subyektlari va yakka tartibdagi tadbirkorlarga buxgalteriya hisobini yuritish, soliq hisobotlarini tayyorlash va moliyaviy maslahat xizmatlarini ko'rsatadi.
@@ -38,11 +44,11 @@ Korxona o'z faoliyatini O'zbekiston Respublikasining amaldagi qonunchiligi asosi
 
 Korxonaning asosiy faoliyat yo'nalishlari quyidagilardan iborat:
 
-Korxonalar uchun buxgalteriya hisobini yuritish
-Soliq hisobotlarini tayyorlash va topshirish
-Moliyaviy tahlil xizmatlarini ko'rsatish
-Konsalting xizmatlari
-Ish haqi hisob-kitoblarini yuritish
+* Korxonalar uchun buxgalteriya hisobini yuritish
+* Soliq hisobotlarini tayyorlash va topshirish
+* Moliyaviy tahlil xizmatlarini ko'rsatish
+* Konsalting xizmatlari
+* Ish haqi hisob-kitoblarini yuritish
 
 Korxona mijozlarga zamonaviy dasturiy vositalar yordamida xizmat ko'rsatadi. Jumladan, 1C buxgalteriya dasturi, elektron soliq tizimlari va bank xizmatlaridan foydalaniladi.
 
@@ -60,41 +66,47 @@ Korxonaning asosiy vazifalari:
 • Soliq qonunchiligiga rioya qilish
 • Korxonalarga moliyaviy maslahat berish
 
+--- PAGE 7 ---
 AMALIYOT DAVRIDA BAJARILGAN ISHLAR
 
 Malakaviy amaliyot davomida "Seyshel Consalt" MCHJda quyidagi ishlar bajarildi:
 
-Korxona hujjatlari bilan tanishish
+1. Korxona hujjatlari bilan tanishish
 Korxonaning ustavi, guvohnomasi va boshqa hujjatlari bilan tanishdim.
-Buxgalteriya hujjatlari bilan ishlash
+2. Buxgalteriya hujjatlari bilan ishlash
 Hisob-fakturalar, kirim-chiqim orderlari va shartnomalar bilan ishlashni o'rgandim.
-Soliq hisobotlarini tayyorlash
+3. Soliq hisobotlarini tayyorlash
 Soliq hisobotlarini tayyorlash jarayonida ishtirok etdim.
-Ish haqi hisoblash
+4. Ish haqi hisoblash
 Xodimlarning ish haqi va soliq ajratmalarini hisoblashni o'rgandim.
-1C dasturi bilan ishlash
+5. 1C dasturi bilan ishlash
 Buxgalteriya dasturi orqali ma'lumotlar kiritish va hisobotlarni shakllantirishni o'rgandim.
-Bank operatsiyalari
+6. Bank operatsiyalari
 Bank to'lov topshiriqnomalarini tayyorlash jarayonida qatnashdim.
-Moliyaviy tahlil
+7. Moliyaviy tahlil
 Korxona daromad va xarajatlarini tahlil qilishda ishtirok etdim.
+
+--- PAGE 9 ---
 XULOSA VA TAKLIFLAR
 
 Amaliyot davomida quyidagi xulosalarga kelindi:
 
-Korxona barqaror faoliyat yuritmoqda
-Buxgalteriya hisobi zamonaviy asosda yuritilmoqda
-Mijozlar bilan ishlash samarali yo'lga qo'yilgan
+1. Korxona barqaror faoliyat yuritmoqda
+2. Buxgalteriya hisobi zamonaviy asosda yuritilmoqda
+3. Mijozlar bilan ishlash samarali yo'lga qo'yilgan
 
 Takliflar:
 
-Raqamlashtirishni kuchaytirish
-Yangi mijozlarni jalb qilish
-Xodimlar malakasini oshirish
+1. Raqamlashtirishni kuchaytirish
+2. Yangi mijozlarni jalb qilish
+3. Xodimlar malakasini oshirish
+
+--- PAGE 11 ---
 FOYDALANILGAN ADABIYOTLAR
-O'zbekiston Respublikasi Konstitutsiyasi
-Buxgalteriya hisobi to'g'risidagi qonun
-Iqtisodiyot nazariyasi darsligi
-Moliyaviy tahlil qo'llanmasi
-www.lex.uz
-www.soliq.uz
+
+1. O'zbekiston Respublikasi Konstitutsiyasi
+2. Buxgalteriya hisobi to'g'risidagi qonun
+3. Iqtisodiyot nazariyasi darsligi
+4. Moliyaviy tahlil qo'llanmasi
+5. www.lex.uz
+6. www.soliq.uz
